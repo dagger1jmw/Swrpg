@@ -92,9 +92,5 @@ export function spillover(input: SpilloverInput): Record<string, number> {
   return raw;
 }
 
-/** Ceiling check helper: the level a target may reach from one source. */
-export function synergyCeiling(relation: SynergyRelation, sourceLevel: number): number {
-  return SYNERGY[relation].ceiling * sourceLevel;
-}
 
 

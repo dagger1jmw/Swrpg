@@ -8,7 +8,7 @@ import { CANON_BY_ID } from '../../data/canonNpcs';
 import { archetypeDef } from '../../data/archetypes';
 import { FORM_IDS } from '../../data/skills';
 import { dateFromAbsDay, toAbsSecond } from '../../engine/calendar';
-import { abilityGap, barrierSeconds, boughtSeconds, chase, holdSetting, losePursuer, pastChance, planEscape, pursuerTier, runHoldDuel, searchSupport, standSeconds, type Ability, type ChaseResult, type LoseResult, type PlanResult, type Pursuer, type PursuerStrength, type Runner } from '../../engine/holds';
+import { abilityGap, boughtSeconds, chase, holdSetting, losePursuer, pastChance, planEscape, pursuerTier, runHoldDuel, searchSupport, standSeconds, type Ability, type ChaseResult, type LoseResult, type PlanResult, type Pursuer, type PursuerStrength, type Runner } from '../../engine/holds';
 import { canonFactionAt, canonRoleAt } from '../../engine/canonRoster';
 import type { DuelState, Fighter } from '../../engine/duel';
 import { nextFloat, seedRng, type RngState } from '../../engine/rng';
@@ -227,7 +227,5 @@ export function resolveHoldTurn(s: GameState, hold: Hold, stated: readonly Escap
   };
 }
 
-/** The barrier a door there would be, for the choices' wording and tests. */
-export const selectBarrier = (s: GameState, foeId: string): number => barrierSeconds(selectHoldSetting(s), pursuerStrength(s, foeId));
 
 export type { DuelState };

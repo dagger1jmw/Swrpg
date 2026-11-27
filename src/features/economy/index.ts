@@ -135,10 +135,12 @@ export function initialEconomy(ctx: InitCtx): EconomySlice {
   };
 }
 
-/** A save made before the economy: the start's money as of now, nothing owed. */
+/** A save made before the economy: the start's money as of now, nothing owed. The start is the save's own day (opt-2 B; was day 0, 1 ABY). */
 function emptyEconomy(raw: Record<string, unknown>): EconomySlice {
   const c = (raw['character'] ?? {}) as { path?: InitCtx['character']['path']; start?: InitCtx['character']['start']; name?: string; birthDay?: number };
-  return initialEconomy({ campaignId: '', branchId: '', seed: '', start: { day: 0, second: 0 }, character: { name: c.name ?? '', birthDay: c.birthDay ?? 0, ...(c.path ? { path: c.path } : {}), ...(c.start ? { start: c.start } : {}) } });
+  const now = ((raw['clock'] ?? {}) as { now?: { day?: number; second?: number } }).now;
+  const start = { day: now?.day ?? c.birthDay ?? 0, second: now?.second ?? 0 };
+  return initialEconomy({ campaignId: '', branchId: '', seed: '', start, character: { name: c.name ?? '', birthDay: c.birthDay ?? 0, ...(c.path ? { path: c.path } : {}), ...(c.start ? { start: c.start } : {}) } });
 }
 
 // ---------------------------------------------------------------- helpers

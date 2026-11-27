@@ -36,8 +36,14 @@ export const CHARISMA_SCALE: readonly (readonly [number, number])[] = [[0, 0], [
 const PHYSICAL: readonly string[] = ['strength', 'agility', 'endurance'];
 
 /** Whether a stat belongs to the figure's focus: its archetype's weights, or Force Knowledge and Meditation by the list. */
+/**
+ * The war commanders whose Tactics is hand set on their sheets (Jared, 26 Nov 2026, opt-2 A3): kept as written, not drawn to the
+ * standing's band (a Jedi or Sith has no Tactics in its archetype's focus).
+ */
+export const COMMAND_FOCUS: readonly string[] = ['lore:revan', 'lore:darth-marr', 'lore:satele-shan', 'lore:darth-malgus', 'lore:meetra-surik', 'lore:orgus-din', 'lore:tol-braga', 'lore:kao-cen-darach'];
+
 function focusHolds(n: Pick<CanonNpc, 'canonId' | 'archetype'>, stat: string): boolean {
-  return stat in archetypeDef(n.archetype).weights || ((stat === 'forceKnowledge' || stat === 'meditation') && KNOWLEDGE_FOCUS.includes(n.canonId));
+  return stat in archetypeDef(n.archetype).weights || ((stat === 'forceKnowledge' || stat === 'meditation') && KNOWLEDGE_FOCUS.includes(n.canonId)) || (stat === 'tactics' && COMMAND_FOCUS.includes(n.canonId));
 }
 
 /** The Force Body a sheet names (no skill of its own until the Force catalog is built). */

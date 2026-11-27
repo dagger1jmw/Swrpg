@@ -373,14 +373,8 @@ export const droidsFeature: FeatureModule<DroidsSlice, GameState> = {
       sources: ['ai', 'player', 'engine'],
       narrative: () => true,
       handle: (slice, e, ctx) => {
-        // The one plain-words channel for gear (m8-ship-life, D-519: a new AI event would break the 12,000-character schema cap):
-        // "ship: ..." goes to the ships feature, "tactic: ..." to tactics, "item: ..." to possessions, as combatStarted hands
-        // its `ships` words to the battles feature.
-        const what = String(e['what']);
-        const head = /^\s*(ship|tactics?|item)s?\s*:/i.exec(what)?.[1]?.toLowerCase();
-        if (head === 'ship') return { slice, emit: [{ type: 'shipAct', what }], notes: ['a ship act (the ships feature reads it)'] };
-        if (head === 'tactic' || head === 'tactics') return { slice, emit: [{ type: 'tacticStudied', what }], notes: ['a tactic learned (the tactics feature reads it)'] };
-        if (head === 'item') return { slice, emit: [{ type: 'itemMoved', what }], notes: ['an item moved (possessions)'] };
+        // Droid words only (opt-2 F): the ship:, tactic: and item: prefixes were retired once shipAct, tacticStudied and itemMoved
+        // became their own events (D-520).
         return handleDroidWords(slice, e, ctx);
       },
     },

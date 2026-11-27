@@ -370,7 +370,3 @@ export function recoverHours(r: Reserve, hours: number, kind: 'meditation' | 'sl
   return { ...r, pool: Math.min(r.poolMax, r.pool + refill * tired * r.poolMax * hours), strain: Math.max(0, r.strain - clear * hours) };
 }
 
-/** The gate-relevant tier lines (reserve §12) for reporting: 0 fresh .. 4 running on will. */
-export function strainTier(strain: number): number {
-  return strain > 1.0 ? 4 : strain >= 0.75 ? 3 : strain >= 0.4 ? 2 : strain >= 0.15 ? 1 : 0;
-}

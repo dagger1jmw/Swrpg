@@ -47,7 +47,7 @@ import { premiumReason, SUMMARY_PREMIUM } from './premium';
 import { jsonAllowance } from './outputBudget';
 import { fightMinionRef, refResolver, resolveIntentRefs } from './refs';
 import { resolveTurn, type Resolution, type TurnDraft } from './resolve';
-import { skipAheadChoice } from './skipAhead';
+import { resumeSkipChoice, skipAheadChoice } from './skipAhead';
 import { choicesAfterTurn, outsideForceOpponents, withoutForceOnImmune } from './fightChoices';
 import { blockadeChoices } from './travel';
 import { escapeChoices } from './escape';
@@ -298,7 +298,9 @@ export async function prepareTurn(deps: TurnDeps, session: Session, input: TurnI
   // A combat beat button (M5, D-145) skips the intent call; its action resolves in step b.
   // The player's own words reach step b for the natural combat words (D-179).
   const text = input.kind === 'typed' ? input.text : input.kind === 'choice' ? input.choice.label : undefined;
-  const resolution = resolveTurn(deps.registry, session.state, intent, input.kind === 'beat' ? { beat: input.action } : input.kind === 'battle' ? { battle: { ...(input.orders ? { orders: input.orders } : {}), ...(input.auto !== undefined ? { auto: input.auto } : {}), ...(input.repairs ? { repairs: true } : {}), ...(input.ground ? { ground: input.ground } : {}) } } : text !== undefined ? { text } : {});
+  // Home days (opt-2 D5a): the Settings switch reaches the skip as an option; the state never holds it.
+  const homeDays = deps.getSettings().stopOnHomeDays === true ? { homeDays: true } : {};
+  const resolution = resolveTurn(deps.registry, session.state, intent, { ...(input.kind === 'beat' ? { beat: input.action } : input.kind === 'battle' ? { battle: { ...(input.orders ? { orders: input.orders } : {}), ...(input.auto !== undefined ? { auto: input.auto } : {}), ...(input.repairs ? { repairs: true } : {}), ...(input.ground ? { ground: input.ground } : {}) } } : text !== undefined ? { text } : {}), ...homeDays });
   return { input, intent, resolution, calls, intentNotes, ...(intentReport ? { intentReport } : {}) };
 }
 
@@ -541,6 +543,10 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
   // A ground battle likewise (m8-ground, D-522): its panel holds the phase's orders.
   const inBattle = state.battles.active !== null || state.battles.ground !== null;
   if (inBattle) choices.splice(0);
+  // "Resume the skip" (opt-2 D5b, D5d): the code's own choice, first, while a paused skip has days left and the character is at
+  // home off duty.
+  const resume = inBattle ? null : resumeSkipChoice(state);
+  if (resume) choices.unshift(resume);
   const skip = inBattle ? null : skipAheadChoice(state, choices);
   const skipNotes: string[] = fc.dropped ? [`fight over: ${fc.dropped} tactical choice(s) dropped (D-181)`] : [];
   if (immune.dropped) skipNotes.push(`outside the Force (${outsideForceOpponents(state).join(', ')}): ${immune.dropped} Force choice(s) dropped`);

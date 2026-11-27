@@ -2,7 +2,7 @@
 // New NPCs enter only through npcIntroduced (AI) or a player's review-queue resolution.
 import { z } from 'zod';
 import { STYLE_BY_ID } from '../../data/martialStyles';
-import { FACTIONS, LIMITS, MAX_AGE_APPROX, NPC_AI_STATES, NPC_ROLES, SPECIES } from '../../data/entities.config';
+import { COLD_STORE, FACTIONS, LIMITS, MAX_AGE_APPROX, NPC_AI_STATES, NPC_ROLES, SPECIES } from '../../data/entities.config';
 import { mintId, normalizeAlias, uniqueAliasMatch } from '../../engine/aliases';
 import { DAYS_PER_YEAR } from '../../engine/calendar';
 import { isHealed, progressHealing } from '../../engine/healing';
@@ -504,9 +504,18 @@ export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
   // Named NPCs heal day by day at rest (health §7), and recover their Vitality overnight.
   onTimeAdvanced: (slice, step) => {
     if (!step.endsDay) return { slice };
+    const day = Math.floor(step.toAbs / 86_400);
     let changed = false;
+    let cold = slice.cold;
     const byId: Record<string, Npc> = {};
     for (const [id, n] of Object.entries(slice.byId)) {
+      // The cold store (opt-2 H2): a dead NPC unseen for a year keeps no health in the hot list.
+      if (n.health && n.status === 'deceased' && day - n.lastSeenDay >= COLD_STORE.afterDays) {
+        changed = true;
+        cold = { ...(cold ?? {}), [id]: n.health };
+        byId[id] = { ...n, health: null };
+        continue;
+      }
       if (!n.health || n.status === 'deceased' || (n.health.vitalityLost === 0 && n.health.wounds.length === 0)) {
         byId[id] = n;
         continue;
@@ -515,7 +524,8 @@ export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
       const wounds = (n.health.wounds as Wound[]).map((w) => (w.severity === 'mortal' && !w.stabilized ? w : progressHealing(w, 1, 1))).filter((w) => !isHealed(w));
       byId[id] = { ...n, health: { ...n.health, vitalityLost: 0, wounds } };
     }
-    return changed ? { slice: { byId } } : { slice };
+    // The rest of the slice stays (opt-2: this returned { byId } alone and dropped canonTraining whenever an NPC healed).
+    return changed ? { slice: { ...slice, byId, ...(cold ? { cold } : {}) } } : { slice };
   },
   selectors: { all: selectNpcs },
 };

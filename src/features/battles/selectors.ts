@@ -68,8 +68,6 @@ export function selectEndedBattleToShow(s: GameState): 'ship' | 'ground' | null 
   if (!sl?.ended || selectActiveBattle(s) !== null || selectGroundBattle(s) !== null || selectGroundPlanning(s) !== null) return null;
   return sl.ended.turn === s.meta.turn ? sl.ended.kind : null;
 }
-/** A ship or ground battle is being fought: the battle panel holds the turn's choices. */
-export const selectInBattle = (s: GameState): boolean => selectActiveBattle(s) !== null || selectGroundBattle(s) !== null;
 /** The ground battle waits on the player's personal fight in their sector. */
 export const selectGroundWaitsOnFight = (s: GameState): string | null => {
   const g = selectGroundBattle(s);

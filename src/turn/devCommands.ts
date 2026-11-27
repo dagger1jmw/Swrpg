@@ -126,8 +126,6 @@ export const TERRAIN_ALIASES: Readonly<Record<string, readonly string[]>> = {
 
 const squash = (x: string): string => x.toLowerCase().replace(/[^a-z0-9]+/g, '');
 
-/** True when the text is a dev command (the chat box sends it here, not to the intent call, in dev mode). */
-export const isDevCommand = (text: string): boolean => /^\/[a-z]/i.test(text.trim());
 
 /**
  * Where typed text goes (m8-fixes E3): anything starting with "/" is a command and never reaches Gemini. Outside dev mode it is
@@ -405,7 +403,8 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
       const parts = args.join(' ').split('|').map((x) => x.trim());
       const [site, enemy, ours, details] = parts;
       if (!site || !enemy) return fail('/ground <site> | <enemy forces> [| <our forces>] [| <details: defending; terrain: ...; weather: fog; jammed>]');
-      apply([{ type: 'groundBattlePlanned', site, enemy, ...(ours ? { ours } : {}), ...(details ? { details } : {}) }], 'dev');
+      // The words line is the dev shorthand; the event takes fields (opt-2 F).
+      apply([{ type: 'groundBattlePlanned', site, enemy, ...(ours ? { ours } : {}), ...(details ? fieldsFromWords(details) : {}) }], 'dev');
       if (refused()) return fail(refused()!);
       return out(true, `ground planning scene opened at ${site}: set the plan in the panel`);
     }
@@ -675,4 +674,31 @@ export async function commitDevCommand(
   const campaign: CampaignRecord = { ...session.campaign, lastPlayedAt: wall.iso };
   await deps.storage.commitTurn(makeEnvelope(deps.registry, state, wall.iso), campaign, entry);
   return { session: { state, history: [...session.history, record], campaign }, record, ok: o.ok, line: o.line, ...(o.simulate503 !== undefined ? { simulate503: o.simulate503 } : {}) };
+}
+
+/**
+ * The old words line ("defending; terrain: a ridge; weather: fog; commander: Major Tarsk; meditator: ...; enemy meditator: ...;
+ * command: ...; jammed") read into fields: the dev command's shorthand only (the narrator sends the fields since opt-2 F).
+ */
+/** groundBattlePlanned's fields (opt-2 F), as the dev shorthand fills them. */
+interface GroundFields { defending?: boolean; terrain?: string; weather?: string; commander?: string; meditator?: string; enemyMeditator?: string; commandHanded?: string; jammed?: boolean }
+function fieldsFromWords(details: string): GroundFields {
+  const parts = details.split(';').map((x) => x.trim()).filter(Boolean);
+  const value = (key: RegExp): string | undefined => parts.map((x) => key.exec(x)).find((m) => m)?.[1]?.trim();
+  const out: GroundFields = {};
+  if (parts.some((x) => /^(?:defending|we hold|holding)\b/i.test(x))) out.defending = true;
+  const terrain = value(/^terrain\s*:\s*(.+)$/i);
+  if (terrain) out.terrain = terrain;
+  const weather = value(/^weather\s*:\s*(\w+)/i);
+  if (weather) out.weather = weather;
+  const commander = value(/^commander\s*:\s*(.+)$/i);
+  if (commander) out.commander = commander;
+  const meditator = value(/^meditator\s*:\s*(.+)$/i);
+  if (meditator) out.meditator = meditator;
+  const enemyMeditator = value(/^enemy meditator\s*:\s*(.+)$/i);
+  if (enemyMeditator) out.enemyMeditator = enemyMeditator;
+  const command = value(/^command\s*:\s*(.+)$/i);
+  if (command) out.commandHanded = command;
+  if (parts.some((x) => /^jammed\b/i.test(x))) out.jammed = true;
+  return out;
 }

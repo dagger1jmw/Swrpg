@@ -18,8 +18,8 @@ import {
   SPECIES_ARCHETYPE,
   ROLE_RANK,
   TALENT_ROLL_ORDERS,
-  WARS,
 } from '../data/npcGen.config';
+import { WAR_YEAR_SHARE, WARS } from '../data/wars';
 import type { TalentLevel } from '../data/progression.config';
 import { TALENT_DOMAINS, type TalentDomain } from '../data/skills';
 import { nextFloat, seedRng, type RngState } from './rng';
@@ -49,9 +49,14 @@ function pickWeighted<T>(rng: RngState, list: readonly (readonly [T, number])[])
   return [list[list.length - 1]![0], next];
 }
 
-/** War years: the overlap of the NPC's adult service years (from 16 or the training start) with the wars of its faction. */
-export function warYearsFor(role: string, faction: string, age: number, startAge: number, year: number): number {
+/**
+ * War years: the overlap of the NPC's adult service years (from 16 or the training start) with the wars of its faction (the one
+ * dated list, data/wars.ts), times its archetype's share (opt-2 A2: front line every year, support half, non-combat none).
+ */
+export function warYearsFor(role: string, faction: string, age: number, startAge: number, year: number, archetype?: string): number {
   if (!COMBATANT_ROLES.includes(role)) return 0;
+  const share = archetype === undefined ? 1 : (WAR_YEAR_SHARE[archetype] ?? 0);
+  if (share === 0) return 0;
   const serviceFrom = year - (age - Math.max(16, startAge));
   let total = 0;
   for (const w of WARS) {
@@ -60,7 +65,7 @@ export function warYearsFor(role: string, faction: string, age: number, startAge
     const to = Math.min(year, -w.toBby);
     if (to > from) total += to - from;
   }
-  return total;
+  return total * share;
 }
 
 export function rollNpcInputs(input: { campaignSeed: string; npcId: string; role: string; rankRole?: string; faction: string; age: number; year: number; species?: string }): NpcGenInputs {
@@ -85,7 +90,7 @@ export function rollNpcInputs(input: { campaignSeed: string; npcId: string; role
   const startAge = Math.min(input.age, lo + u * (hi - lo));
   // An era-corrected role keeps the original role's rank (D-320).
   const rank = ROLE_RANK[input.rankRole ?? input.role] ?? (def.path === 'career' ? 'career' : 'none');
-  return { archetype, path: def.path, talents, startAge, warYears: warYearsFor(input.role, input.faction, input.age, startAge, input.year), rank, seed, minionGrade: null };
+  return { archetype, path: def.path, talents, startAge, warYears: warYearsFor(input.role, input.faction, input.age, startAge, input.year, archetype), rank, seed, minionGrade: null };
 }
 
 /** Per-skill variance exp(N(0, 0.12)), seeded by the NPC and the skill (npc-generation §1). */

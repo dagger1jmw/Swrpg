@@ -1,6 +1,7 @@
 // The world-event tag network in real turns (M8 Phase A, D-466): the fixture stands in for the shipped network (empty in
 // Phase A). A rolled check counts against the condition it is about; a montage stops on a galaxy-shaking event; the
 // narrator is given what the engine decided, once.
+import { quietDuty } from '../support/duty';
 import { describe, expect, it, vi } from 'vitest';
 import { createModelRouter, type QuotaState } from '../../src/ai/fallback';
 import { createFixtureProvider, type FixtureStep } from '../../src/ai/fixtureProvider';
@@ -35,7 +36,8 @@ function start(on: number, seed = 'net'): GameState {
     character: { name: 'Kael', birthDay: on - 25 * 368, path: 'jedi', archetype: 'jediGuardian', mainFormId: 'soresu', secondFormId: 'ataru', trainingStartAge: 4 },
     rank: 'knight',
   });
-  const s = applyEvents(REGISTRY, state, [{ type: 'locationIntroduced', name: 'Coruscant', kind: 'planet', region: 'Core Worlds', description: 'The capital.', moveHere: true }], { source: 'ai' }).state;
+  // Duty's mission roll kept quiet (opt-2 D): these tests are about the timeline.
+  const s = applyEvents(REGISTRY, quietDuty(state), [{ type: 'locationIntroduced', name: 'Coruscant', kind: 'planet', region: 'Core Worlds', description: 'The capital.', moveHere: true }], { source: 'ai' }).state;
   // A lead recorded in play (D-468).
   return applyEvents(REGISTRY, s, [{ type: 'factLearned', aboutRef: 'Coruscant', fact: 'Strangers have been counting the patrols', importance: 'major' }], { source: 'ai' }).state;
 }

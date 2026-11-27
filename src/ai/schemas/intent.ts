@@ -76,7 +76,6 @@ export const intentSchema = z.object({
 export type Intent = z.infer<typeof intentSchema>;
 export type RequestedSpan = z.infer<typeof requestedSpanSchema>;
 export type ActivityIntent = z.infer<typeof activityIntentSchema>;
-export type SequenceStepIntent = z.infer<typeof sequenceStepSchema>;
 
 // A month is a twelfth of the 368-day year (D-38), a year 368 days (M4: montage and time-skip spans).
 const UNIT_SECONDS: Record<(typeof SPAN_UNITS)[number], number> = { seconds: 1, minutes: 60, hours: 3600, days: 86_400, weeks: 7 * 86_400, months: (368 / 12) * 86_400, years: 368 * 86_400 };

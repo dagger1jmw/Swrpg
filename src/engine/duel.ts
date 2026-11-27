@@ -51,7 +51,7 @@ import { applyDamage, bypassFraction, damageOf, isSaber, rollLocation, severityO
 import { fatigueLevelFactor } from './fatigue';
 import { addFixedLoad, forceFraction, forceWithin } from './forceMeter';
 import { PRECOG_TRIAL, precogUpkeep, trialPool, type PrecogTrialState } from './precogTrial';
-import { styleEdge } from './martialStyles';
+import { forceSensePrecog, stackedSkill, styleEdge } from './martialStyles';
 import type { StyleEdgeKind } from '../data/martialStyles';
 import { isFittedAid, lastingPenalty, lastingState, limbState, type LastingInjury } from './lasting';
 import { aidHit, causeOfWeapon, withCondition } from './medicine';
@@ -106,6 +106,8 @@ export interface Fighter {
   speciesId?: string;
   forceSense: number;
   willpower: number;
+  /** Active pain suppression's share of the wound penalty (health §8; the player's powers, opt-2 E1). */
+  suppression?: number;
   agility: number;
   endurance: number;
   /** Shatterpoint level when the fighter has shatterpoint perception; 0 otherwise. */
@@ -345,12 +347,13 @@ export function cannotDuel(f: Fighter): 'leg' | 'arm' | null {
 /** Effective level (rolls §1) with wounds, lasting injuries, rust, Spent and fatigue; the off hand when the weapon arm is badly wounded (D-198). */
 export function fighterEffectiveLevel(f: Fighter): number {
   const offHand = !f.minion && weaponArmState(f) === 'offHand' ? 1 - WOUND_FIGHTING.offHandPenalty : 1;
-  const wound = woundPenalty(f.wounds, f.skillId, { willpower: f.willpower });
+  const wound = woundPenalty(f.wounds, f.skillId, { willpower: f.willpower, suppression: f.suppression ?? 0 });
   const lasting = lastingPenalty(f.lasting, f.skillId);
   // Fatigue keeps biting past 1.0 x capacity, down to 0.4 at the hard limit (D-234).
   const fat = fatigueLevelFactor(f.caps.p > 0 ? f.meters.p / f.caps.p : 0);
   // m8-skills (D-513): the style adds to the skill (weapon proficiency would multiply it; not built yet).
-  return (f.level + (f.style?.bonus ?? 0)) * offHand * (1 - wound) * (1 - lasting) * (1 - f.rust) * (f.vitality <= 0 ? SPENT_LEVEL_FACTOR : 1) * fat;
+  // The stacked skill (engine/martialStyles stackedSkill; opt-2 E3): weapon proficiency is not built, so its factor is 1.
+  return stackedSkill(f.level, 1, f.style?.bonus ?? 0) * offHand * (1 - wound) * (1 - lasting) * (1 - f.rust) * (f.vitality <= 0 ? SPENT_LEVEL_FACTOR : 1) * fat;
 }
 
 /** A fighter's trait edges on one roll (M8 item 16): held to +-2 together. */
@@ -672,7 +675,8 @@ function precog(f: Fighter, surprise: boolean, rng: RngState, x: { force: boolea
   const anticipation = x.meleeAttack ? (f.style?.anticipation ?? 0) : 0;
   const forceOk = x.force && f.forceSense > 0 && forceWithin(f.meters.f, f.caps.f, PRECOG.maxForceMeter) && !(PRECOG_TRIAL.enabled && f.precogTrial?.dark);
   // The M6 trial (harness only, off by default): senses dark at running on will.
-  const own = forceOk ? Math.min(PRECOG.maxChance, f.forceSense * PRECOG.perForceSense) + (f.stateOfMind === 'centered' ? PRECOG.centeredBonus : 0) : 0;
+  // The shared rule (engine/martialStyles forceSensePrecog; opt-2 E3: one path), plus the centred bonus.
+  const own = forceOk ? forceSensePrecog(f.forceSense) + (f.stateOfMind === 'centered' ? PRECOG.centeredBonus : 0) : 0;
   if (own <= 0 && anticipation <= 0) return { used: false, avoided: false, rng };
   const [u, r] = nextFloat(rng);
   if (anticipation > own) return { used: true, avoided: u < anticipation, rng: r, anticipation: true };

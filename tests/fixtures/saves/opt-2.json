@@ -1,0 +1,699 @@
+{
+ "format": "swrpg-v2",
+ "envelopeVersion": 1,
+ "featureVersions": {
+  "clock": 1,
+  "character": 5,
+  "locations": 2,
+  "memory": 1,
+  "flags": 1,
+  "routines": 1,
+  "health": 2,
+  "combat": 1,
+  "progression": 5,
+  "npcs": 2,
+  "relationships": 1,
+  "threads": 1,
+  "ranks": 2,
+  "world": 5,
+  "economy": 1,
+  "droids": 1,
+  "traits": 1,
+  "battles": 2,
+  "ships": 1,
+  "tactics": 2,
+  "possessions": 1,
+  "duty": 1,
+  "pacing": 2
+ },
+ "savedAt": "2026-11-27T00:00:00.000Z",
+ "state": {
+  "meta": {
+   "schemaVersion": 1,
+   "campaignId": "fixture-campaign",
+   "branchId": "fixture-branch",
+   "turn": 0,
+   "rngState": [
+    547969466,
+    207412024,
+    2444927066,
+    1117543588
+   ]
+  },
+  "clock": {
+   "now": {
+    "day": -1347554,
+    "second": 32400
+   },
+   "lastAdvance": null,
+   "startDay": -1347554
+  },
+  "character": {
+   "id": "character:fixture-campaign",
+   "name": "Kael Voss",
+   "birthDay": -1358594,
+   "speciesId": "human",
+   "path": "jedi",
+   "archetype": "jediGuardian",
+   "focusWeights": {
+    "soresu": 0.3636363636363636,
+    "ataru": 0.1818181818181818,
+    "forceControl": 0.09090909090909091,
+    "forceSense": 0.07575757575757576,
+    "strength": 0.07575757575757576,
+    "agility": 0.07575757575757576,
+    "endurance": 0.07575757575757576,
+    "willpower": 0.060606060606060615
+   },
+   "mainFormId": "soresu",
+   "secondFormId": "ataru",
+   "trainingStartAge": 4,
+   "talents": {},
+   "dominantHand": "right",
+   "unbalanced": false,
+   "formPlan": {
+    "padawan": {
+     "soresu": 2,
+     "ataru": 1
+    },
+    "knight": {
+     "soresu": 2,
+     "ataru": 1
+    }
+   },
+   "testCharacter": true
+  },
+  "locations": {
+   "byId": {
+    "loc:coruscant": {
+     "id": "loc:coruscant",
+     "name": "Coruscant",
+     "aliases": [],
+     "kind": "planet",
+     "region": "Core Worlds",
+     "parentId": null,
+     "description": "The Republic capital. Starving under the Hydian Way blockade; food riots in the lower levels.",
+     "firstVisitDay": null,
+     "introducedTurn": 1
+    },
+    "loc:jedi-temple": {
+     "id": "loc:jedi-temple",
+     "name": "Jedi Temple",
+     "aliases": [],
+     "kind": "building",
+     "region": "Coruscant",
+     "parentId": "loc:coruscant",
+     "description": "The Jedi Temple on Coruscant; Masters come and go from the front. The Council debates the blockade.",
+     "firstVisitDay": -1347554,
+     "introducedTurn": 1
+    }
+   },
+   "currentId": "loc:jedi-temple",
+   "currentSinceDay": -1347554
+  },
+  "memory": {
+   "facts": [
+    {
+     "id": "fact:1",
+     "aboutRef": "pc",
+     "text": "Kael Voss is a Human, born in 3,691 BBY.",
+     "turn": 0,
+     "day": -1347554,
+     "importance": "major"
+    },
+    {
+     "id": "fact:2",
+     "aboutRef": "pc",
+     "text": "Began training at age 4 at the Jedi Temple on Coruscant.",
+     "turn": 0,
+     "day": -1347554,
+     "importance": "major"
+    },
+    {
+     "id": "fact:3",
+     "aboutRef": "pc",
+     "text": "Trains as a Jedi Guardian; main lightsaber form Soresu.",
+     "turn": 0,
+     "day": -1347554,
+     "importance": "major"
+    },
+    {
+     "id": "fact:4",
+     "aboutRef": "pc",
+     "text": "Became a Padawan at about age 12.",
+     "turn": 0,
+     "day": -1347554,
+     "importance": "major"
+    },
+    {
+     "id": "fact:5",
+     "aboutRef": "pc",
+     "text": "Knighted at about age 25.",
+     "turn": 0,
+     "day": -1347554,
+     "importance": "major"
+    },
+    {
+     "id": "fact:6",
+     "aboutRef": "pc",
+     "text": "Learned Shii-Cho as an Initiate; as a Padawan trained Soresu 2 h, Ataru 1 h a day.",
+     "turn": 0,
+     "day": -1347554,
+     "importance": "major"
+    }
+   ],
+   "playerPins": [],
+   "chapters": [],
+   "arc": null,
+   "current": {
+    "startTurn": 0,
+    "startDay": -1347554,
+    "signals": []
+   },
+   "review": [],
+   "nextSeq": 7
+  },
+  "flags": {
+   "set": []
+  },
+  "routines": {
+   "active": {
+    "priorities": null,
+    "effort": "standard",
+    "daysPerWeek": 6,
+    "wakeSecond": 21600,
+    "sleepHours": 8,
+    "lockedBlocks": [],
+    "masterRef": null,
+    "fillSource": null
+   },
+   "templates": [],
+   "suggested": null,
+   "fillCredit": {},
+   "nextSeq": 1
+  },
+  "health": {
+   "meters": {
+    "p": 0,
+    "m": 0,
+    "f": 0
+   },
+   "sleepCarry": 0,
+   "vitalityLost": 0,
+   "wounds": [],
+   "lasting": [],
+   "dying": null,
+   "death": null,
+   "care": null,
+   "suppression": [],
+   "woundSeq": 1,
+   "pendingHazards": []
+  },
+  "combat": {
+   "pending": null,
+   "active": null,
+   "fates": [],
+   "last": null,
+   "seq": 1
+  },
+  "progression": {
+   "skills": {
+    "endurance": {
+     "xp": 2002.0329491339066,
+     "rust": 0,
+     "lastPracticedDay": -1347554
+    },
+    "strength": {
+     "xp": 1558.7473152363816,
+     "rust": 0,
+     "lastPracticedDay": -1347554
+    },
+    "agility": {
+     "xp": 1627.6930865353356,
+     "rust": 0,
+     "lastPracticedDay": -1347554
+    },
+    "forceControl": {
+     "xp": 10576.558996876944,
+     "rust": 0,
+     "lastPracticedDay": -1347554
+    },
+    "forceSense": {
+     "xp": 10035.331964033685,
+     "rust": 0,
+     "lastPracticedDay": -1347554
+    },
+    "willpower": {
+     "xp": 13185.067372535774,
+     "rust": 0,
+     "lastPracticedDay": -1347554
+    },
+    "meditation": {
+     "xp": 2048.2345799416303,
+     "rust": 0,
+     "lastPracticedDay": -1347554
+    },
+    "forceKnowledge": {
+     "xp": 1506.9746211927215,
+     "rust": 0,
+     "lastPracticedDay": -1347554
+    },
+    "melee": {
+     "xp": 301.0793193535326,
+     "rust": 0,
+     "lastPracticedDay": -1347554
+    },
+    "telekinesis": {
+     "xp": 8461.24719750155,
+     "rust": 0,
+     "lastPracticedDay": -1347554
+    },
+    "forcePush": {
+     "xp": 6345.935398126166,
+     "rust": 0,
+     "lastPracticedDay": -1347554
+    },
+    "forceJump": {
+     "xp": 4759.451548594625,
+     "rust": 0,
+     "lastPracticedDay": -1347554
+    },
+    "mindTrick": {
+     "xp": 3701.79564890693,
+     "rust": 0,
+     "lastPracticedDay": -1347554
+    },
+    "forceSpeed": {
+     "xp": 5288.279498438471,
+     "rust": 0,
+     "lastPracticedDay": -1347554
+    },
+    "tactics": {
+     "xp": 2133.0611202969885,
+     "rust": 0,
+     "lastPracticedDay": -1347554
+    },
+    "shiiCho": {
+     "xp": 3760.425485341633,
+     "rust": 0,
+     "lastPracticedDay": -1347554
+    },
+    "makashi": {
+     "xp": 2257.9546442325714,
+     "rust": 0,
+     "lastPracticedDay": -1347554
+    },
+    "soresu": {
+     "xp": 13194.491438689987,
+     "rust": 0,
+     "lastPracticedDay": -1347554
+    },
+    "ataru": {
+     "xp": 5493.815217687137,
+     "rust": 0,
+     "lastPracticedDay": -1347554
+    },
+    "shien": {
+     "xp": 2230.522231072881,
+     "rust": 0,
+     "lastPracticedDay": -1347554
+    },
+    "djemSo": {
+     "xp": 2230.522231072881,
+     "rust": 0,
+     "lastPracticedDay": -1347554
+    },
+    "niman": {
+     "xp": 1838.498947548514,
+     "rust": 0,
+     "lastPracticedDay": -1347554
+    }
+   },
+   "stateOfMind": {
+    "kind": "neutral",
+    "intensity": 1,
+    "sinceDay": -1347554,
+    "untilDay": null
+   },
+   "grief": null,
+   "paceWindow": {},
+   "overtrainStreak": 0,
+   "willpowerToday": 0,
+   "today": {
+    "hoursByActivity": {},
+    "postWindow": 0,
+    "lastPhysicalHeavy": false,
+    "meditationHours": 0,
+    "trainingHours": 0
+   },
+   "tierBeatsPending": [],
+   "nextSeq": 1,
+   "formsStarted": [
+    "shiiCho",
+    "makashi",
+    "soresu",
+    "ataru",
+    "shien",
+    "djemSo",
+    "niman"
+   ],
+   "selfTaught": [],
+   "fightsToday": {},
+   "combatXpToday": {},
+   "E": {
+    "shiiCho": {
+     "E": 56.998856068217634,
+     "eSpar": 54.306884556708155
+    },
+    "makashi": {
+     "E": 56.998856068217634,
+     "eSpar": 54.306884556708155
+    },
+    "soresu": {
+     "E": 56.998856068217634,
+     "eSpar": 54.306884556708155
+    },
+    "ataru": {
+     "E": 56.998856068217634,
+     "eSpar": 54.306884556708155
+    },
+    "shienDjemSo": {
+     "E": 56.998856068217634,
+     "eSpar": 54.306884556708155
+    },
+    "niman": {
+     "E": 56.998856068217634,
+     "eSpar": 54.306884556708155
+    }
+   },
+   "CI": {
+    "forcePush": {
+     "CI": 20,
+     "ciSpar": 20
+    },
+    "telekinesis": {
+     "CI": 20,
+     "ciSpar": 20
+    },
+    "mindTrick": {
+     "CI": 20,
+     "ciSpar": 20
+    }
+   },
+   "bank": {},
+   "bankReleaseUntil": null,
+   "reviewBuff": null,
+   "lastReviewDay": null,
+   "specialtyTransfer": "creation"
+  },
+  "npcs": {
+   "byId": {}
+  },
+  "relationships": {
+   "byNpcId": {}
+  },
+  "threads": {
+   "byId": {}
+  },
+  "ranks": {
+   "rank": "knight",
+   "since": null,
+   "masterId": null,
+   "trials": {},
+   "corps": null,
+   "padawansKnighted": 0,
+   "pendingChoice": false
+  },
+  "world": {
+   "log": [],
+   "nextSeq": 1,
+   "network": {
+    "cursorDay": -1347554,
+    "events": {
+     "E.3661.blockade": {
+      "status": "standing",
+      "day": -1347616,
+      "endedDay": -1347616,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3661.riots": {
+      "status": "standing",
+      "day": -1347616,
+      "endedDay": -1347616,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     }
+    },
+    "tags": {},
+    "progress": {},
+    "outcomes": {
+     "O.blockade_active": {
+      "state": "produced",
+      "day": -1347616
+     },
+     "O.coruscant_riots": {
+      "state": "produced",
+      "day": -1347616
+     }
+    },
+    "plotPoints": {},
+    "shifts": {},
+    "control": []
+   },
+   "blockades": {
+    "runs": [],
+    "watched": {},
+    "heat": {},
+    "pending": null,
+    "shipOutside": null,
+    "ledger": [],
+    "impounded": null,
+    "shipDamagedDay": null
+   },
+   "captivity": null,
+   "captivityNews": null
+  },
+  "economy": {
+   "wallet": {
+    "republic": 0,
+    "imperial": 0,
+    "hutt": 0
+   },
+   "orderFunds": 0,
+   "lifestyle": "provided",
+   "job": {
+    "kind": "order"
+   },
+   "loans": [],
+   "nextLoan": 1,
+   "rewards": [],
+   "possessions": 0,
+   "looted": {},
+   "darkChoices": [],
+   "destituteSince": null,
+   "log": []
+  },
+  "droids": {
+   "units": [],
+   "nextId": 1
+  },
+  "traits": {
+   "held": [],
+   "counts": {},
+   "quiz": {
+    "status": "never",
+    "seed": ""
+   },
+   "alignmentNudge": 0,
+   "darkPressureNudge": 0,
+   "standing": {},
+   "leans": {},
+   "history": []
+  },
+  "battles": {
+   "active": null,
+   "last": null,
+   "step": null,
+   "seq": 0,
+   "history": [],
+   "ships": {},
+   "lastShipId": null,
+   "reputation": [],
+   "darkChoices": [],
+   "planning": null,
+   "ground": null,
+   "lastGround": null
+  },
+  "ships": {
+   "ships": {},
+   "activeId": null,
+   "nextId": 1,
+   "nextCrewId": 1,
+   "gone": [],
+   "lastCustoms": null,
+   "news": []
+  },
+  "tactics": {
+   "known": {
+    "frontalAssault": {
+     "source": "the Order: the initiate years: basic ground and fleet tactics",
+     "day": -1347554
+    },
+    "defenceInDepth": {
+     "source": "the Order: the initiate years: basic ground and fleet tactics",
+     "day": -1347554
+    },
+    "fightingWithdrawal": {
+     "source": "the Order: the initiate years: basic ground and fleet tactics",
+     "day": -1347554
+    },
+    "exchange": {
+     "source": "the Order: the initiate years: basic ground and fleet tactics",
+     "day": -1347554
+    },
+    "screen": {
+     "source": "the Order: the initiate years: basic ground and fleet tactics",
+     "day": -1347554
+    },
+    "withdraw": {
+     "source": "the Order: the initiate years: basic ground and fleet tactics",
+     "day": -1347554
+    },
+    "fly": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -1347554
+    },
+    "break": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -1347554
+    },
+    "jink": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -1347554
+    },
+    "scissors": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -1347554
+    },
+    "stall": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -1347554
+    },
+    "koiogran": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -1347554
+    },
+    "powerPivot": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -1347554
+    },
+    "reverseThrottleHop": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -1347554
+    },
+    "tallonRoll": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -1347554
+    },
+    "loopBack": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -1347554
+    },
+    "trap": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -1347554
+    },
+    "pass": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -1347554
+    },
+    "battleSpread": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -1347554
+    },
+    "luftberry": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -1347554
+    },
+    "brawl": {
+     "source": "anyone can order these",
+     "day": -1347554
+    },
+    "rollShip": {
+     "source": "anyone can order these",
+     "day": -1347554
+    }
+   },
+   "seen": {},
+   "practice": {}
+  },
+  "possessions": {
+   "items": [
+    {
+     "id": "item-1",
+     "priceId": "clothes",
+     "name": "a set of ordinary clothes",
+     "size": "worn",
+     "where": {
+      "kind": "carried"
+     },
+     "issued": true,
+     "day": -1347554
+    },
+    {
+     "id": "item-2",
+     "priceId": "utilityBelt",
+     "name": "a utility belt",
+     "size": "worn",
+     "where": {
+      "kind": "carried"
+     },
+     "issued": true,
+     "day": -1347554
+    },
+    {
+     "id": "item-3",
+     "priceId": "comlink",
+     "name": "a comlink",
+     "size": "small",
+     "where": {
+      "kind": "carried"
+     },
+     "issued": true,
+     "day": -1347554
+    },
+    {
+     "id": "item-4",
+     "priceId": "lightsaber",
+     "name": "a lightsaber",
+     "size": "small",
+     "where": {
+      "kind": "carried"
+     },
+     "issued": true,
+     "day": -1347554
+    }
+   ],
+   "nextId": 5
+  },
+  "duty": {
+   "status": "home",
+   "since": -1347554,
+   "mission": null,
+   "homeDay": null,
+   "resume": null,
+   "home": null,
+   "log": []
+  },
+  "pacing": {
+   "level": "moment",
+   "scene": {
+    "moodTags": [],
+    "presentNpcIds": []
+   }
+  }
+ }
+}

@@ -141,9 +141,15 @@ export const needsSetting = (w: { depth?: WoundDepth; set?: boolean }): boolean 
 
 export type HealOutcome = 'clean' | 'scar' | 'minorLasting' | 'lasting';
 
+/**
+ * The untreated chance that a healed wound leaves a lasting injury (health §7: severe 10%, critical 35%, mortal 70%): the one
+ * reader of LASTING_CHANCE (opt-2 E4; healing.ts lastingChance and the treatment roll both come here).
+ */
+export const lastingChanceAt = (severity: Severity): number => LASTING_CHANCE[severity] ?? 0;
+
 /** The outcome shares of the treatment roll for a severe or worse wound at treatment quality q (spec §5). */
 export function outcomeShares(severity: Severity, quality: number): Record<HealOutcome, number> {
-  const base = LASTING_CHANCE[severity] ?? 0;
+  const base = lastingChanceAt(severity);
   const d = TREATMENT.difficulty[severity];
   if (d === undefined) return { clean: 1, scar: 0, minorLasting: 0, lasting: 0 };
   const g = 1 / (1 + Math.exp(-(quality - d) / TREATMENT.spread));

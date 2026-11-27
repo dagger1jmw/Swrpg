@@ -3,10 +3,9 @@
 // reads them, decides who plans by rank (or the story's hand-over), draws the map (a known site's lore features, else the
 // narrator's, tagged invented), and has the enemy commander pick a plan and deploy. Pure; reads the state through selectors.
 import { GENERIC_CREW } from '../../data/shipBattles.config';
-import { GROUND_COMMAND_BASICS, GROUND_LIMITS, TACTIC_PLAN, WEATHER, type Weather } from '../../data/groundCommand.config';
+import { GROUND_COMMAND_BASICS, TACTIC_PLAN, WEATHER, type Weather } from '../../data/groundCommand.config';
 import { SERVICE_LADDER_BY_ID } from '../../data/serviceRanks';
 import { tacticsOfSets } from '../../data/tactics';
-import { unitDef } from '../../engine/groundBattle';
 import { seedRng } from '../../engine/rng';
 import { FORM_IDS } from '../../data/skills';
 import type { GameState } from '../../state/gameState';
@@ -46,37 +45,48 @@ const ENEMY_SIDE_WORDS: readonly (readonly [RegExp, string])[] = [
 ];
 
 /**
- * The narrator's plain words to a proposal (m8-ground, D-520: one details line keeps the schema small, as combatStarted's ships):
- * "defending; terrain: a ridge, a river with a bridge; weather: fog; commander: Major Tarsk; meditator: Bastila Shan; enemy
- * meditator: Kaan; command: the general is dead; jammed". People are matched by their exact names among the NPCs met.
+ * The planning scene's own fields (opt-2 F; were one "details" line read by regex, m8-ground D-520, kept small for the schema
+ * cap): defending, terrain, weather, the commander and the meditators by name, why command is handed over, jammed.
  */
-export function proposalFromWords(s: GameState, site: string, enemy: string, ours: string | undefined, details: string): GroundProposal {
-  const parts = details.split(';').map((x) => x.trim()).filter(Boolean);
-  const value = (key: RegExp): string | undefined => parts.map((x) => key.exec(x)).find((m) => m)?.[1]?.trim();
-  const npc = (name: string | undefined): string | undefined => (name ? uniqueAliasMatch(selectNpcs(s), (n) => [n.name, ...n.aliases], name)?.id : undefined);
-  const weather = value(/^weather\s*:\s*(\w+)/i)?.toLowerCase();
+export interface GroundFields {
+  defending?: boolean;
+  terrain?: string;
+  weather?: string;
+  commander?: string;
+  meditator?: string;
+  enemyMeditator?: string;
+  commandHanded?: string;
+  jammed?: boolean;
+}
+
+/** The planning scene's fields to a proposal. People are matched by their exact names among the NPCs met. */
+export function proposalFromFields(s: GameState, site: string, enemy: string, ours: string | undefined, f: GroundFields): GroundProposal {
+  const npc = (name: string | undefined): string | undefined => (name?.trim() ? uniqueAliasMatch(selectNpcs(s), (n) => [n.name, ...n.aliases], name.trim())?.id : undefined);
+  const weather = f.weather?.trim().toLowerCase();
   const side = ENEMY_SIDE_WORDS.find(([re]) => re.test(enemy))?.[1];
   const mine = playerFaction(s);
-  const terrain = value(/^terrain\s*:\s*(.+)$/i);
-  const commandHanded = value(/^command\s*:\s*(.+)$/i);
-  const commanderRef = npc(value(/^commander\s*:\s*(.+)$/i));
-  const meditatorRef = npc(value(/^meditator\s*:\s*(.+)$/i));
-  const enemyMeditatorRef = npc(value(/^enemy meditator\s*:\s*(.+)$/i));
+  const terrain = f.terrain?.trim();
+  const commandHanded = f.commandHanded?.trim();
+  const commanderRef = npc(f.commander);
+  const meditatorRef = npc(f.meditator);
+  const enemyMeditatorRef = npc(f.enemyMeditator);
   return {
     site,
     enemy,
     ...(ours ? { ours } : {}),
     ...(side && side !== mine && !(side === 'republic' && mine === 'jediOrder') && !(side === 'sithEmpire' && mine === 'sith') ? { enemyFaction: side } : {}),
-    ...(parts.some((x) => /^(?:defending|we hold|holding)\b/i.test(x)) ? { defending: true } : {}),
+    ...(f.defending ? { defending: true } : {}),
     ...(terrain ? { terrain } : {}),
     ...(weather && weather in WEATHER ? { weather: weather as Weather } : {}),
     ...(commandHanded ? { commandHanded } : {}),
     ...(commanderRef ? { commanderRef } : {}),
     ...(meditatorRef ? { meditatorRef } : {}),
     ...(enemyMeditatorRef ? { enemyMeditatorRef } : {}),
-    ...(parts.some((x) => /^jammed\b/i.test(x)) ? { jammed: true } : {}),
+    ...(f.jammed ? { jammed: true } : {}),
   };
 }
+
+
 
 const FORCE_FACTIONS = new Set(['jediOrder', 'sith']);
 const FORCE_ROLES = new Set(['jediMaster', 'jediKnight', 'padawan', 'sithLord', 'sithAcolyte', 'darkJedi', 'darkAcolyte', 'inquisitor']);
@@ -221,7 +231,4 @@ export const scoutLevel = (s: GameState, how: 'recon' | 'intelligence'): number 
 /** The better of the player's combat levels (their own fight at the front). */
 export const playerCombat = (s: GameState): number => Math.max(selectPerformance(s, 'blaster'), selectPerformance(s, 'melee'), ...FORM_IDS.map((f) => selectPerformance(s, f)));
 
-/** Units a side could field, for the dev command and tests. */
-export const unitCount = (units: readonly { unit: string }[], type: string): number => units.filter((u) => unitDef(u.unit).type === type).length;
 
-export const MAX_UNITS = GROUND_LIMITS.unitsPerSide;

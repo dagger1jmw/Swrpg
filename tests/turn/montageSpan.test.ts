@@ -1,5 +1,6 @@
 // Montage spans on the calendar (D-142): whole months and years end on the same day of the month that
 // many months later (31-day months 1-8, 30-day months 9-12), at the wake time.
+import { quietDuty } from '../support/duty';
 import { TEST_YEAR } from '../support/dates';
 import { describe, expect, it, vi } from 'vitest';
 import { absDayFromDate, addCalendarMonths, dateFromAbsDay } from '../../src/engine/calendar';
@@ -49,14 +50,15 @@ describe('jumpTargetDay', () => {
 describe('a "3 months" montage turn', () => {
   it('ends on the same day of the month three months later, at the wake time', () => {
     const start = day(TEST_YEAR, 1, 1);
-    const s = createInitialState<GameState>(REGISTRY, {
+    // Duty's mission roll kept quiet (opt-2 D): this is about the span.
+    const s = quietDuty(createInitialState<GameState>(REGISTRY, {
       campaignId: 'c1',
       branchId: 'b1',
       seed: 'span',
       start: { day: start, second: 9 * 3600 },
       character: { name: 'Kael', birthDay: start - 25 * 368, path: 'jedi', archetype: 'jediGuardian', mainFormId: 'soresu', trainingStartAge: 4 },
       rank: 'knight',
-    });
+    }));
     const { draft, state } = resolveTurn(REGISTRY, s, {
       actionType: 'train',
       targets: [],

@@ -8,7 +8,6 @@ export const selectPendingChapters = (s: GameState): Chapter[] => s.memory.chapt
 export const selectArc = (s: GameState): MemorySlice['arc'] => s.memory.arc;
 export const selectCurrentChapter = (s: GameState): MemorySlice['current'] => s.memory.current;
 export const selectOpenReview = (s: GameState): ReviewItem[] => s.memory.review.filter((r) => r.status === 'open');
-export const selectReview = (s: GameState): ReviewItem[] => s.memory.review;
 
 /**
  * Engine pins (architecture §7, D-46): the master and apprentices (ranks, M7), open promises and

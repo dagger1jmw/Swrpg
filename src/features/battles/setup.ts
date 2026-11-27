@@ -2,7 +2,8 @@
 // words ("two Terminus destroyers and a wing of fighters"); the code reads them against the dated ship classes, the people
 // present and the situation, and builds the sides. A standing force (an occupation's armada) and a blockade's pickets come from
 // data, whatever the words say. Pure; reads the state through selectors.
-import { BLOCKADE_PICKETS, CLASS_SIDES, CLASS_WORDS, DEFAULT_PICKETS, FIRST_OFFICER_GAP, GENERIC_CREW, NPC_FORMATION, STANDING_FORCES, type BattleRole, type BattleTrigger, type StandingForce } from '../../data/shipBattles.config';
+import { selectWoundPenalty } from '../health/selectors';
+import { BATTLE_LIMITS, BLOCKADE_PICKETS, CLASS_SIDES, CLASS_WORDS, DEFAULT_PICKETS, FIRST_OFFICER_GAP, GENERIC_CREW, NPC_FORMATION, STANDING_FORCES, type BattleRole, type BattleTrigger, type StandingForce } from '../../data/shipBattles.config';
 import { BLOCKADES, type BlockadeDef } from '../../data/blockades';
 import { minionKindInEra, MINION_ERA_FALLBACK } from '../../data/npcGen.config';
 import { SERVICE_LADDER_BY_ID } from '../../data/serviceRanks';
@@ -293,7 +294,7 @@ export function setupFromProposal(s: GameState, p: Proposal, id: string): { setu
   const cls = (id: string): ShipClass => SHIP_CLASSES.find((c) => c.id === id)!;
   const isSmall = (id: string): boolean => cls(id).kind === 'fighter' || cls(id).kind === 'freighter';
   const enemyCrew = genericCrew(enemyKind);
-  const cap = (n: number): number => Math.min(40, n);
+  const cap = (n: number): number => Math.min(BATTLE_LIMITS.capitalPerSide, n);
   // The player's own ship: named in the proposal, else the last one flown, read with its damage.
   const ownWords = p.playerShip ? parseShips(p.playerShip, mine, year) : null;
   if (ownWords?.errors.length) return { reject: ownWords.errors.join('; ') };
@@ -339,7 +340,8 @@ export function setupFromProposal(s: GameState, p: Proposal, id: string): { setu
   const enemyShips = buildShips(`${id}:b`, enemyCapitals.map((x) => ({ ...x, count: cap(x.count) })), enemyCrew, (c, i) => `${shortName(c)} ${i + 1}`);
   // The commander's own Tactics when the player commands; the player's own fighter when they fly.
   const me = selectCharacter(s).name;
-  const playerCmd = commands ? { name: me, npcId: null, tactics: selectPerformance(s, 'tactics'), traits: [], jedi: selectCharacter(s).path === 'jedi' } : commanderOf(s, null, 'the fleet commander', 'navy');
+  // The wound's penalty on the player's command (D-527; opt-2), read when the battle is set up.
+  const playerCmd = commands ? { name: me, npcId: null, tactics: selectPerformance(s, 'tactics') * (1 - selectWoundPenalty(s, 'tactics')), traits: [], jedi: selectCharacter(s).path === 'jedi' } : commanderOf(s, null, 'the fleet commander', 'navy');
   const player = sideOf(commands ? `${me}'s fleet` : `the ${mine === 'jediOrder' ? 'Republic' : mine} fleet`, mine, 'navy', playerCmd);
   let ownShipId = playerShips[0]!.id;
   if (role === 'commander' || role === 'crew') playerShips[0] = owned && owned.classId === playerShips[0]!.classId ? ownShipState(playerShips[0]!.id, owned.classId, playerShips[0]!.crew, playerShips[0]!.name, owned, lastCond) : withCondition(playerShips[0]!, lastCond);

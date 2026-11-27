@@ -7,4 +7,3 @@ export const summaryReplySchema = z.object({
   arcSummary: z.string().min(1).max(MEMORY_LIMITS.arc).describe('The whole campaign so far, at most 500 words'),
 });
 
-export type SummaryReply = z.infer<typeof summaryReplySchema>;

@@ -1,6 +1,7 @@
 // M4: montage and time-skip turns through the pipeline (the routine day loop, the report narrated, one
 // time writer, pacing after the jump, the jump's own chapter), staleness and the code-appended Skip-ahead
 // choice (D-18), jump choices, and world events marked told.
+import { quietDuty } from '../support/duty';
 import { TEST_YEAR } from '../support/dates';
 import { describe, expect, it } from 'vitest';
 import { createModelRouter, type QuotaState } from '../../src/ai/fallback';
@@ -54,6 +55,8 @@ function session(seed = 'montage'): Session {
     [{ type: 'locationIntroduced', key: 'tmp:l', name: 'Jedi Temple', kind: 'building', region: 'Coruscant', description: 'The Temple.', moveHere: true }],
     { source: 'ai' },
   ).state;
+  // Duty's mission roll kept quiet (opt-2 D): these tests are about montages and staleness.
+  state = quietDuty(state);
   return { state, history: [], campaign: { campaignId: 'c1', name: 'Kael', createdAt: 'x', lastPlayedAt: 'x' } };
 }
 

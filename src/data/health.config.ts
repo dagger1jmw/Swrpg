@@ -195,6 +195,35 @@ export const WILLPOWER_SUPPRESSION = { perWillpower: 1 / 400, max: 0.25 } as con
 /** Suppression crash (Q41): +0.5 mental load when Battlemind or Force Valor ends while wounded. */
 export const SUPPRESSION_CRASH_MENTAL = 0.5;
 
+/**
+ * The pain-suppression powers in play (health §8; opt-2 E1). No catalog entry exists for them, so each reads an existing skill:
+ * Control Pain and Battlemind Force Control, Force Valor Battle Meditation (the canon sheets' "Force Valor (of Battle
+ * Meditation)"); dark-side channeling needs the Sith path (the alignment system that would gate it by the dark side is M6).
+ * Shares and loads from health §8; the Battlemind floor (Force Control 20) and the Force-meter limit are invented.
+ */
+export interface SuppressionPower {
+  name: string;
+  skill: string | null;
+  per: number;
+  max: number;
+  /** Force load per minute active. */
+  load: number;
+  /** Ending it while wounded brings the crash (Q41). */
+  crash: boolean;
+  minLevel: number;
+  paths?: readonly string[];
+  /** Dark pressure per minute (recorded for the alignment system, M6). */
+  darkPerMinute?: number;
+}
+export const SUPPRESSION_POWERS: Readonly<Record<string, SuppressionPower>> = {
+  controlPain: { name: 'Control Pain', skill: 'forceControl', per: 150, max: 0.6, load: 0.1, crash: false, minLevel: 1 },
+  battlemind: { name: 'Battlemind', skill: 'forceControl', per: 160, max: 0.5, load: 0.15, crash: true, minLevel: 20 },
+  forceValor: { name: 'Force Valor', skill: 'battleMeditation', per: 160, max: 0.5, load: 0.15, crash: true, minLevel: 1 },
+  painChanneling: { name: 'Channel the pain (dark side)', skill: null, per: 1, max: 0.8, load: 0, crash: false, minLevel: 0, paths: ['sith'], darkPerMinute: 1 },
+};
+/** A suppression ends by itself when the Force meter passes this share of its capacity (invented: the backlash line, health §2). */
+export const SUPPRESSION_FORCE_LIMIT = 1.0;
+
 // ---- Force meter (health §2) ----
 export const FORCE_METER = {
   /** Above 1.0: +0.5 mental load per extra Force load point. */
@@ -326,7 +355,6 @@ export const BACTA_KNOWN_FROM_YEAR = -4100;
  * KOTOR and SWTOR years, and is the cheap option by Bane's era.
  */
 export const BACTA_STANDARD_FROM_YEAR = -2000;
-export const BACTA_SWITCH_PENDING = true;
 
 export interface HealingFluid {
   /** The fluid in tanks and medpacs at this date. */

@@ -4,7 +4,7 @@
 // for old saves), being taught or studying (the narrator's words on the droid event, "tactic: taught the Corellian Slip by
 // Master Sel"), and practice after seeing it. Battles send what each side flew (tacticsSeen).
 import { z } from 'zod';
-import { ARCHETYPE_TACTICS, COMMAND_BASICS, COMMON_GROUND, NPC_TACTICS, PAST_INITIATE, PILOT_BASICS, PRACTICE_TO_KNOW, RANK_TACTICS, START_TACTICS, TACTICS, TACTIC_BY_ID, TACTIC_SETS, TEACH_NEEDS, UNKNOWN_TEACHER_TACTICS, tacticTier, tacticsOfSets } from '../../data/tactics';
+import { ARCHETYPE_TACTICS, COMMAND_BASICS, COMMON_GROUND, NPC_TACTICS, PAST_INITIATE, PILOT_BASICS, PRACTICE_TO_KNOW, RANK_TACTICS, START_TACTICS, TACTICS, TACTIC_BY_ID, TACTIC_SETS, TEACH_NEEDS, tacticTier, tacticsOfSets } from '../../data/tactics';
 import { TACTIC_PLAN } from '../../data/groundCommand.config';
 import { normalizeAlias } from '../../engine/aliases';
 import type { GameState } from '../../state/gameState';
@@ -62,16 +62,27 @@ function forOldSave(raw: Record<string, unknown>, known: TacticsSlice['known']):
   return out;
 }
 
-/** Who teaches, from the words ("taught by Master Sel") or the master in the scene: an NPC's Tactics, else an unknown instructor's. */
-function teacherOf(s: GameState, by: string | undefined): { name: string; tactics: number } | null {
+/**
+ * Who teaches (opt-2 C; audit D-narrator): from the words ("taught by Master Sel") or the master in the scene. Only a known NPC
+ * in the scene teaches by its own Tactics; one the reply itself introduced, a name the game does not know, or no teacher at all
+ * teaches only the basics (`tactics: null`). A named NPC who is not in the scene is `absent`.
+ */
+interface Teacher { name: string; tactics: number | null; absent?: boolean; why?: string }
+function teacherOf(s: GameState, by: string | undefined, before: GameState | undefined): Teacher | null {
   const npcs = Object.values(s.npcs.byId);
+  const present = selectPresentNpcIds(s);
+  const own = (id: string, name: string): Teacher => {
+    if (!present.includes(id)) return { name, tactics: null, absent: true };
+    if (before && !before.npcs.byId[id]) return { name, tactics: null, why: 'just met: their experience is not known yet' };
+    return { name, tactics: selectNpcLevel(s, id, 'tactics') };
+  };
   if (by) {
     const w = normalizeAlias(by);
     const n = npcs.find((x) => [x.name, ...x.aliases].some((a) => normalizeAlias(a) === w)) ?? npcs.find((x) => [x.name, ...x.aliases].some((a) => { const k = normalizeAlias(a); return k.length >= 3 && (k.includes(w) || w.includes(k)); }));
-    return n ? { name: n.name, tactics: selectNpcLevel(s, n.id, 'tactics') } : { name: by, tactics: UNKNOWN_TEACHER_TACTICS };
+    return n ? own(n.id, n.name) : { name: by, tactics: null, why: 'someone the story has not met' };
   }
   const master = s.ranks.masterId;
-  if (master && selectPresentNpcIds(s).includes(master) && s.npcs.byId[master]) return { name: s.npcs.byId[master]!.name, tactics: selectNpcLevel(s, master, 'tactics') };
+  if (master && present.includes(master) && s.npcs.byId[master]) return own(master, s.npcs.byId[master]!.name);
   return null;
 }
 
@@ -160,10 +171,13 @@ export const tacticsFeature: FeatureModule<TacticsSlice, GameState> = {
         const studied = /\bstud|\bmanual|\bread|\bcampaign|\bhistor|\barchive|\brecord/.test(words);
         // Taught (m8-fixes B3a): the teacher's own Tactics decides how hard a tactic they can pass on (a master with military
         // experience teaches more); a commander in the field teaches the same way.
-        const teacher = studied ? null : teacherOf(ctx.state, by);
+        const teacher = studied ? null : teacherOf(ctx.state, by, ctx.batchStart);
+        if (teacher?.absent) return { reject: `${teacher.name} is not in the scene to teach ${t.name}` };
         const tier = tacticTier(id);
-        const teacherTactics = teacher?.tactics ?? UNKNOWN_TEACHER_TACTICS;
-        if (!studied && teacherTactics < TEACH_NEEDS[tier]) return { reject: `${teacher?.name ?? 'the teacher'} (Tactics ${Math.round(teacherTactics)}) cannot teach ${t.name}: ${tier === 'advanced' ? 'an advanced tactic needs a seasoned commander' : 'it needs a teacher with military experience'} (Tactics ${TEACH_NEEDS[tier]}); it can be learned in the field` };
+        // An unknown teacher (opt-2 C) teaches only the basics: no Tactics of its own to read.
+        const teacherTactics = teacher?.tactics ?? null;
+        if (!studied && teacherTactics === null && tier !== 'basic') return { reject: `${teacher?.name ?? 'an unknown teacher'}${teacher?.why ? ` (${teacher.why})` : ''} can teach only the basics, not ${t.name}; a known teacher in the scene, a manual, or the field can` };
+        if (!studied && teacherTactics !== null && teacherTactics < TEACH_NEEDS[tier]) return { reject: `${teacher?.name ?? 'the teacher'} (Tactics ${Math.round(teacherTactics)}) cannot teach ${t.name}: ${tier === 'advanced' ? 'an advanced tactic needs a seasoned commander' : 'it needs a teacher with military experience'} (Tactics ${TEACH_NEEDS[tier]}); it can be learned in the field` };
         const how = studied ? `studied${/\bmanual/.test(words) ? ' (a tactics manual)' : /\bcampaign|\bhistor/.test(words) ? ' (historical campaigns)' : ''}` : `taught${teacher ? ` by ${teacher.name}` : by ? ` by ${by}` : ''}`;
         const r = learn(slice, [id], how, day);
         return { slice: r.slice, notes: [`${t.name} learned (${how})`] };

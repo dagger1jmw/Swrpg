@@ -1,6 +1,7 @@
 // Jumps (M4): thread deadlines and escalation (D-135), weighted world events and interruptions (D-136),
 // relationship drift and shared training (D-137), the montage report (training-routines §8, test 8),
 // a birthday during a skip and the interruption state (architecture §10 required tests).
+import { quietDuty } from '../support/duty';
 import { TEST_YEAR } from '../support/dates';
 import { describe, expect, it } from 'vitest';
 import { WORLD_EVENT_CHANCE } from '../../src/data/worldEvents.config';
@@ -16,15 +17,16 @@ import { REGISTRY } from '../../src/state/registry';
 import { createInitialState } from '../../src/state/registryTools';
 
 const START = absDayFromDate({ year: TEST_YEAR, month: 1, day: 1 });
+// Duty's mission roll is kept quiet here (opt-2 D): these tests are about the other things a skip meets.
 const knight = (seed = 'j', birthOffsetDays = 0): GameState =>
-  createInitialState<GameState>(REGISTRY, {
+  quietDuty(createInitialState<GameState>(REGISTRY, {
     campaignId: 'c1',
     branchId: 'b1',
     seed,
     start: { day: START, second: 9 * 3600 },
     character: { name: 'Kael', birthDay: START - 25 * 368 + birthOffsetDays, path: 'jedi', archetype: 'jediGuardian', mainFormId: 'soresu', secondFormId: 'ataru', trainingStartAge: 4 },
     rank: 'knight',
-  });
+  }));
 const ai = (s: GameState, events: unknown[]) => {
   const r = applyEvents(REGISTRY, s, events, { source: 'ai' });
   expect(r.rejected).toEqual([]);

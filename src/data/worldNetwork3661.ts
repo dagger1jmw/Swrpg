@@ -128,7 +128,7 @@ const WAR: WorldEventDef[] = [
   ev({ id: 'E.3661.theron', title: 'Theron Shan is brought to Monastery', summary: 'Ngani Zho brings the young Theron Shan to Monastery.', date: circa(on(3661, 8)), places: ['Monastery'], roles: [R('Ngani Zho', 'ngani-zho'), C('Theron Shan', 'theron-shan')], produces: gives('O.theron_trained'), source: 'P1, 3661 row 7' }),
   ev({ id: 'E.3661.rim_campaign', title: 'The Rim Campaign begins', summary: 'The Rim Campaign begins in the Outer Rim.', date: circa(on(3661, 10)), produces: gives('O.rim_campaign'), source: 'P1, 3661 row 8' }),
   ev({
-    id: 'E.3660.hydian_battle',
+    id: 'E.3660.hydian_battle', allHands: { factions: ['republic', 'jediOrder'] }, /* opt-2 D3, D4 (a reading) */
     title: 'The Battle on the Hydian Way',
     summary: 'Smugglers led by Hylo Visz, with the Republic Navy, break the blockade and restore the trade route.',
     date: on(3660, 1, 15),
@@ -304,7 +304,7 @@ const SACKING: WorldEventDef[] = [
     source: 'P1, 3653 row 3',
   }),
   ev({
-    id: 'E.3653.sacking',
+    id: 'E.3653.sacking', turnFor: ['republic', 'jediOrder', 'sithEmpire', 'sith'], allHands: { factions: ['republic', 'jediOrder', 'sithEmpire', 'sith'] }, /* opt-2 D3, D4 (a reading) */
     title: 'The Sacking of Coruscant',
     summary: 'Darth Angral\'s armada takes Coruscant, which is held under two days of martial law; Chancellor Berooken is killed.',
     date: on(3653, 6, 21),
@@ -332,7 +332,7 @@ const SACKING: WorldEventDef[] = [
     source: 'P1, 3653 row 4',
   }),
   ev({
-    id: 'E.3653.treaty',
+    id: 'E.3653.treaty', turnFor: ['republic', 'jediOrder', 'sithEmpire', 'sith'], /* opt-2 D3, D4 (a reading) */
     title: 'The Treaty of Coruscant',
     summary: 'With the capital occupied, the Republic signs, ends the war, withdraws from many fronts and cedes important systems.',
     date: on(3653, 6, 23),
@@ -467,7 +467,7 @@ const COLD_WAR: WorldEventDef[] = [
   ev({ id: 'E.3643.sebaddon', title: 'The Sebaddon affair', summary: 'Jet Nebula finds the Cinzia: the Sebaddon affair and the Hex droid crisis.', date: on(3643, 3), places: ['Sebaddon', 'Nal Hutta'], roles: [R('Jet Nebula')], consumes: needs('O.xandret_defected'), produces: gives('O.sebaddon_incident'), plotPoint: 'PP-2', source: 'P2, Cold War row 22' }),
   ev({ id: 'E.3643.flesh_raiders', title: 'The Flesh Raiders attack on Tython', summary: 'Flesh Raiders under the Dark Jedi Bengel Morr attack the Jedi on Tython and are defeated by the Hero of Tython.', date: on(3643, 4), places: ['Tython'], roles: [H('the Hero of Tython', 'hero-of-tython'), R('Bengel Morr', 'bengel-morr')], consumes: needs('O.order_on_tython'), source: 'P2, Cold War row 23' }),
   ev({
-    id: 'E.3643.desolator',
+    id: 'E.3643.desolator', allHands: { factions: ['republic', 'jediOrder'] }, /* opt-2 D3, D4 (a reading) */
     title: 'The Desolator crisis',
     summary: 'Darth Angral destroys Uphrades with the Desolator; Angral, Tarnis, Nefarid and Orgus Din die.',
     date: on(3643, 6),
@@ -504,7 +504,7 @@ const COLD_WAR: WorldEventDef[] = [
     source: 'P2, Cold War rows 33-34',
   }),
   ev({ id: 'E.3642.plan_zero', title: 'Plan Zero', summary: 'The War Trust is destroyed; Darth Baras\'s Plan Zero.', date: on(3642, 9), endDate: { year: -3641, month: 3, placed: 'invented' }, roles: [C('Darth Baras', 'darth-baras'), H('the Emperor\'s Wrath', 'emperor-wrath')], produces: gives('O.plan_zero'), plotPoint: 'PP-2', source: 'P2, Cold War rows 37-38' }),
-  ev({ id: 'E.3641.treaty_collapse', title: 'The Treaty of Coruscant collapses', summary: 'The Treaty of Coruscant officially collapses; the Cold War ends and the Galactic War begins.', date: { year: -3641, month: 6, day: 15, placed: 'lore' }, consumes: needs('O.treaty_signed'), produces: gives('O.galactic_war'), plotPoint: 'PP-2', interrupts: true, source: 'P2, Galactic War row 1 ("mid-3,641")' }),
+  ev({ id: 'E.3641.treaty_collapse', turnFor: ['republic', 'jediOrder', 'sithEmpire', 'sith'], /* opt-2 D3, D4 (a reading) */ title: 'The Treaty of Coruscant collapses', summary: 'The Treaty of Coruscant officially collapses; the Cold War ends and the Galactic War begins.', date: { year: -3641, month: 6, day: 15, placed: 'lore' }, consumes: needs('O.treaty_signed'), produces: gives('O.galactic_war'), plotPoint: 'PP-2', interrupts: true, source: 'P2, Galactic War row 1 ("mid-3,641")' }),
   ev({ id: 'E.3641.braga', title: 'Tol Braga\'s strike on the Emperor', summary: 'A Jedi strike team under Tol Braga tries to capture the Emperor and is turned.', date: on(3641, 8), roles: [R('Tol Braga', 'tol-braga')], consumes: needs('O.galactic_war'), produces: gives('O.braga_turned'), source: 'P2, Galactic War row 2' }),
   ev({ id: 'E.3641.baras_council', title: 'Darth Baras takes a Council seat', summary: 'Baras\'s apprentice kills Darth Vengean on Dromund Kaas; Baras takes the seat.', date: on(3641, 9), places: KAAS, roles: [C('Darth Baras', 'darth-baras'), H('the Emperor\'s Wrath', 'emperor-wrath')], consumes: needs('O.plan_zero'), produces: gives('O.baras_council'), source: 'P2, Galactic War row 3' }),
   ev({
@@ -525,11 +525,11 @@ const COLD_WAR: WorldEventDef[] = [
   ev({ id: 'E.3641.fronts', title: 'The fronts of 3,641', summary: 'War on Quesh, fighting on Hoth, and the Alderaan Civil War goes on.', date: on(3641, 11), places: ['Quesh', 'Hoth', 'Alderaan'], consumes: needs('O.galactic_war', 'O.alderaan_civil_war'), produces: gives('O.fronts_3641'), source: 'P2, Galactic War row 6' }),
   // Karrid's assault comes last in 3,640 (D-468 [3]): it follows the Emperor's fall and Malgus's. The Council deaths run to
   // the year's end, because Karrid's own death over Duro is among them.
-  ev({ id: 'E.3640.karrid', title: 'Karrid\'s assault', summary: 'The Empire launches a renewed assault, led by Darth Karrid from the Ascendant Spear.', date: on(3640, 11), roles: [R('Darth Karrid', 'darth-karrid')], consumes: needs('O.galactic_war'), source: 'P2, Galactic War row 10' }),
-  ev({ id: 'E.3640.corellia', title: 'The Battle of Corellia', summary: 'Darth Decimus invades Corellia; Decimus, Hadra and Acharon die there.', date: on(3640, 2), places: ['Corellia'], roles: [R('Darth Decimus', 'darth-decimus')], consumes: needs('O.galactic_war', 'O.decimus_council'), produces: gives('O.corellia_contested'), source: 'P2, Galactic War row 11' }),
-  ev({ id: 'E.3640.ilum', title: 'The Battle of Ilum', summary: 'Malgus declares himself Emperor at Ilum and is defeated.', date: on(3640, 4), places: ['Ilum'], roles: [C('Darth Malgus', 'darth-malgus')], consumes: needs('O.galactic_war', 'O.foundry_malgus'), produces: gives('O.malgus_defeated', 'O.ilum_contested'), interrupts: true, source: 'P2, Galactic War rows 12-13' }),
+  ev({ id: 'E.3640.karrid', allHands: { factions: ['republic', 'jediOrder', 'sithEmpire', 'sith'] }, /* opt-2 D3, D4 (a reading) */ title: 'Karrid\'s assault', summary: 'The Empire launches a renewed assault, led by Darth Karrid from the Ascendant Spear.', date: on(3640, 11), roles: [R('Darth Karrid', 'darth-karrid')], consumes: needs('O.galactic_war'), source: 'P2, Galactic War row 10' }),
+  ev({ id: 'E.3640.corellia', allHands: { factions: ['republic', 'jediOrder', 'sithEmpire', 'sith'] }, /* opt-2 D3, D4 (a reading) */ title: 'The Battle of Corellia', summary: 'Darth Decimus invades Corellia; Decimus, Hadra and Acharon die there.', date: on(3640, 2), places: ['Corellia'], roles: [R('Darth Decimus', 'darth-decimus')], consumes: needs('O.galactic_war', 'O.decimus_council'), produces: gives('O.corellia_contested'), source: 'P2, Galactic War row 11' }),
+  ev({ id: 'E.3640.ilum', turnFor: ['sithEmpire', 'sith'], allHands: { factions: ['republic', 'jediOrder', 'sithEmpire', 'sith'] }, /* opt-2 D3, D4 (a reading) */ title: 'The Battle of Ilum', summary: 'Malgus declares himself Emperor at Ilum and is defeated.', date: on(3640, 4), places: ['Ilum'], roles: [C('Darth Malgus', 'darth-malgus')], consumes: needs('O.galactic_war', 'O.foundry_malgus'), produces: gives('O.malgus_defeated', 'O.ilum_contested'), interrupts: true, source: 'P2, Galactic War rows 12-13' }),
   ev({ id: 'E.3640.voss', title: 'The Emperor on Voss', summary: 'The Emperor goes to Voss in disguise and is trapped in the Dark Heart.', date: circa(on(3640, 5)), places: ['Voss'], roles: [C('the Emperor', 'vitiate')], closed: true, produces: gives('O.emperor_trapped'), source: 'P2, Galactic War row 14' }),
-  ev({ id: 'E.3640.voice', title: 'The Emperor\'s Voice is killed', summary: 'In a Republic assault on Dromund Kaas the Hero of Tython kills the Emperor\'s Voice; power passes to the Dark Council.', date: on(3640, 7), places: KAAS, roles: [H('the Hero of Tython', 'hero-of-tython')], closed: true, consumes: needs('O.galactic_war'), produces: gives('O.dark_council_rules'), interrupts: true, source: 'P2, Galactic War row 15' }),
+  ev({ id: 'E.3640.voice', turnFor: ['sithEmpire', 'sith'], allHands: { factions: ['republic', 'jediOrder', 'sithEmpire', 'sith'] }, /* opt-2 D3, D4 (a reading) */ title: 'The Emperor\'s Voice is killed', summary: 'In a Republic assault on Dromund Kaas the Hero of Tython kills the Emperor\'s Voice; power passes to the Dark Council.', date: on(3640, 7), places: KAAS, roles: [H('the Hero of Tython', 'hero-of-tython')], closed: true, consumes: needs('O.galactic_war'), produces: gives('O.dark_council_rules'), interrupts: true, source: 'P2, Galactic War row 15' }),
   ev({ id: 'E.3640.council_deaths', title: 'Deaths on the Dark Council', summary: 'Thanaton is killed and Darth Nox takes the Sphere of Ancient Knowledge; Baras dies; Karrid dies over Duro and Acina heads the Sphere of Technology.', date: on(3640, 8), endDate: on(3640, 12), places: ['Korriban', 'Duro'], roles: [R('Darth Thanaton', 'darth-thanaton'), H('Darth Nox', 'darth-nox'), R('Darth Baras', 'darth-baras'), R('Darth Karrid', 'darth-karrid'), R('Darth Acina', 'darth-acina')], consumes: needs('O.baras_council'), produces: gives('O.council_deaths_3640'), source: 'P2, Galactic War row 16' }),
   ev({ id: 'E.3640.janarus_dies', title: 'Chancellor Janarus is killed', summary: 'Janarus is killed aboard the Founder; Leontyne Saresh becomes Chancellor and Jace Malcom Supreme Commander.', date: on(3640, 9), places: ['the Founder'], roles: [C('Dorian Janarus', 'dorian-janarus'), R('Leontyne Saresh', 'leontyne-saresh'), R('Jace Malcom', 'jace-malcom')], consumes: needs('O.janarus_chancellor'), produces: gives('O.saresh_chancellor'), source: 'P2, Galactic War rows 17-18' }),
 ];

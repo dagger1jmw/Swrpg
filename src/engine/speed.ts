@@ -1,5 +1,5 @@
 // Speed multiplier M (progression-numbers §5, §17; D-21, D-64) and the state-of-mind multiplier. Pure.
-import { ACCELERATED_PATH, CROSS_TALENT, GRIEF_MULT, M_CAP, STATE_MULT, TALENT_MULT, type StateOfMind, type TalentLevel } from '../data/progression.config';
+import { ACCELERATED_PATH, CROSS_TALENT, M_CAP, STATE_MULT, TALENT_MULT, type StateOfMind, type TalentLevel } from '../data/progression.config';
 import { SPECIES_FORCE_TRAITS } from '../data/forceResistance.config';
 import { CATEGORY_RULES, SKILL_BY_ID, type TalentDomain } from '../data/skills';
 
@@ -63,8 +63,6 @@ export function stateMult(state: StateOfMind, skillId: string, opts: StateMultOp
   return m * (opts.grief ?? 1);
 }
 
-/** The full grief multiplier at onset (for tests and labels). */
-export const GRIEF_ONSET = GRIEF_MULT;
 
 export interface SpeedInput {
   talent: number;

@@ -2,14 +2,6 @@
 // (the best of the rung's skills) and recorded deeds. A story-only rung is never reached by promotion.
 import type { ServiceLadder } from '../data/serviceRanks';
 
-export interface ServiceRecord {
-  ladderId: string;
-  rung: number;
-  /** The day the current rung was reached. */
-  since: number;
-  /** Deeds recorded since joining the service. */
-  deeds: number;
-}
 
 export interface PromotionCheck {
   ok: boolean;

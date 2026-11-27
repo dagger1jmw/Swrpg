@@ -2,6 +2,8 @@
 // battle (Golden Rule 1): the narrator may propose one (`shipBattleProposed`, plain words checked against the dated classes,
 // who is present and the situation); the engine starts the blockade's force-through and an occupation's armada from data; the
 // player plays each turn from the tactics menu (`battleOrdered`) or lets it play out; the code ends it and raises its events.
+import { selectWoundPenalty } from '../health/selectors';
+import { COMMAND_BASICS } from '../../data/tactics';
 import { z } from 'zod';
 import { RUN_FAME } from '../../data/blockade.config';
 import { BLOCKADE_APPROACHES } from '../../data/blockades';
@@ -11,7 +13,7 @@ import { FACINGS } from '../../data/ships';
 import { FACTIONS } from '../../data/entities.config';
 import { RUN_APPROACHES } from '../../engine/attackRun';
 import { basicRoll } from '../../engine/rolls';
-import { patchSystem, shipClass, systemState } from '../../engine/ships';
+import { patchSystem, shipClass } from '../../engine/ships';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule, GameEvent, HandleResult } from '../../state/types';
 import { selectNow, selectTurnInPlay } from '../clock/selectors';
@@ -32,7 +34,7 @@ import { commanderCondition, selectBattleLines } from './selectors';
 import { blockadeById, opposite, parseProposal, playerFaction, setupFromBlockade, setupFromProposal, troopsFor, yearOf, type Proposal } from './setup';
 import { CONTINGENCY_ACTIONS, CONTINGENCY_TRIGGERS, GROUND_BATTLE_MORALE, GROUND_MAJOR_UNITS, GROUND_SIZE_BY_UNITS, MEN_PER_UNIT } from '../../data/groundCommand.config';
 import { beginGround, commandingGround, drawMap, GROUND_END_WORDS, groundFightFought, groundHelpReaches, handedNow, handGroundCommand, lossShare, objectivesHeld, playOutGround, scout, stepGround, tacticOfPlan, type GroundCtx, type GroundOrders, type GroundPlan, type GroundPlanning, type GroundState, type GroundStep } from './ground';
-import { planningFromProposal, playerCombat, proposalFromWords, scoutLevel } from './groundSetup';
+import { planningFromProposal, playerCombat, proposalFromFields, scoutLevel, type GroundFields } from './groundSetup';
 
 type R = HandleResult<BattlesSlice>;
 
@@ -323,7 +325,9 @@ function groundCtx(s: GameState, g: GroundState): GroundCtx {
   const handed = handedNow(g, cond);
   // An NPC commander out of the fight hands over the same way (the rule is the same for everyone): a second-in-command rolls.
   const npcTactics = (c: GroundPlanning['ours']['commander']): number => (c.npcId && selectNpcOutOfFight(s, c.npcId) ? SECOND_IN_COMMAND_TACTICS : c.tactics);
-  const player = p.role === 'commander' ? (handed ? handed.tactics : selectPerformance(s, 'tactics')) : npcTactics(p.ours.commander);
+  // The wound's penalty on the player's own command (D-527's rule; opt-2: it was stated, not applied), eased by pain suppression
+  // (health §8, opt-2 E1): a dying commander who stays at the post commands at their wounded level unless a power holds the pain.
+  const player = p.role === 'commander' ? (handed ? handed.tactics : selectPerformance(s, 'tactics') * (1 - selectWoundPenalty(s, 'tactics'))) : npcTactics(p.ours.commander);
   return { playerCombat: playerCombat(s), playerOut: outOfFight(cond), commanderTactics: { player, enemy: npcTactics(p.enemy.commander) } };
 }
 
@@ -469,11 +473,31 @@ const asPlan = (x: unknown): GroundPlan => {
   return { ...p, contingencies: p.contingencies.map((c) => ({ when: c.when, then: c.then, ...(c.sector ? { sector: c.sector } : {}), ...(c.manoeuvre ? { manoeuvre: c.manoeuvre } : {}) })) };
 };
 
+/**
+ * Battles v2 (opt-2 G2): a ship battle saved before m8-fixes has no `seenOnly` (its commander had the basics open: they go into
+ * `known`); a planning scene saved before has no `seenOnly` or `planKnows` (none seen; the planner knows what the player knows).
+ * The runtime fallbacks for them are gone. A battle with no tactics record at all keeps every tactic open (rules.ts knows).
+ */
+export function migrateBattlesV2(b: BattlesSlice): BattlesSlice {
+  type Old = { role?: string; tactics?: { known: string[]; seenOnly?: string[] } } | null;
+  const ship = (x: Old): Old => {
+    if (!x?.tactics || x.tactics.seenOnly !== undefined) return x;
+    const basics = x.role === 'commander' ? COMMAND_BASICS.filter((id) => !x.tactics!.known.includes(id)) : [];
+    return { ...x, tactics: { ...x.tactics, known: [...x.tactics.known, ...basics], seenOnly: [] } };
+  };
+  type OldPlan = { known: string[]; seenOnly?: string[]; planKnows?: string[] } | null | undefined;
+  const plan = (p: OldPlan): OldPlan => (p ? { ...p, seenOnly: p.seenOnly ?? [], planKnows: p.planKnows ?? p.known } : p);
+  const g = (x: { planning?: OldPlan } | null) => (x?.planning ? { ...x, planning: plan(x.planning) } : x);
+  return { ...b, active: ship(b.active as Old), last: ship(b.last as Old), planning: plan(b.planning as OldPlan), ground: g(b.ground as { planning?: OldPlan } | null), lastGround: g(b.lastGround as { planning?: OldPlan } | null) } as BattlesSlice;
+}
+
 export const battlesFeature: FeatureModule<BattlesSlice, GameState> = {
   id: 'battles',
-  version: 1,
+  version: 2,
   initialState: () => emptyBattles(),
   emptyState: () => emptyBattles(),
+  // v2 (opt-2 G2): battles and planning scenes saved before m8-fixes get the fields the fallbacks stood in for.
+  migrations: { 2: (old) => migrateBattlesV2(old as BattlesSlice) },
   stateSchema: battlesSliceSchema,
   events: {
     /**
@@ -557,13 +581,20 @@ export const battlesFeature: FeatureModule<BattlesSlice, GameState> = {
      * deploy; the battle begins only when the player gives the word. Without a planning scene a fight is ordinary combat.
      */
     groundBattlePlanned: {
-      // Plain words, as combatStarted's ships (D-520): the forces and one details line the code reads.
+      // The forces in plain words; the scene's details as fields (opt-2 F; were one details line read by regex, D-520).
       schema: z.object({
         type: z.literal('groundBattlePlanned'),
         site: z.string().min(1).max(60),
         enemy: z.string().min(1).max(200),
         ours: z.string().max(200).optional(),
-        details: z.string().max(300).optional(),
+        defending: z.boolean().optional(),
+        terrain: z.string().max(120).optional(),
+        weather: z.string().max(20).optional(),
+        commander: z.string().max(60).optional(),
+        meditator: z.string().max(60).optional(),
+        enemyMeditator: z.string().max(60).optional(),
+        commandHanded: z.string().max(120).optional(),
+        jammed: z.boolean().optional(),
       }),
       sources: ['ai', 'engine', 'dev'],
       part: 'command',
@@ -572,7 +603,13 @@ export const battlesFeature: FeatureModule<BattlesSlice, GameState> = {
         const why = groundBlocked(ctx.state);
         if (why) return { reject: why };
         if (slice.planning) return { reject: 'a planning scene is already open' };
-        const p = proposalFromWords(ctx.state, String(e['site']), String(e['enemy']), typeof e['ours'] === 'string' ? e['ours'] : undefined, typeof e['details'] === 'string' ? e['details'] : '');
+        const str = (k: string): string | undefined => (typeof e[k] === 'string' ? (e[k] as string) : undefined);
+        const fields: GroundFields = {
+          ...(e['defending'] === true ? { defending: true } : {}),
+          ...(e['jammed'] === true ? { jammed: true } : {}),
+          ...Object.fromEntries((['terrain', 'weather', 'commander', 'meditator', 'enemyMeditator', 'commandHanded'] as const).flatMap((k) => (str(k) ? [[k, str(k)]] : []))),
+        };
+        const p = proposalFromFields(ctx.state, String(e['site']), String(e['enemy']), str('ours'), fields);
         const mine = playerFaction(ctx.state);
         if (p.enemyFaction && sameSide(p.enemyFaction, mine)) return { reject: "the enemy is the player's own side" };
         const made = planningFromProposal(ctx.state, p, `ground-${slice.seq}`);
@@ -745,5 +782,4 @@ export const battlesFeature: FeatureModule<BattlesSlice, GameState> = {
 
 /** The systems of a ship still broken (for the panel). */
 export const brokenSystems = (c: ShipCondition): string[] => Object.entries(c.systems).filter(([, v]) => v === 'damaged' || v === 'disabled').map(([k]) => k);
-export const systemOf = systemState;
 export { shipNames };

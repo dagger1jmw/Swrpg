@@ -19,7 +19,11 @@ export const threadSchema = z.object({
   lastTurn: z.number().int().min(0),
 });
 
-export const threadsSliceSchema = z.object({ byId: z.record(z.string(), threadSchema) });
+export const threadsSliceSchema = z.object({
+  byId: z.record(z.string(), threadSchema),
+  /** The cold store (opt-2 H2): older notes of threads closed a year, by thread id. Absent = none. Never sent to the narrator. */
+  cold: z.record(z.string(), z.array(z.string().max(LIMITS.note))).optional(),
+});
 
 export type Thread = z.infer<typeof threadSchema>;
 export type ThreadsSlice = z.infer<typeof threadsSliceSchema>;

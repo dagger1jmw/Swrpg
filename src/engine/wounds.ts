@@ -35,6 +35,8 @@ export interface Wound {
   source: string;
   /** The limb was severed (health §5): the wound is the cauterized stump; the loss is a lasting injury. */
   severed?: boolean;
+  /** The last day the injured part was trained (health §7; opt-2 E2): half healing that day and a risk of making it worse. */
+  trainedDay?: number;
   // ---- Medicine (M8 item 6, D-511; all optional, absent on older saves and wounds) ----
   /** What made it (the untreated risks): blade, claw, slug, shrapnel tear; blaster and saber burn. */
   cause?: WoundCause;

@@ -45,7 +45,5 @@ export const FORM_STAMINA: Readonly<Record<string, number>> = Object.fromEntries
   FORM_IDS.map((f) => [f, ({ ataru: 1.25, soresu: 0.85, juyo: 1.15, vaapad: 1.15 } as Record<string, number>)[f] ?? 1.0]),
 );
 
-/** Jar'Kai needs Niman at this level (D-122) and dual blades (STUB_DUAL_BLADES until M8). */
-export const JARKAI_NIMAN_MIN = 30;
 /** Niman halves the combat-integration penalty for Force abilities used while fighting in it (D-122). */
 export const NIMAN_CI_FACTOR = 0.5;

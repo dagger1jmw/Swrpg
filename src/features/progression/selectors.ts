@@ -1,7 +1,6 @@
 // Progression selectors: every level, tier, capacity and effective level is derived here, never
 // stored (architecture §2 "Derived, never stored").
 import { styleNow } from '../../engine/martialStyles';
-import { insightBonus } from '../../engine/playXp';
 import { SKILLS, SKILL_BY_ID, type PhysicalStat } from '../../data/skills';
 import { levelWithNatural, tierOf, xpForLevel } from '../../engine/curve';
 import { drillCeiling } from '../../engine/appliedExperience';
@@ -14,9 +13,8 @@ import { speciesDef } from '../../data/species';
 import type { StateOfMind, TierName } from '../../data/progression.config';
 import type { GameState } from '../../state/gameState';
 import { selectExactAge, selectSpeciesId } from '../character/selectors';
-import { activeState, despairMult, griefMult, type ProgressionSlice, type TierBeat } from './progression';
+import { activeState, despairMult, griefMult, type TierBeat } from './progression';
 
-export const selectProgression = (s: GameState): ProgressionSlice => s.progression;
 export const selectSkillXp = (s: GameState, id: string): number => s.progression.skills[id]?.xp ?? 0;
 export const selectRust = (s: GameState, id: string): number => s.progression.skills[id]?.rust ?? 0;
 export const selectNatural = (s: GameState, id: string): number => naturalLevel(id, selectSpeciesId(s), selectExactAge(s));
@@ -29,7 +27,6 @@ export function selectLevelExact(s: GameState, id: string): number {
 /** The displayed level (floor). */
 export const selectLevel = (s: GameState, id: string): number => Math.floor(selectLevelExact(s, id) + 1e-9);
 
-export const selectTier = (s: GameState, id: string): TierName => tierOf(Math.floor(selectLevelExact(s, id) + 1e-9));
 
 /** The highest Force body-ability level (progression-numbers §11). */
 export function selectBodyAbilityLevel(s: GameState): number {
@@ -54,8 +51,6 @@ export function selectPerformance(s: GameState, id: string): number {
   return physicalPerformance(id, level, bodyCapAt(selectSpeciesId(s), stat, a.bodyAge), selectForceBoost(s), a.loss[stat]);
 }
 
-/** Level for rolls before wounds and fatigue: performance x (1 - rust). */
-export const selectEffectiveLevel = (s: GameState, id: string): number => selectPerformance(s, id) * (1 - selectRust(s, id));
 
 /** Meter capacities from Endurance, Willpower and Force Control, cut by the overtraining streak. */
 export function selectCapacities(s: GameState): Capacities {
@@ -75,7 +70,6 @@ export const selectGriefMult = (s: GameState): number => griefMult(s.progression
 export const selectDespairMult = (s: GameState): number => despairMult(s.progression.stateOfMind, s.clock.now.day);
 export const selectTierBeats = (s: GameState): readonly TierBeat[] => s.progression.tierBeatsPending;
 export const selectOvertrainStreak = (s: GameState): number => s.progression.overtrainStreak;
-export const selectWillpowerToday = (s: GameState): number => s.progression.willpowerToday;
 
 export interface SkillView {
   id: string;
@@ -135,8 +129,6 @@ export function selectStyles(s: GameState): Record<string, number> {
   return Object.fromEntries(Object.entries(s.progression.styles ?? {}).map(([id, st]) => [id, styleNow(st, day)]));
 }
 
-/** The insight bonus against a culture's forces (m8-skills, D-513: Intelligence 80+ study; +1, at most +2). */
-export const selectInsight = (s: GameState, culture: string): number => insightBonus(s.progression.insight?.[culture] ?? 0);
 
 // The Train list (m8-fixes G6): what the path and the teachers at hand make available, for the UI.
 export { selectTrainOptions, type TrainOption } from './training';

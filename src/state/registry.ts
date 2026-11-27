@@ -8,7 +8,8 @@
 // recharges shields. Traits (M8 item 16) follow: their only hook brings a youngling's formative quiz due after a long skip.
 // Ship battles (M8 item 13) have no day hook: a battle is played turn by turn. Ships (m8-ship-life) follow: their hook draws
 // crew wages, docking and upkeep through the economy (an event it applies) and wears the ships; tactics and possessions have no
-// day hook.
+// day hook. Duty (opt-2 D) runs just before pacing: its day hook reads the threads, the wounds and the world's timeline (all
+// hands) after they have moved, ends a mission or rolls the day's assignment.
 import { battlesFeature } from '../features/battles';
 import { possessionsFeature } from '../features/possessions';
 import { shipsFeature } from '../features/ships';
@@ -17,6 +18,7 @@ import { characterFeature } from '../features/character';
 import { clockFeature } from '../features/clock';
 import { combatFeature } from '../features/combat';
 import { droidsFeature } from '../features/droids';
+import { dutyFeature } from '../features/duty';
 import { economyFeature } from '../features/economy';
 import { flagsFeature } from '../features/flags';
 import { healthFeature } from '../features/health';
@@ -56,6 +58,7 @@ export const REGISTRY: Registry<GameState> = [
   shipsFeature,
   tacticsFeature,
   possessionsFeature,
+  dutyFeature,
   pacingFeature,
 ];
 
@@ -83,5 +86,6 @@ export const HOOK_ORDER: readonly string[] = [
   'ships',
   'tactics',
   'possessions',
+  'duty',
   'pacing',
 ];

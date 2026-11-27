@@ -8,6 +8,7 @@
 // progression, ..., world, pacing) runs after them, at midnight, in registry order. Midnight falls in the
 // night's sleep for any normal routine. A hook's interruption stops the loop; an interruption during the
 // night lets the sleep finish, so the story resumes in the morning (Q48). Pure.
+import { selectAtHome } from '../features/duty/home';
 import { formatDate } from '../engine/calendar';
 import { selectFatigue, selectMaxFraction } from '../features/health/selectors';
 import { resolveTraining, type SpeedParts } from '../features/progression/selectors';
@@ -77,8 +78,18 @@ const absOf = (s: GameState): number => s.clock.now.day * DAY + s.clock.now.seco
  * Runs the routine until `untilAbs` (normally a wake time), or until a hook interrupts. `untilAbs` is
  * clamped so the loop always ends at a wake time.
  */
-export function advanceByRoutine(registry: Registry<GameState>, initial: GameState, opts: { untilAbs: number; reason: string; jump?: boolean; rest?: boolean }): RoutineAdvanceResult {
+/** Why a skip stops this morning for a home day, or null (opt-2 D5). */
+function homeDayStop(s: GameState, freeDay: boolean, setting: boolean): string | null {
+  const d = s.duty;
+  if (d.status !== 'home' || !selectAtHome(s)) return null;
+  if (d.homeDay === s.clock.now.day) return 'A home day after the mission';
+  if (setting && freeDay) return 'A free day at home';
+  return null;
+}
+
+export function advanceByRoutine(registry: Registry<GameState>, initial: GameState, opts: { untilAbs: number; reason: string; jump?: boolean; rest?: boolean; homeDays?: boolean }): RoutineAdvanceResult {
   const jump = opts.jump ?? true;
+  const firstDay = initial.clock.now.day;
   let state = initial;
   const applied: AppliedEvent[] = [];
   const rejected: RejectedEvent[] = [];
@@ -175,6 +186,15 @@ export function advanceByRoutine(registry: Registry<GameState>, initial: GameSta
     // Morning: the day's plan. Notices from the night (midnight hooks) belong to this day.
     // The player rests (D-199: "I rest for a week while a medic treats my arm"): rest and recovery days, no training.
     const planned = planDay(state, routine, selectFillCredit(state));
+    // Home days (opt-2 D5): a skip stops on the morning after a mission (always), and on the routine's free day at home when
+    // the setting asks; never on its own first morning (a resumed skip goes on), never on a mission (no free day there).
+    if (jump && state.clock.now.day > firstDay) {
+      const why = homeDayStop(state, !planned.trainingDay, opts.homeDays === true);
+      if (why) {
+        interrupted = { reason: why, day: state.clock.now.day };
+        break;
+      }
+    }
     const plan = opts.rest ? { ...planned, trainingDay: false, recovery: true, items: [], notes: ['rest and recovery: the character rests'] } : planned;
     const log: DayLog = { day: state.clock.now.day, label: formatDate(state.clock.now.day), trainingDay: plan.trainingDay, recovery: plan.recovery, sessions: [], hoursTrained: 0, notes: [...plan.notes], notices: dayNotices, endF: 0 };
     days.push(log);

@@ -1,7 +1,7 @@
 // threads feature (architecture §2): story threads with stakes, notes and an engine-mapped
 // deadline. The day hook raises escalation from the deadline (M4, D-135).
 import { z } from 'zod';
-import { DEADLINE_DAYS, DEADLINE_HINTS, LIMITS, THREAD_ESCALATION, THREAD_OUTCOMES, type DeadlineHint } from '../../data/entities.config';
+import { COLD_STORE, DEADLINE_DAYS, DEADLINE_HINTS, LIMITS, THREAD_ESCALATION, THREAD_OUTCOMES, type DeadlineHint } from '../../data/entities.config';
 import { fromAbsSecond } from '../../engine/calendar';
 import type { GameEvent } from '../../state/types';
 import { mintId } from '../../engine/aliases';
@@ -17,7 +17,18 @@ function openThread(slice: ThreadsSlice, id: string, note: string, turn: number)
   const t = slice.byId[id];
   if (!t) return { reject: `unknown thread ${id}` };
   if (t.status !== 'open') return { reject: `thread ${id} is ${t.status}` };
-  return { byId: { ...slice.byId, [id]: { ...t, notes: note ? [...t.notes, note] : t.notes, lastTurn: turn } } };
+  return { ...slice, byId: { ...slice.byId, [id]: { ...t, notes: note ? [...t.notes, note] : t.notes, lastTurn: turn } } };
+}
+
+/** The cold store (opt-2 H2): a thread closed a year keeps its last notes (what retrieval shows); older ones move to `cold`. */
+function coldThreads(slice: ThreadsSlice, day: number): ThreadsSlice {
+  let next = slice;
+  for (const t of Object.values(slice.byId)) {
+    if (t.status === 'open' || t.closedDay === null || day - t.closedDay < COLD_STORE.afterDays || t.notes.length <= COLD_STORE.threadNotesKept) continue;
+    const cut = t.notes.length - COLD_STORE.threadNotesKept;
+    next = { ...next, byId: { ...next.byId, [t.id]: { ...t, notes: t.notes.slice(cut) } }, cold: { ...(next.cold ?? {}), [t.id]: [...(next.cold?.[t.id] ?? []), ...t.notes.slice(0, cut)] } };
+  }
+  return next;
 }
 
 export const threadsFeature: FeatureModule<ThreadsSlice, GameState> = {
@@ -64,7 +75,7 @@ export const threadsFeature: FeatureModule<ThreadsSlice, GameState> = {
           closedDay: null,
           lastTurn: selectTurnInPlay(ctx.state),
         };
-        return { slice: { byId: { ...slice.byId, [id]: t } }, mintedId: id };
+        return { slice: { ...slice, byId: { ...slice.byId, [id]: t } }, mintedId: id };
       },
     },
     threadProgressed: {
@@ -96,7 +107,7 @@ export const threadsFeature: FeatureModule<ThreadsSlice, GameState> = {
         const r = openThread(slice, id, String(e['note']), selectTurnInPlay(ctx.state));
         if ('reject' in r) return r;
         const t = r.byId[id]!;
-        return { slice: { byId: { ...r.byId, [id]: { ...t, status: e['outcome'] as Thread['status'], closedDay: selectNow(ctx.state).day } } } };
+        return { slice: { ...r, byId: { ...r.byId, [id]: { ...t, status: e['outcome'] as Thread['status'], closedDay: selectNow(ctx.state).day } } } };
       },
     },
     /** The engine raised a thread's escalation from its deadline (D-60, D-135). */
@@ -110,7 +121,7 @@ export const threadsFeature: FeatureModule<ThreadsSlice, GameState> = {
         if (!t || t.status !== 'open') return { reject: `no open thread ${id}` };
         const level = Number(e['level']);
         if (level <= t.escalation) return { reject: `thread ${id} is already at escalation ${t.escalation}` };
-        return { slice: { byId: { ...slice.byId, [id]: { ...t, escalation: level } } } };
+        return { slice: { ...slice, byId: { ...slice.byId, [id]: { ...t, escalation: level } } } };
       },
     },
   },
@@ -132,7 +143,7 @@ export const threadsFeature: FeatureModule<ThreadsSlice, GameState> = {
       notices.push(`"${t.title}" ${what}.`);
       if (level >= 2 && interrupt === undefined) interrupt = `"${t.title}" ${what}`;
     }
-    return { slice, ...(emit.length ? { emit } : {}), ...(notices.length ? { notices } : {}), ...(interrupt ? { interrupt } : {}) };
+    return { slice: coldThreads(slice, day), ...(emit.length ? { emit } : {}), ...(notices.length ? { notices } : {}), ...(interrupt ? { interrupt } : {}) };
   },
   selectors: { all: selectThreads, open: selectOpenThreads },
 };

@@ -106,14 +106,16 @@ describe('the narrative schema in parts (m8-ground Part A, D-520)', () => {
     expect(r.rejected).toEqual([]);
   });
 
-  it('the dedicated ship, tactic and item events do what the droid event\'s words did (a straight move)', () => {
+  it('the ship, tactic and item words go to their own events; the droid event no longer routes them (opt-2 F)', () => {
     const k = base();
     const viaEvent = applyEvents(REGISTRY, k, [{ type: 'shipAct', what: 'salvaged a Dynamic-class freighter' }], { source: 'ai' }).state;
-    const viaWords = applyEvents(REGISTRY, k, [{ type: 'droid', what: 'ship: salvaged a Dynamic-class freighter' }], { source: 'ai' }).state;
-    expect(Object.values(viaEvent.ships.ships).map((x) => x.classId)).toEqual(Object.values(viaWords.ships.ships).map((x) => x.classId));
-    const t1 = applyEvents(REGISTRY, k, [{ type: 'tacticStudied', what: 'the Corellian Slip from a veteran' }], { source: 'ai' }).state;
-    const t2 = applyEvents(REGISTRY, k, [{ type: 'droid', what: 'tactic: the Corellian Slip from a veteran' }], { source: 'ai' }).state;
-    expect(Object.keys(t1.tactics.known)).toEqual(Object.keys(t2.tactics.known));
+    expect(Object.values(viaEvent.ships.ships)).toHaveLength(1);
+    const viaWords = applyEvents(REGISTRY, k, [{ type: 'droid', what: 'ship: salvaged a Dynamic-class freighter' }], { source: 'ai' });
+    expect(Object.values(viaWords.state.ships.ships)).toHaveLength(0);
+    expect(viaWords.applied.some((a) => a.event.type === 'shipAct')).toBe(false);
+    const t2 = applyEvents(REGISTRY, k, [{ type: 'droid', what: 'tactic: the Corellian Slip from a veteran' }], { source: 'ai' });
+    expect(t2.applied.some((a) => a.event.type === 'tacticStudied')).toBe(false);
+    expect(Object.keys(t2.state.tactics.known)).toEqual(Object.keys(k.tactics.known));
   });
 
   it('the turn\'s parts are worked out once: what the schema sends is what the reply may carry', () => {

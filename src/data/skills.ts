@@ -155,6 +155,3 @@ export function skillDef(id: string): SkillDef {
   return s;
 }
 
-export function categoryRules(id: string): CategoryRules {
-  return CATEGORY_RULES[skillDef(id).category];
-}

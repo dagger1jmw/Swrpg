@@ -1,5 +1,6 @@
 // memory feature (architecture §2, §7): facts, pins, chapters, the arc, the open chapter's
 // signals and the review queue. Policy and retrieval are pure code in src/memory/ (D-17).
+import { COLD_STORE } from '../../data/entities.config';
 import { z } from 'zod';
 import { MEMORY_LIMITS } from '../../data/memory.config';
 import { normalizeAlias } from '../../engine/aliases';
@@ -21,6 +22,14 @@ const emptyMemory = (startTurn: number, startDay: number): MemorySlice => ({
 
 const num = (v: unknown, fallback: number): number => (typeof v === 'number' && Number.isFinite(v) ? v : fallback);
 const ids = z.array(z.string());
+
+/** The review queue's cap (opt-2 H2): open items always stay; past COLD_STORE.reviewClosedMax closed ones, the oldest go. */
+function capReview(review: ReviewItem[]): ReviewItem[] {
+  const closed = review.filter((r) => r.status !== 'open');
+  if (closed.length <= COLD_STORE.reviewClosedMax) return review;
+  const drop = new Set(closed.slice(0, closed.length - COLD_STORE.reviewClosedMax).map((r) => r.id));
+  return review.filter((r) => !drop.has(r.id));
+}
 
 export const memoryFeature: FeatureModule<MemorySlice, GameState> = {
   id: 'memory',
@@ -104,7 +113,7 @@ export const memoryFeature: FeatureModule<MemorySlice, GameState> = {
         const same = (r: ReviewItem): boolean => r.status === 'open' && normalizeAlias(r.name) === normalizeAlias(name) && (r.kind ?? 'name') === (kind ?? 'name') && r.npcId === npcId;
         if (slice.review.some(same)) return { slice, notes: [`"${name}" is already awaiting review`] };
         const item: ReviewItem = { id: `review:${slice.nextSeq}`, name, turn: selectTurnInPlay(ctx.state), context: String(e['context']), status: 'open', entityId: null, ...(kind ? { kind } : {}), ...(npcId ? { npcId } : {}) };
-        return { slice: { ...slice, review: [...slice.review, item], nextSeq: slice.nextSeq + 1 } };
+        return { slice: { ...slice, review: capReview([...slice.review, item]), nextSeq: slice.nextSeq + 1 } };
       },
     },
     // Player (or engine, exact match only): the review item was mapped to an entity, created as one, or dismissed.
@@ -126,7 +135,7 @@ export const memoryFeature: FeatureModule<MemorySlice, GameState> = {
         const entityId = typeof e['entityRef'] === 'string' ? e['entityRef'] : null;
         if (e['resolution'] !== 'dismissed' && entityId === null) return { reject: 'mapped or created needs an entity' };
         const resolved: ReviewItem = { ...item, status: e['resolution'] as ReviewItem['status'], entityId };
-        return { slice: { ...slice, review: slice.review.map((r) => (r.id === id ? resolved : r)) } };
+        return { slice: { ...slice, review: capReview(slice.review.map((r) => (r.id === id ? resolved : r))) } };
       },
     },
     // Engine: the chapter-close policy (src/memory/chapterClose.ts) decided to close; tags are code-computed.

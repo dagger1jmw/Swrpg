@@ -25,8 +25,6 @@ import { emptyTraits, type TraitsSlice } from './traits';
 /** The slice (a state built without the feature, as some tests do, reads as an empty one). */
 export const selectTraitsSlice = (s: GameState): TraitsSlice => (s as { traits?: TraitsSlice }).traits ?? emptyTraits();
 export const selectTraitHoldings = (s: GameState): readonly TraitHolding[] => selectTraitsSlice(s).held;
-export const selectTraitIds = (s: GameState): string[] => selectTraitHoldings(s).map((h) => h.id);
-export const selectHasTrait = (s: GameState, id: string): boolean => selectTraitIds(s).includes(id);
 
 /** What the gates read, from the state. */
 export function selectTraitContext(s: GameState): TraitContext {
@@ -90,7 +88,10 @@ export function selectNpcMindTrickResist(s: GameState, npcId: string): number {
   return traitRollMod(selectNpcTraitHoldings(s, npcId), ['mindTrick']).total;
 }
 
-/** The alignment system's inputs (M6 reads them; spec/traits.md section 5): the pressures and the quiz's nudges. */
+/**
+ * The alignment system's inputs (M6 reads them; spec/traits.md section 5): the pressures and the quiz's nudges. Nothing calls it
+ * until the alignment system is built (kept as the documented interface, opt-2 G1).
+ */
 export function selectTraitAlignment(s: GameState) {
   const slice = selectTraitsSlice(s);
   const pressure = traitPressure(slice.held);

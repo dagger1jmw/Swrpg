@@ -26,7 +26,7 @@ import {
 } from '../../data/shipBattles.config';
 import { BREAK_UP, DOGFIGHT, FLEET, FORMATIONS, FORMATION_BEATS, FORMATION_LABEL, MANOEUVRE, MANOEUVRES, PLANNED_CHANGES, REPAIR_DC, ROUND_MINUTES, TURN_SECONDS, type Formation, type Manoeuvre, type ShipSystem } from '../../data/shipCombat.config';
 import type { Facing } from '../../data/ships';
-import { COMMAND_BASICS, SEEN_TACTIC_PENALTY } from '../../data/tactics';
+import { SEEN_TACTIC_PENALTY } from '../../data/tactics';
 
 // ---- the battle ----
 
@@ -524,10 +524,10 @@ function earlyEvacOption(b: Battle): MenuOption[] {
 
 /** The tactics menu for this turn or round. */
 /**
- * The player may fly this tactic: known, or seen and not practised (at a penalty). The list is the character's own (m8-fixes B1);
- * a battle saved before it (no `seenOnly`) still opens the basics to a commander, as it did. Old battles without the record: all.
+ * The player may fly this tactic: known, or seen and not practised (at a penalty). The list is the character's own (m8-fixes B1;
+ * battles saved before it are migrated, battles v2). A battle built without the character's record (the engine's harness): all.
  */
-export const knows = (b: Battle, id: string): boolean => !b.tactics || id === 'fly' || b.tactics.known.includes(id) || (b.tactics.seenOnly === undefined && COMMAND_BASICS.includes(id) && b.role === 'commander');
+export const knows = (b: Battle, id: string): boolean => !b.tactics || id === 'fly' || b.tactics.known.includes(id);
 /** A seen tactic, not practised (m8-fixes B4). */
 const seenOnly = (b: Battle, id: string | undefined): boolean => !!id && (b.tactics?.seenOnly ?? []).includes(id);
 const SEEN_MOD = { source: 'a tactic seen, not practised', value: -SEEN_TACTIC_PENALTY };
@@ -1218,8 +1218,6 @@ export function commandSize(b: Battle, sizes: readonly (readonly [number, string
   return [...sizes].reverse().find(([min]) => n >= min)?.[1] ?? 'ship';
 }
 
-/** The player's ship at the end, for the damage that carries over. */
-export const shipAtEnd = (b: Battle): ShipState | null => ownShip(b) ?? null;
 
 /** The outcome for XP and records: won, drawn or lost. */
 export const outcomeOf = (b: Battle): 'won' | 'drawn' | 'lost' => (b.end?.winner === 'player' ? 'won' : b.end?.winner === 'enemy' ? 'lost' : 'drawn');

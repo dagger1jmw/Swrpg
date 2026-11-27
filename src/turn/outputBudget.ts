@@ -17,7 +17,7 @@ export const JSON_ALLOWANCE = {
   arrival: 600,
   /** A montage or time skip told at once: facts, thread progress, relationships over the span. */
   jump: 500,
-  /** A planning scene can be part of it (groundBattlePlanned's details line, up to 300 characters). */
+  /** A planning scene can be part of it (groundBattlePlanned's fields, about 300 characters at most). */
   command: 400,
 } as const;
 

@@ -53,7 +53,6 @@ export const captivitySchema = z.object({
 export type Captivity = z.infer<typeof captivitySchema>;
 
 export const captivityNewsSchema = z.object({ text: z.string().max(300), toldTurn: z.number().int().nullable() });
-export type CaptivityNews = z.infer<typeof captivityNewsSchema>;
 
 const clamp = (x: number): number => Math.min(SECURITY_RANGE.max, Math.max(SECURITY_RANGE.min, x));
 /** A blockade's picket strength and alertness carry over to the cells. */
@@ -135,5 +134,3 @@ export const END_TEXT: Readonly<Record<CaptivityEnd, string>> = {
   ransomed: 'the player character was ransomed (a debt)',
 };
 
-/** Held now (a run's hours may still be passing: the record begins at its end). */
-export const isHeld = (s: GameState): boolean => s.world.captivity !== null;

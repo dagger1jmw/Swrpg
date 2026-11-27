@@ -124,7 +124,7 @@ describe('gates', () => {
     expect(traitRefusal('templeRaised', jediCtx({ trainingStartAge: 9.5 }))).toBeNull();
     expect(traitRefusal('templeRaised', jediCtx({ trainingStartAge: 10 }))).toMatch(/before age 10/);
     expect(traitRefusal('frontierWorld', jediCtx({ trainingStartAge: 10 }))).toBeNull();
-    expect(traitRefusal('templeRaised', { ...jediCtx(), path: 'career', archetype: 'soldier' })).toMatch(/only for jedi/);
+    expect(traitRefusal('templeRaised', { ...jediCtx(), path: 'career', archetype: 'soldier' })).toMatch(/only for the Jedi/);
   });
   it('the Sacking of Coruscant: a massacre survivor only if alive there in 3,653', () => {
     // A Jedi at the Temple in 3,653 (born 3,670, there from 4) starting in 3,640.

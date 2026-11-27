@@ -169,10 +169,14 @@ export function terasKasiAnticipation(p: number, melee: number): number {
   return forceSensePrecog(melee) * (melee >= a.grandmasterMelee ? a.grandmasterShare : a.masterShare);
 }
 
-/** The defence used against a melee strike: the higher of the fighter's own Force Sense and its anticipation (never both). */
+/**
+ * The defence used against a melee strike: the higher of the fighter's own Force Sense and its anticipation (never both). The duel
+ * applies this rule in its precog() (engine/duel.ts), through forceSensePrecog and with the centred bonus on top (opt-2 E3).
+ */
 export const precogDefence = (ownForceSense: number, anticipation: number): number => Math.max(forceSensePrecog(ownForceSense), anticipation);
 
 /**
+ * Waits for the realistic damage rules (opt-2 E3: not wired; nothing reads it until then).
  * A Teräs Käsi master's strike for the realistic damage rules (not built yet): the share of a blaster pistol's damage class
  * it counts as (by proficiency from TERAS_KASI.pistolFrom to 100%) and the part of light and medium body armour it ignores.
  */

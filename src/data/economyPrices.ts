@@ -4,7 +4,6 @@
 // table's damage order or a neighbouring item). The credit is stable across eras: dates move prices only through events
 // (economy.config.ts PRICE_EVENTS). The equipment catalog (spec 22) prices its items through `priceId` on these rows.
 import { DROID_MODELS } from './droidModels';
-import type { ArmorKind, WeaponKind } from './health.config';
 
 /** How location moves the price: manufactured goods follow it in full, food and services half (economy.config LOCATION). */
 export const PRICE_KINDS = ['manufactured', 'military', 'food', 'service', 'luxury'] as const;
@@ -189,19 +188,4 @@ export function resolvePriceId(text: string): string | null {
   }
   return null;
 }
-export const PRICE_IDS: readonly string[] = PRICE_CATALOG.map((p) => p.id);
 
-/** The stub weapon kinds (weapons.ts) priced by a class-table row until the equipment catalog replaces them. */
-export const WEAPON_KIND_PRICE: Readonly<Record<WeaponKind, string | null>> = {
-  unarmed: null,
-  melee: 'vibroblade',
-  blasterPistol: 'pistol',
-  blasterRifle: 'rifle',
-  heavy: 'heavyRepeater',
-  slugPistol: 'slugPistol',
-  slugRifle: 'slugRifle',
-  scatterGun: 'scattergun',
-  lightsaber: 'lightsaber',
-  trainingSaber: null,
-};
-export const ARMOR_KIND_PRICE: Readonly<Record<ArmorKind, string | null>> = { none: null, light: 'armorLight', medium: 'armorMedium', heavy: 'armorHeavy' };

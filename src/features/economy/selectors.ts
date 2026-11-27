@@ -20,7 +20,7 @@ import {
 import { PRICE_BY_ID, type PriceEntry } from '../../data/economyPrices';
 import { BLOCKADES } from '../../data/blockades';
 import { PLANETS } from '../../data/galaxyMap';
-import { WARS } from '../../data/npcGen.config';
+import { factionAtWar } from '../../data/wars';
 import { controlAt, type ControlSide } from '../../data/worldControl';
 import { blockadeStartDay } from '../../engine/blockade';
 import { absDayFromDate, dateFromAbsDay, formatDate } from '../../engine/calendar';
@@ -49,9 +49,7 @@ import { selectCharacter, selectPath } from '../character/selectors';
 import { selectLocationChain } from '../locations/selectors';
 import { selectPresentNpcIds } from '../pacing/selectors';
 import { selectStandingBlockades } from '../world/selectors';
-import type { EconomySlice } from './economy';
 
-export const selectEconomy = (s: GameState): EconomySlice => s.economy;
 export const selectWallet = (s: GameState): Wallet => s.economy.wallet;
 
 // ---------------------------------------------------------------- the place as a market
@@ -115,7 +113,7 @@ export function selectPlace(s: GameState): Place {
   const republicCore = !huttCoin && zone === REPUBLIC_CORE_ZONE && (side === null || side === 'republic');
   const imperialCore = !huttCoin && (side === null || side === 'sithEmpire') && (hasName(names, IMPERIAL_CORE_WORLDS) || (planet?.role.startsWith('IMP-CORE') ?? false));
   const warSide = side ?? (republicCore ? 'republic' : imperialCore ? 'sithEmpire' : null);
-  const atWar = warSide !== null && WARS.some((w) => w.factions.includes(warSide) && bby <= w.fromBby && bby >= w.toBby);
+  const atWar = factionAtWar(warSide, -bby);
   const blockade = hasName(names, FOOD_INDEX_PLACES) ? BLOCKADES.find((b) => b.id === FOOD_INDEX_BLOCKADE) : undefined;
   const standing = blockade ? standingNow(s, blockade.id) : false;
   const treaty = treatyDay(s);

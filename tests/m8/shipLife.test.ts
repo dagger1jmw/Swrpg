@@ -66,7 +66,12 @@ const fresh = (o: Over = {}, reg: Registry<GameState> = FAST): GameState => {
   return o.credits === undefined ? placed : { ...placed, economy: { ...placed.economy, wallet: { republic: o.credits, imperial: 0, hutt: 0 } } };
 };
 const ev = (s: GameState, events: object[], source: 'ai' | 'engine' | 'dev' | 'player' = 'engine', reg: Registry<GameState> = FAST) => applyEvents(reg, s, events, { source });
-const words = (s: GameState, what: string, reg: Registry<GameState> = FAST) => ev(s, [{ type: 'droid', what }], 'ai', reg);
+/** The narrator's words by their head (opt-2 F: ship:, item: and tactic: go to their own events; anything else is droid words). */
+const words = (s: GameState, what: string, reg: Registry<GameState> = FAST) => {
+  const head = /^\s*(ship|tactics?|item)s?\s*:/i.exec(what)?.[1]?.toLowerCase();
+  const type = head === 'ship' ? 'shipAct' : head === 'item' ? 'itemMoved' : head?.startsWith('tactic') ? 'tacticStudied' : 'droid';
+  return ev(s, [{ type, what }], 'ai', reg);
+};
 const travel = (names: string[], extra: Partial<Intent> = {}): Intent => ({ actionType: 'travel', targets: [], references: [], unknownNames: names, ...extra });
 const CTX: StepCtx = { troopsFor: () => 'sithTrooper', playerJedi: false };
 const typesOf = (r: { applied: readonly { event: { type: string } }[] }): string[] => r.applied.map((a) => a.event.type);
@@ -400,11 +405,13 @@ describe('tactics as knowledge and the Tactics tab', () => {
     expect(Object.keys(civ).sort()).toEqual(['break', 'exchange', 'fightingWithdrawal', 'fly', 'frontalAssault', 'jink', 'pass', 'rollShip', 'brawl', 'withdraw'].sort());
     let s = fresh({ path: 'career', archetype: 'civilian' });
     s = ev(s, [{ type: 'tacticsSeen', ids: ['tallonRoll', 'capT'], by: 'enemy' }]).state;
-    // An instructor the game does not know teaches standard tactics, not advanced ones (m8-fixes B3a).
+    // An instructor the game does not know teaches only the basics (opt-2 C; was standard tactics, m8-fixes B3a).
     s = words(s, 'tactic: taught Scissors by Commander Hale').state;
+    s = words(s, 'tactic: taught flanking by Commander Hale').state;
     const rows = selectTacticRows(s);
     expect(rows.find((r) => r.def.id === 'tallonRoll')).toMatchObject({ status: 'seen' });
-    expect(rows.find((r) => r.def.id === 'scissors')).toMatchObject({ status: 'known', source: expect.stringMatching(/taught by commander hale/i) });
+    expect(rows.find((r) => r.def.id === 'scissors')?.status).not.toBe('known');
+    expect(rows.find((r) => r.def.id === 'flanking')).toMatchObject({ status: 'known', source: expect.stringMatching(/taught by commander hale/i) });
     expect(rows.some((r) => r.def.scale === 'ground') || rows.every((r) => r.def.scale !== 'ground')).toBe(true);
   });
   it('practice after seeing it moves a seen tactic to known', () => {

@@ -2,9 +2,9 @@
 // wound also heals overnight on 7h+ sleep. Multipliers: field care x1, medical care x2, a kolto tank x4 or a bacta tank x5
 // that replaces medical care, a Force healer on top x(1 + level / 50), training the injured part x0.5; capped at x6.
 // A wound's depth sets the severity it heals as; an unset bone, a toxin and retained shrapnel slow or stop it.
-import { HEAL_DAYS, HEAL_MULT, LASTING_CHANCE, SEVERITIES, VITALITY_RECOVERY, type Severity } from '../data/health.config';
+import { HEAL_DAYS, HEAL_MULT, SEVERITIES, VITALITY_RECOVERY, type Severity } from '../data/health.config';
 import { CARE_MULT, SURGERY, UNTREATED } from '../data/medicine.config';
-import { healsAs, needsSetting } from './medicine';
+import { healsAs, lastingChanceAt, needsSetting } from './medicine';
 import { effectiveSeverity, type Wound } from './wounds';
 
 export type CareKind = 'none' | 'field' | 'medical' | 'kolto' | 'bacta';
@@ -58,9 +58,11 @@ export const isHealed = (w: Wound): boolean => w.healProgress >= 1 - 1e-9;
 /** Minor wounds heal overnight on 7h+ sleep. */
 export const healsOvernight = (w: Wound, sleptHours: number): boolean => effectiveSeverity(w) === 'minor' && sleptHours >= VITALITY_RECOVERY.fullSleepHours;
 
-/** Chance that a healed wound leaves a lasting injury: severe 10%, critical 35%, mortal (stabilized) 70%. */
-export function lastingChance(w: Wound): number {
+/**
+ * Chance that a healed wound with no care leaves a lasting injury (health §7), at the severity it heals as (a stabilized mortal
+ * is mortal; a deep cut its depth's): engine/medicine lastingChanceAt, the one table reader (opt-2 E4).
+ */
+export function lastingChance(w: Wound, severity: Severity = w.stabilized ? 'mortal' : w.severity): number {
   if (w.severed) return 0; // the loss is already a lasting injury
-  if (w.stabilized) return LASTING_CHANCE.stabilizedMortal;
-  return LASTING_CHANCE[w.severity] ?? 0;
+  return lastingChanceAt(severity);
 }

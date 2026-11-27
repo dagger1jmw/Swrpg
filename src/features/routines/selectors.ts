@@ -3,7 +3,6 @@
 import type { GameState } from '../../state/gameState';
 import type { Routine, RoutinesSlice } from './routines';
 
-export const selectRoutines = (s: GameState): RoutinesSlice => s.routines;
 export const selectActiveRoutine = (s: GameState): Routine => s.routines.active;
 export const selectRoutineTemplates = (s: GameState): RoutinesSlice['templates'] => s.routines.templates;
 export const selectRoutineSuggestion = (s: GameState): RoutinesSlice['suggested'] => s.routines.suggested;

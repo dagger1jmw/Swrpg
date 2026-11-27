@@ -430,10 +430,6 @@ export function crewWithAstromech<C extends { repair: number }>(crew: C, hooks: 
   return { ...crew, repair: Math.max(crew.repair, hooks.repair) };
 }
 
-/** A protocol droid's help in talk: its languages and social programming (the better), for translation and social checks. */
-export const socialSupport = (u: DroidUnit, day: number, nowSec: number): number => Math.max(skillNow(u, 'languages', day, nowSec), skillNow(u, 'social', day, nowSec));
-/** A combat droid as escort or guard: its best fighting or security skill. */
-export const escortRating = (u: DroidUnit, day: number, nowSec: number): number => Math.max(skillNow(u, 'blaster', day, nowSec), skillNow(u, 'melee', day, nowSec), skillNow(u, 'security', day, nowSec));
 
 // ---------------------------------------------------------------- players (spec §6)
 

@@ -1,6 +1,6 @@
-// Order requirements (ranks.md §1a, D-42; activities from skills-and-activities.md §5). Stub until
-// M7 (architecture §15, D-56): static data, rank fixed at creation. Sith use the Jedi rows until M7
-// (acolyte = Initiate row, apprentice = Padawan row; D-42, D-105).
+// Order requirements (ranks.md §1a, D-42; activities from skills-and-activities.md §5): the mandatory blocks of a routine, by
+// rank. The Sith have their own rows (acolyte, apprentice: the Academy and the apprenticeship); a Lord and a Master read the
+// Knight's row (opt-2 G2: the stale "stub until M7" and "Sith on the Jedi rows" notes removed).
 
 /** Who instructs a block: Temple instructors (x1.05), the master (x1.15) or nobody (solo x0.90). */
 export type Instructor = 'instructor' | 'master' | 'solo';
@@ -94,7 +94,7 @@ export const ORDER_REQUIREMENTS: Readonly<Record<string, readonly RequirementBlo
   ],
 };
 
-/** Rank -> Order requirement row (Sith on the Jedi rows until M7). */
+/** Rank -> Order requirement row: each rank its own, a Master, a Sith Lord and anyone without a rank the Knight's. */
 export const REQUIREMENT_ROW: Readonly<Record<string, string>> = {
   initiate: 'initiate',
   padawan: 'padawan',
@@ -106,10 +106,3 @@ export const REQUIREMENT_ROW: Readonly<Record<string, string>> = {
   none: 'knight',
 };
 
-/** Calibration instruction factors of the Average profile (progression-numbers §12). */
-export const AVERAGE_INSTRUCTION: Readonly<Record<Instructor | 'fill', number>> = {
-  instructor: 1.05,
-  master: 1.15,
-  solo: 0.9,
-  fill: 1.0,
-};

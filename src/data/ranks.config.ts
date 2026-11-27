@@ -91,7 +91,6 @@ export const SELECTION = {
   population: 1000,
 } as const;
 export const SERVICE_CORPS = ['agricultural', 'medical', 'educational', 'exploration'] as const;
-export type ServiceCorps = (typeof SERVICE_CORPS)[number];
 
 /** Standing S, 0-100 (ranks.md §1): 50% skill percentile, 30% deeds, 20% relationships with Knights and Masters. */
 export const STANDING_WEIGHTS = { percentile: 0.5, deeds: 0.3, relationships: 0.2 } as const;

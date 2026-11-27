@@ -2,6 +2,8 @@
 // session and the engine events that apply it. Feature rule code: pure, reads other features
 // through selectors. An unknown or locked activity is rejected with a reason and never mapped to a
 // nearby one (D-07, skills-and-activities.md §2).
+import { PATH_WORDS, pathsInWords, ranksInWords } from '../../data/pathWords';
+import { locationPenalty, type Wound } from '../../engine/wounds';
 import { ACCELERATED_PATH, FORCE_RICH_FACTOR, INSTRUCTOR_SHARE, INTENSITY, MAJOR_NEXUS_FACTOR, NEXUS_SITE_FACTOR, ORDER_SPARRING_CLASSES, RECORDING_REVIEW_BONUS } from '../../data/progression.config';
 import { forceFraction } from '../../engine/forceMeter';
 import { sparringE, splitDrillXp, type SparE } from '../../engine/appliedExperience';
@@ -240,11 +242,11 @@ function unlockFails(u: Unlock, ctx: UnlockCtx): string | null {
     case 'anyAbilityLevel':
       return [...SKILL_BY_ID.values()].some((d) => d.kind === 'forceAbility' && selectLevelExact(s, d.id) >= u.min) ? null : `needs a Force ability at ${u.min}`;
     case 'rank':
-      return u.ranks.includes(selectRank(s)) ? null : `only for ${u.ranks.join(' or ')}`;
+      return u.ranks.includes(selectRank(s)) ? null : `only for ${ranksInWords(u.ranks)}`;
     case 'notRank':
       return u.ranks.includes(selectRank(s)) ? `not for ${u.ranks.join(' or ')}` : null;
     case 'path':
-      return u.paths.includes(selectPath(s)) ? null : `only for the ${u.paths.join(' or ')} path`;
+      return u.paths.includes(selectPath(s)) ? null : `only for ${pathsInWords(u.paths)}`;
     case 'formGate': {
       if (known(s, ctx.primary)) return null;
       if (ctx.primary !== 'vaapad') return `${name(ctx.primary)} is not known yet`;
@@ -448,7 +450,7 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
   const record = source?.kind === 'record' ? TRAINING_RECORD_BY_ID.get(source.id) : undefined;
   if (source?.kind === 'record') {
     if (!record) return { ok: false, reason: `unknown training record ${source.id}` };
-    if (record.kind === 'archive' && !record.paths.includes(selectPath(s))) return { ok: false, reason: `${record.name} is not open to the ${selectPath(s)} path` };
+    if (record.kind === 'archive' && !record.paths.includes(selectPath(s))) return { ok: false, reason: `${record.name} is not open to ${PATH_WORDS[selectPath(s)] ?? selectPath(s)}` };
     if (record.levels[primary] === undefined) return { ok: false, reason: `${record.name} does not cover ${SKILL_BY_ID.get(primary)?.name ?? primary}` };
     if (record.fromYear !== undefined && dateFromAbsDay(selectNow(s).day).year < record.fromYear) return { ok: false, reason: `${record.name} does not exist yet` };
     if (record.places) {
@@ -716,6 +718,7 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
   if (styleGainEvent) notes.push(`${STYLE_BY_ID.get(styleId!)!.name}: ${styleGainEvent.hours.toFixed(2)} h of style practice`);
   const insightEvent = a.insight && req.culture && insightOpen(selectLevelExact(s, 'intelligence')) ? { culture: req.culture, hours: r.hours } : null;
   if (a.insight && !insightEvent) notes.push(req.culture ? 'cultural insight needs Intelligence 80' : 'name the culture studied for cultural insight');
+  const injuredTrained = r.hours > 0 ? Object.keys(prim).filter((k) => (s.health.wounds as Wound[]).some((w) => !w.severed && locationPenalty([w], k) > 0)) : [];
   const events: GameEvent[] = [
     {
       type: 'activityResolved',
@@ -742,6 +745,8 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
     },
     { type: 'activityLoad', activityId: a.id, meters: r.meters },
     ...(discovered ? [{ type: 'covertLearningDiscovered', abilityId: primary }] : []),
+    // Training a part a wound penalizes (health §7; opt-2 E2): the health feature halves that day's healing and rolls the risk.
+    ...(injuredTrained.length ? [{ type: 'injuredPartTrained', skills: injuredTrained }] : []),
   ];
   return { ok: true, card, events, rng: rngAfter, hours: r.hours };
 }

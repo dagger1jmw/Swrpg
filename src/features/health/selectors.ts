@@ -1,11 +1,12 @@
 import { tirednessLabel, type Meters } from '../../engine/fatigue';
 import { forceFraction } from '../../engine/forceMeter';
+import { SUPPRESSION_POWERS } from '../../data/health.config';
 import type { GameState } from '../../state/gameState';
 import { SKILL_BY_ID, SKILL_IDS } from '../../data/skills';
 import { SEVERITIES } from '../../data/health.config';
 import { aidCap, lastingAffects, lastingPenalty, type LastingInjury } from '../../engine/lasting';
 import { maxVitality, maxVitalityWithLasting } from '../../engine/vitality';
-import { isDying, isIncapacitated, locationPenalty, statusLabel, woundLoad, woundPenalty, type Wound } from '../../engine/wounds';
+import { isDying, isIncapacitated, locationPenalty, statusLabel, woundPenalty, type Wound } from '../../engine/wounds';
 import { selectBodyAbilityLevel, selectCapacities, selectLevelExact, selectPerformance } from '../progression/selectors';
 import type { HealthSlice } from './health';
 
@@ -59,12 +60,21 @@ export function selectWoundTag(s: GameState, partText: (part: string) => string 
 }
 export const selectLasting = (s: GameState): readonly LastingInjury[] => s.health.lasting as readonly LastingInjury[];
 export const selectStatusLabel = (s: GameState): string => (s.health.death ? 'Dead' : statusLabel(selectWounds(s)));
-export const selectWoundLoad = (s: GameState): number => woundLoad(selectWounds(s));
 export const selectIsDying = (s: GameState): boolean => s.health.death === null && isDying(selectWounds(s));
 export const selectIsIncapacitated = (s: GameState): boolean => isIncapacitated(selectWounds(s));
 export const selectDeath = (s: GameState): HealthSlice['death'] => s.health.death;
 /** The total wound penalty on a skill (rolls §1): status + location, less Willpower resistance, capped at 50%. */
-export const selectWoundPenalty = (s: GameState, skillId: string): number => woundPenalty(selectWounds(s), skillId, { willpower: selectLevelExact(s, 'willpower') });
+/** The share of wound penalties the active suppression powers remove (health §8; the strongest one, at most 0.8). */
+export function selectSuppression(s: GameState): number {
+  let best = 0;
+  for (const a of s.health.suppression) {
+    const p = SUPPRESSION_POWERS[a.abilityId];
+    if (!p) continue;
+    best = Math.max(best, p.skill === null ? p.max : Math.min(p.max, selectLevelExact(s, p.skill) / p.per));
+  }
+  return Math.min(0.8, best);
+}
+export const selectWoundPenalty = (s: GameState, skillId: string): number => woundPenalty(selectWounds(s), skillId, { willpower: selectLevelExact(s, 'willpower'), suppression: selectSuppression(s) });
 /** The lasting-injury penalty on a skill (progression-numbers §18). */
 export const selectLastingPenalty = (s: GameState, skillId: string): number => lastingPenalty(selectLasting(s), skillId);
 

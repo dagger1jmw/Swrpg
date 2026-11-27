@@ -3,8 +3,6 @@
 export const PACING_LEVELS = ['moment', 'scene', 'montage', 'timeSkip'] as const;
 export type PacingLevel = (typeof PACING_LEVELS)[number];
 
-/** Story-turn levels (moment and scene); montage and timeSkip run the routine day loop (M4). */
-export const M1_PACING_LEVELS = ['moment', 'scene'] as const satisfies readonly PacingLevel[];
 export const JUMP_LEVELS = ['montage', 'timeSkip'] as const satisfies readonly PacingLevel[];
 export type JumpLevel = (typeof JUMP_LEVELS)[number];
 

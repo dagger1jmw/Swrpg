@@ -304,7 +304,6 @@ export const SPECIES: readonly SpeciesDef[] = [
 ];
 
 export const SPECIES_BY_ID: ReadonlyMap<string, SpeciesDef> = new Map(SPECIES.map((s) => [s.id, s]));
-export const DEFAULT_SPECIES = 'human';
 
 export function speciesDef(id: string): SpeciesDef {
   const s = SPECIES_BY_ID.get(id);

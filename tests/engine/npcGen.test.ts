@@ -60,7 +60,17 @@ describe('war years (npc-generation §1)', () => {
     expect(warYearsFor('jediKnight', 'jediOrder', 30, 4, -3661)).toBe(14);
     expect(warYearsFor('merchant', 'jediOrder', 30, 4, -3661)).toBe(0);
     expect(warYearsFor('jediKnight', 'civilian', 30, 4, -3661)).toBe(0);
-    expect(warYearsFor('jediKnight', 'jediOrder', 30, 4, -1032)).toBe(0);
+    // The one war list (opt-2 A1): 1,032 BBY is in the New Sith Wars; 500 BBY is peace.
+    expect(warYearsFor('jediKnight', 'jediOrder', 30, 4, -1032)).toBe(14);
+    expect(warYearsFor('jediKnight', 'jediOrder', 30, 4, -500)).toBe(0);
+  });
+  it('war years by role (opt-2 A2): Guardians and Sentinels every year, Consulars half, scholars none; a Clone Wars Jedi General has them', () => {
+    expect(warYearsFor('jediKnight', 'jediOrder', 30, 4, -3661, 'jediGuardian')).toBe(14);
+    expect(warYearsFor('jediKnight', 'jediOrder', 30, 4, -3661, 'jediSentinel')).toBe(14);
+    expect(warYearsFor('jediKnight', 'jediOrder', 30, 4, -3661, 'jediConsular')).toBe(7);
+    expect(warYearsFor('scholar', 'jediOrder', 30, 4, -3661, 'scholar')).toBe(0);
+    expect(warYearsFor('jediKnight', 'jediOrder', 30, 4, -19, 'jediGuardian')).toBe(3);
+    expect(warYearsFor('soldier', 'independent', 30, 16, -19, 'soldier')).toBe(3);
   });
 });
 

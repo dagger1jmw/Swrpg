@@ -33,7 +33,7 @@ export const WORLD_EVENT_KINDS: readonly WorldEventKind[] = [
   { id: 'teacherRemark', significant: false, weight: 2, needs: 'npc', summary: '{npc} remarks on the training' },
   // Significant: the jump stops and the story zooms to a moment.
   { id: 'summons', significant: true, weight: 3, paths: ['jedi', 'sith'], summary: 'The character is summoned' },
-  { id: 'missionOffer', significant: true, weight: 2, ranks: ['knight', 'master', 'lord', 'none'], summary: 'A mission is offered' },
+  // 'missionOffer' (a mission is offered) retired by opt-2 D: missions come from duty's daily roll alone (features/duty).
   { id: 'visitor', significant: true, weight: 3, needs: 'npc', summary: '{npc} arrives with urgent news' },
   { id: 'trouble', significant: true, weight: 2, summary: 'Trouble breaks out nearby' },
   { id: 'threadTurn', significant: true, weight: 3, needs: 'thread', summary: 'The situation around "{thread}" changes' },

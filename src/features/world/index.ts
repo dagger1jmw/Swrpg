@@ -4,6 +4,7 @@
 // who or what is involved; the AI narrates it (worldEventsTold marks them told after the narration).
 // Since M8 Phase A (D-466) it also runs the world-event tag network: every time step brings it up to date
 // (network.ts), and the AI only ever narrates what it decided.
+import { touchesCharacter } from '../duty/selectors';
 import { z } from 'zod';
 import { WORLD_EVENT_CHANCE, WORLD_EVENT_KINDS, WORLD_LOG_MAX, type WorldEventKind } from '../../data/worldEvents.config';
 import { fromAbsSecond, toAbsSecond } from '../../engine/calendar';
@@ -286,10 +287,13 @@ export const makeWorldFeature = (network: WorldNetwork): FeatureModule<WorldSlic
       else {
         emit.push({ type: 'worldTimelineReviewed', day });
         for (const c of review.changes) {
-          const title = network.events.find((e) => e.id === c.id)?.title;
+          const def = network.events.find((e) => e.id === c.id);
+          const title = def?.title;
           if (c.seen && title) notices.push(`World: ${title}.`);
-          // A plot point's turn has no title the player should read before the story tells it.
-          if (c.interrupt) interrupt ??= title ?? 'News that changes the course of events';
+          // A plot point's turn has no title the player should read before the story tells it. A timeline event stops a skip
+          // only when it touches the character (opt-2 D4): their place or home, someone they know, a major turn for their side;
+          // otherwise it is in the skip's report (the notice above) and the skip goes on.
+          if (c.interrupt && (!def || touchesCharacter(ctx.state, def) !== null)) interrupt ??= title ?? 'News that changes the course of events';
         }
       }
     }

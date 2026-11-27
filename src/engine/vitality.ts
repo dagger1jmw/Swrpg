@@ -29,9 +29,4 @@ export function recoverVitality(current: number, max: number, hours: number, kin
   return Math.min(max, current + rate * max * Math.max(0, hours));
 }
 
-/** Sleep of 7h+ restores Vitality in full; shorter sleep counts as rest. */
-export function vitalityAfterSleep(current: number, max: number, hours: number): number {
-  return hours >= VITALITY_RECOVERY.fullSleepHours ? max : recoverVitality(current, max, hours, 'rest');
-}
 
-export const isSpent = (vitality: number): boolean => vitality <= 0;

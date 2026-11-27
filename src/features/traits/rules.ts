@@ -1,9 +1,10 @@
 // Traits and formative events: the pure rules (M8 checklist item 16; spec/traits.md). No DOM, no network (Golden Rule 2).
 // The gates, the creation check, the hooks (rolls, learning, reactions, alignment pressures, start money), the quiz's plan
 // and scoring, the suggestions, and the traits of NPCs (canon from the lore list, generated ones from a seed).
+import { pathsInWords } from '../../data/pathWords';
+import { SPECIES_BY_ID } from '../../data/species';
 import {
   FEAR_FACED_TO_OVERCOME,
-  FORMATIVE_WARS,
   JEDI_ATTACHMENT_RULE_YEARS,
   MASSACRES,
   MENTOR_LEARNING,
@@ -19,6 +20,7 @@ import {
   type TraitKind,
   type TraitSituation,
 } from '../../data/traits';
+import { WARS, WAR_SERVICE_FROM_AGE, type War } from '../../data/wars';
 import {
   FORMATIVE_EVENTS,
   FORMATIVE_EVENT_BY_ID,
@@ -49,8 +51,6 @@ export type CharacterPath = 'jedi' | 'sith' | 'outsider' | 'career';
 /** A trait the character (or an NPC) holds (the slice schema's holding: id, since, source, a tie's name, a mentor's field, overcome). */
 export type TraitHolding = z.infer<typeof holdingSchema>;
 
-/** The ids a holder's hooks read. */
-export const heldIds = (held: readonly TraitHolding[]): string[] => held.map((h) => h.id);
 
 // ---------------------------------------------------------------- gates
 
@@ -72,16 +72,16 @@ export interface TraitContext {
 
 /** The age at which a child lives through a massacre or war as its own memory (invented). */
 const MEMORY_AGE = 4;
-/** The age at which a war counts as war years for a veteran without recorded war years (invented). */
-const VETERAN_AGE = 14;
+/** The age at which a war counts as war years for a veteran without recorded war years: the war service age (data/wars.ts). */
+const VETERAN_AGE = WAR_SERVICE_FROM_AGE;
 
 const overlaps = (a0: number, a1: number, b0: number, b1: number): boolean => a0 <= b1 && b0 <= a1;
 
 /** The wars the character lived through from age `from` to the start. */
-export function warsLived(ctx: Pick<TraitContext, 'birthYear' | 'startYear'>, fromAge: number, toAge = Infinity): typeof FORMATIVE_WARS[number][] {
+export function warsLived(ctx: Pick<TraitContext, 'birthYear' | 'startYear'>, fromAge: number, toAge = Infinity): War[] {
   const lo = ctx.birthYear + fromAge;
   const hi = Math.min(ctx.startYear, ctx.birthYear + toAge);
-  return FORMATIVE_WARS.filter((w) => overlaps(lo, hi, w.from, w.to));
+  return WARS.filter((w) => overlaps(lo, hi, -w.fromBby, -w.toBby));
 }
 
 /** On Coruscant in 3,653 BBY: a Jedi already at the Temple, an underlevels child, or a Coruscant homeworld (and alive then). */
@@ -138,9 +138,9 @@ export function traitRefusal(id: string, ctx: TraitContext): string | null {
   if (unmet) return `${def.name} ${unmet}`;
   const g = def.gate;
   if (!g) return null;
-  if (g.paths && !g.paths.includes(ctx.path)) return `${def.name} is only for ${g.paths.join(' or ')}`;
+  if (g.paths && !g.paths.includes(ctx.path)) return `${def.name} is only for ${pathsInWords(g.paths)}`;
   if (g.notPaths?.includes(ctx.path)) return `${def.name} is not for a ${ctx.path}`;
-  if (g.species && !g.species.includes(ctx.speciesId)) return `${def.name} is only for ${g.species.join(', ')}`;
+  if (g.species && !g.species.includes(ctx.speciesId)) return `${def.name} is only for ${g.species.map((id) => SPECIES_BY_ID.get(id)?.name ?? id).join(', ')}`;
   if (g.templeArrivalBefore !== undefined && !(ctx.trainingStartAge < g.templeArrivalBefore)) return `${def.name} needs arrival at the Temple before age ${g.templeArrivalBefore} (arrived at ${ctx.trainingStartAge}): take an ordinary origin for the life before`;
   if (!needsMet(g.needs, ctx)) return `${def.name} needs ${g.needs === 'war' ? 'war years' : g.needs === 'massacre' ? 'to have lived through a massacre (the Sacking of Coruscant, Order 66, the Massacre at Ossus)' : g.needs === 'sithEmpire' ? 'an Imperial birth in the Sith Empire' : g.needs === 'coruscant3653' ? 'to have been on Coruscant in 3,653 BBY' : g.needs === 'jediAttachmentRules' ? "the Order's rule against attachment" : g.needs}`;
   return null;

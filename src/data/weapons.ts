@@ -61,7 +61,6 @@ export const BLASTER_WEAPONS: readonly WeaponKind[] = ['blasterPistol', 'blaster
 export const SLUGTHROWERS: readonly WeaponKind[] = ['slugPistol', 'slugRifle', 'scatterGun'];
 export const SLUG_SPREAD: Readonly<Partial<Record<WeaponKind, string>>> = { slugRifle: 'rapid slugthrower fire', scatterGun: 'scatter shot' };
 export const SLUG_SPREAD_DEFENSE = -1;
-export const isSlugthrower = (w: WeaponKind): boolean => SLUGTHROWERS.includes(w);
 
 /**
  * Mandalorians carrying a slugthrower instead of a blaster, by era (D-200; design defaults: a favoured answer to Jedi,

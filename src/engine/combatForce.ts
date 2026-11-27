@@ -6,7 +6,6 @@ import { CIRCUMSTANCE, EXCHANGE_SECONDS, EXERTION_PER_EXCHANGE, FIRST_USE_MAX_GA
 import { NIMAN_CI_FACTOR } from '../data/formMatchups';
 import { FORCE_BASE_LOAD, LIGHTNING_PER_OUTPUT, FORCE_EFFORT, LOCATION_WEIGHTS, type ForceEffort } from '../data/health.config';
 import {
-  ABILITY_FORCE_GROUP,
   BODY_DIFFICULTY,
   DODGE_MOD,
   FORCE_RESISTANCE_SKILLS,
@@ -550,5 +549,3 @@ export function canThrowSaber(f: Fighter, telekinesis: number): boolean {
   return hasSaber(f) && !f.saberLost && telekinesis >= SABER_THROW.minTelekinesis - EPS && f.level >= SABER_THROW.minForm - EPS;
 }
 
-/** The Force group of a skill-catalog ability (for reports; D-192). */
-export const groupOfAbility = (abilityId: string): ForceGroup => ABILITY_FORCE_GROUP[abilityId] ?? 'unopposed';

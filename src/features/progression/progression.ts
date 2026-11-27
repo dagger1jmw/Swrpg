@@ -14,7 +14,6 @@ export const skillStateSchema = z.object({
 });
 export type SkillState = z.infer<typeof skillStateSchema>;
 
-export const windowEntrySchema = z.object({ day: z.number().int(), xp: z.number().min(0), hours: z.number().min(0) });
 /** One skill's pace window, stored compactly (opt-1 F, D-533; engine/paceStore.ts): week sums plus the current week's days. */
 export const paceSkillStoreSchema = z.object({
   w0: z.number().int(),

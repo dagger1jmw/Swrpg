@@ -2,9 +2,9 @@
 // roll, the daily untreated risks and toxins, and surgery's effects. Pure functions over the health slice; the rules
 // themselves are in engine/medicine.ts.
 import { partText } from '../../engine/duel';
-import { LASTING_CHANCE, SEVERITIES, type BodyPart, type Severity } from '../../data/health.config';
+import { SEVERITIES, type BodyPart, type Severity } from '../../data/health.config';
 import { DEFAULT_OPERATOR, UNTREATED, type CareLevel, type SurgeryProcedure } from '../../data/medicine.config';
-import { isHealed } from '../../engine/healing';
+import { isHealed, lastingChance } from '../../engine/healing';
 import { isFittedAid, lastingKindFor, type LastingInjury } from '../../engine/lasting';
 import { bandWorse, betterCare, healsAs, toxinDay, treatmentOutcome, treatmentQuality, untreatedDay, untreatedOutcome, untreatedRiskFactor, type HealOutcome } from '../../engine/medicine';
 import { nextFloat, type RngState } from '../../engine/rng';
@@ -36,7 +36,7 @@ const rollSeverity = (w: Wound): Severity => (w.stabilized ? 'mortal' : healsAs(
 function outcomeOf(w: Wound, u: number): HealOutcome {
   const sev = rollSeverity(w);
   if (w.care && w.care !== 'none') return treatmentOutcome(sev, treatmentQuality(w.operator ?? defaultOperator(w.care), w.care), u);
-  return untreatedOutcome(sev, LASTING_CHANCE[sev] ?? 0, u);
+  return untreatedOutcome(sev, lastingChance(w, sev), u);
 }
 
 const OUTCOME_WORDS: Readonly<Record<HealOutcome, string>> = { clean: 'has healed cleanly', scar: 'has healed, leaving a scar', minorLasting: 'has healed, but left a minor lasting injury', lasting: 'has healed, but left a lasting injury' };

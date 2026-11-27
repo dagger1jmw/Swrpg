@@ -27,7 +27,7 @@ import type { Wound } from '../../engine/wounds';
 import { lastingPenalty, type LastingInjury } from '../../engine/lasting';
 import type { GameState } from '../../state/gameState';
 import { selectArchetype, selectCharacter, selectPath } from '../character/selectors';
-import { selectLasting, selectMaxVitality, selectVitality, selectWounds } from '../health/selectors';
+import { selectLasting, selectMaxVitality, selectSuppression, selectVitality, selectWounds } from '../health/selectors';
 import { selectCurrentLocation } from '../locations/selectors';
 import { npcLevelsFor, selectNpc, selectNpcGen, selectNpcLevels } from '../npcs/selectors';
 import { capacityEndurance, selectCapacities, selectGriefMult, selectLevelExact, selectPerformance, selectRust, selectStateOfMind } from '../progression/selectors';
@@ -81,6 +81,7 @@ export function buildPlayerFighter(s: GameState): Fighter {
     saberResistant: loadout.saberResistant,
     forceSense: selectLevelExact(s, 'forceSense'),
     willpower: selectLevelExact(s, 'willpower'),
+    suppression: selectSuppression(s),
     agility: selectPerformance(s, 'agility'),
     endurance: selectPerformance(s, 'endurance'),
     shatterpoint: STUB_PLAYER_SHATTERPOINT_PERCEPTION ? selectLevelExact(s, 'forceSense') : 0,

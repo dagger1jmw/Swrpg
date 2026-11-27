@@ -417,7 +417,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
       summary: "female Human; died long before this era; as a spirit she reached out around 3642 BBY to start the rescue of Revan",
       source: "SW_Characters_09_GGW_ColdWar_Part1.md › Other light-side figures (table)"
     },
-    anchors: [],
+    anchors: [{ bby: 3960, complete: false, basis: "sheet", sources: "hand set (Jared, 26 Nov 2026, opt-2 A3; invented value): a Jedi General of the Mandalorian Wars, commanding at Malachor V (3,960; SW_Characters_06_MandalorianWars); she commanded from about 3,964, the year a reading", levels: { tactics: 70 } }],
   },
   {
     canonId: "lore:darth-ekkage",

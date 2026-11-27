@@ -28,11 +28,11 @@ import { resolveTurn } from '../../src/turn/resolve';
 import { base, meet } from '../support/schemaSituations';
 
 const ev = (s: GameState, events: object[], source: 'ai' | 'engine' | 'player' | 'dev' = 'ai') => applyEvents(REGISTRY, s, events, { source });
-const PLAN = { type: 'groundBattlePlanned', site: 'the Aldera plains', enemy: 'five Sith infantry, armour, artillery', ours: 'four clone infantry, armour, artillery', details: 'terrain: a ridge, a river with a bridge, ruins' };
+const PLAN = { type: 'groundBattlePlanned', site: 'the Aldera plains', enemy: 'five Sith infantry, armour, artillery', ours: 'four clone infantry, armour, artillery', terrain: 'a ridge, a river with a bridge, ruins' };
 const CTX: GroundCtx = { playerCombat: 60, commanderTactics: { player: 50, enemy: 45 } };
 
 /** A Jedi Knight in a briefing with an officer, the planning scene open. */
-function planned(over: Partial<typeof PLAN> = {}, s0: GameState = meet(base(), [{ name: 'Major Tarsk', role: 'officer', faction: 'republic' }])): GameState {
+function planned(over: Partial<typeof PLAN> & { jammed?: boolean; meditator?: string; commandHanded?: string } = {}, s0: GameState = meet(base(), [{ name: 'Major Tarsk', role: 'officer', faction: 'republic' }])): GameState {
   const r = ev(s0, [{ ...PLAN, ...over }]);
   expect(r.rejected.map((x) => x.reason)).toEqual([]);
   return r.state;
@@ -155,7 +155,7 @@ describe('Part C: ground command in play', () => {
   });
 
   it('contingencies carry out without penalty, even with no command post in contact', () => {
-    const p0 = scoutedPlanning(planned({ details: 'jammed' }));
+    const p0 = scoutedPlanning(planned({ jammed: true }));
     const sq0 = p0.plan.sectors[0]!.square;
     const p: GroundPlanning = { ...p0, plan: { ...p0.plan, contingencies: [{ when: 'strengthHalved', sector: sq0, then: 'commitReserve' }] } };
     let g = beginGround(p, seedRng('c')) as GroundState;
@@ -185,7 +185,7 @@ describe('Part C: ground command in play', () => {
     const ruusanDay = absDayFromDate({ year: -1001, month: 3, day: 1 });
     const s0 = meet(base(), [{ name: 'Major Tarsk', role: 'officer', faction: 'republic' }]);
     const at = { ...s0, clock: { ...s0.clock, now: { ...s0.clock.now, day: ruusanDay } } };
-    const p = selectGroundPlanning(planned({ site: 'the plains of Ruusan', details: '' }, at))!;
+    const p = selectGroundPlanning(planned({ site: 'the plains of Ruusan' }, at))!;
     const site = KNOWN_SITES.find((k) => k.id === 'ruusan')!;
     expect(p.map.siteId).toBe('ruusan');
     for (const f of site.features) expect(p.map.squares[f.square]).toMatchObject({ feature: f.feature, invented: false });
@@ -199,7 +199,7 @@ describe('Part C: ground command in play', () => {
     const g1 = beginGround(known(scoutedPlanning(planned())), seedRng('k')) as GroundState;
     const r1 = stepGround(g1, { manoeuvre: 'flanking' }, CTX);
     expect(r1.ground.battle.a.plan).toBe('flanking');
-    const g2 = beginGround(known(scoutedPlanning(planned({ details: 'jammed' }))), seedRng('k')) as GroundState;
+    const g2 = beginGround(known(scoutedPlanning(planned({ jammed: true }))), seedRng('k')) as GroundState;
     const r2 = stepGround(g2, { manoeuvre: 'flanking' }, CTX);
     expect(r2.ground.battle.a.plan).not.toBe('flanking');
     expect(r2.ground.pending.length).toBe(1);
@@ -236,7 +236,7 @@ describe('Part C: ground command in play', () => {
 
   it('battle meditation counts on every roll, and losing the meditator makes the side check (Mizra)', () => {
     const s0 = meet(base(), [{ name: 'Major Tarsk', role: 'officer', faction: 'republic' }, { name: 'Master Ela', role: 'jediMaster', faction: 'jediOrder' }]);
-    const p0 = scoutedPlanning(planned({ details: 'meditator: Master Ela' }, s0));
+    const p0 = scoutedPlanning(planned({ meditator: 'Master Ela' }, s0));
     expect(p0.ours.meditation?.name).toBe('Master Ela');
     const p: GroundPlanning = { ...p0, ours: { ...p0.ours, meditation: { ...p0.ours.meditation!, level: 90 } } };
     const g = beginGround(p, seedRng('med')) as GroundState;
@@ -325,7 +325,7 @@ describe('Part C: ground command in play', () => {
     const g = selectGroundBattle(line.state)!;
     expect(g.playerSector).not.toBeNull();
     expect(ev(line.state, [{ type: 'groundOrdered', orders: { fallBack: true } }], 'player').rejected[0]?.reason).toMatch(/only the one leading/);
-    expect(selectGroundPlanning(planned({ details: 'command: the general is dead' }, padawan))!.role).toBe('commander');
+    expect(selectGroundPlanning(planned({ commandHanded: 'the general is dead' }, padawan))!.role).toBe('commander');
     const officer = meet(base({ path: 'career', army: true }), [{ name: 'Sergeant Holt', role: 'soldier', faction: 'republic' }]);
     const po = selectGroundPlanning(planned({}, officer))!;
     expect(po.role).toBe('commander');

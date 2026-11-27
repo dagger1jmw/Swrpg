@@ -52,7 +52,7 @@ describe('C2: each line\'s direction matches its track change', () => {
   });
   it('across a seeded run of phases, every sector line reads the way its record moved', () => {
     const s0 = meet(base(), [{ name: 'Major Tarsk', role: 'officer', faction: 'republic' }]);
-    const s: GameState = applyEvents(REGISTRY, s0, [{ type: 'groundBattlePlanned', site: 'the Aldera plains', enemy: 'five Sith infantry, armour, artillery', ours: 'four clone infantry, armour, artillery', details: 'terrain: a ridge, a river with a bridge, ruins' }], { source: 'ai' }).state;
+    const s: GameState = applyEvents(REGISTRY, s0, [{ type: 'groundBattlePlanned', site: 'the Aldera plains', enemy: 'five Sith infantry, armour, artillery', ours: 'four clone infantry, armour, artillery', terrain: 'a ridge, a river with a bridge, ruins' }], { source: 'ai' }).state;
     const p0 = selectGroundPlanning(s)!;
     const p: GroundPlanning = { ...p0, map: { ...p0.map, scouted: Object.keys(p0.map.squares), seen: Object.keys(p0.map.squares) }, plan: { ...p0.plan, sectors: p0.plan.sectors.map((x, i) => ({ ...x, leader: i === 0 ? 'player' : null })) } };
     let checked = 0;
@@ -96,7 +96,7 @@ describe('C3: a finished battle\'s panel shows once, then clears; only the runni
 describe('C4: the location follows the player into battle and out', () => {
   const here = (s: GameState): string | undefined => (s.locations.currentId ? s.locations.byId[s.locations.currentId]?.name : undefined);
   const plan = (site: string, s0 = meet(base(), [{ name: 'Major Tarsk', role: 'officer', faction: 'republic' }])): GameState =>
-    applyEvents(REGISTRY, s0, [{ type: 'groundBattlePlanned', site, enemy: 'five Sith infantry, armour, artillery', ours: 'four clone infantry, armour, artillery', details: 'terrain: a ridge' }], { source: 'ai' }).state;
+    applyEvents(REGISTRY, s0, [{ type: 'groundBattlePlanned', site, enemy: 'five Sith infantry, armour, artillery', ours: 'four clone infantry, armour, artillery', terrain: 'a ridge' }], { source: 'ai' }).state;
 
   it('a ground battle moves the player to its site (a map world named there becomes the parent); the narrator cannot move them away mid-battle', () => {
     const s = plan('the Jabiim highlands');

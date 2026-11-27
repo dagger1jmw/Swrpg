@@ -28,7 +28,6 @@ export type NpcRole = (typeof NPC_ROLES)[number];
 export const NPC_AI_STATES = ['active', 'dormant', 'departed'] as const;
 /** 'imprisoned': a canon figure linked at their prison (D-401 [5]). */
 export const NPC_STATES = [...NPC_AI_STATES, 'deceased', 'imprisoned'] as const;
-export type NpcState = (typeof NPC_STATES)[number];
 
 /** Upper bound for ageApprox (long-lived species exist; the species spec narrows this in M8). */
 export const MAX_AGE_APPROX = 1000;
@@ -103,3 +102,11 @@ export const RELATIONSHIP_DRIFT = {
   /** Drift stops at this distance from 0 (the neutral band is -19..19). */
   floor: 20,
 } as const;
+
+/**
+ * The cold store (opt-2 H2; audit C5): after a year without contact, what the turn never reads leaves the hot lists. Invented: a
+ * closed thread keeps its last `threadNotesKept` notes (what retrieval shows, memory/retrieve.ts) and older ones move to the
+ * threads' cold store; a dead NPC unseen for a year moves its health to the NPCs' cold store; the review queue keeps at most
+ * `reviewClosedMax` closed items (the oldest dismissed or mapped go).
+ */
+export const COLD_STORE = { afterDays: 368, threadNotesKept: 3, reviewClosedMax: 100 } as const;

@@ -4,7 +4,7 @@
 // and age. A figure is present in a year when born by then, not dead before it (the death year itself counts: the
 // figure lives part of it), not off the board by a status span, and old enough for the role held then.
 import { CANON_NPCS, type CanonNpc } from '../data/canonNpcs';
-import type { CanonSpan, LocationSpan, RankSpan, StatusKind, StatusSpan } from '../data/canon/types';
+import type { CanonSpan, RankSpan, StatusKind, StatusSpan } from '../data/canon/types';
 import type { FactionId, NpcRole } from '../data/entities.config';
 import { ROLE_MIN_AGE } from '../data/npcGen.config';
 import { CANON_PLACEMENTS, type CanonPlacement } from '../data/canonPlacements';
@@ -64,15 +64,7 @@ export function canonStatusAt(n: CanonNpc, bby: number): StatusSpan | null {
   return best;
 }
 
-/** The status facts on record for `bby` (including 'active' ones), for the narrator and tools. */
-export function canonStatusFactsAt(n: CanonNpc, bby: number): StatusSpan[] {
-  return (n.status ?? []).filter((s) => spanCovers(s, bby, n.deathBby));
-}
 
-/** Where the lore puts the figure in `bby`. */
-export function canonLocationsAt(n: CanonNpc, bby: number): LocationSpan[] {
-  return (n.locations ?? []).filter((l) => spanCovers(l, bby, n.deathBby));
-}
 
 export function canonAgeAt(n: CanonNpc, bby: number): number {
   return n.birthBby - bby;

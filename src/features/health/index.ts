@@ -1,6 +1,7 @@
 // Health feature (health.md; architecture §2). M3 built the meters; M5 adds Vitality, wounds, lasting injuries,
 // dying, death, care and healing over time. Only this feature changes them, through engine events from combat
 // resolution, hazards, healing and the clock. The AI never sets a value. Status is derived on every read.
+import { addFixedLoad, forceWithin } from '../../engine/forceMeter';
 import { partText } from '../../engine/duel';
 import { z } from 'zod';
 import { FALL_LOCATION_WEIGHTS, HAZARD_TYPES, ARM_OTHER_SHARE, LEG_FORM_SHARE, LOCATION_WEIGHTS, VITALITY_RECOVERY, type BodyPart } from '../../data/health.config';
@@ -13,14 +14,16 @@ import { healMultiplier, healsOvernight, progressHealing, type CareKind } from '
 import { adapt, isFittedAid, lastingAffects, lastingKindFor, type LastingInjury } from '../../engine/lasting';
 import { causeOfHazard } from '../../engine/medicine';
 import { AID_CONDITIONS, SURGERY_PROCEDURES, type CareLevel, type SurgeryProcedure } from '../../data/medicine.config';
-import { SEVERITIES } from '../../data/health.config';
+import { SEVERITIES, SUPPRESSION_FORCE_LIMIT, SUPPRESSION_POWERS, TRAIN_INJURED_WORSEN_CHANCE } from '../../data/health.config';
+import { nextFloat, type RngState } from '../../engine/rng';
+import { locationPenalty, suppressionCrashMental } from '../../engine/wounds';
 import { healAll, markCare, riskDay, surgery } from './medicine';
 import { dyingMinutes, isDying, killsWhileDying, stabilize, type Wound } from '../../engine/wounds';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule, GameEvent } from '../../state/types';
 import { DEV_REFUSAL, selectArchetype, selectCharacter, selectIsTestCharacter, selectPath, selectSpeciesId } from '../character/selectors';
 import { selectNow } from '../clock/selectors';
-import { selectPerformance } from '../progression/selectors';
+import { selectLevelExact, selectPerformance } from '../progression/selectors';
 import { emptyHealth, healthSliceSchema, lastingSchema, metersSchema, migrateHealthV1, woundSchema, type HealthSlice } from './health';
 import { selectFatigue, selectMaxVitality, selectMeters, selectStatusLabel, selectVitality } from './selectors';
 
@@ -72,6 +75,26 @@ function addWounds(slice: HealthSlice, s: GameState, wounds: readonly Wound[], c
   }
   return { slice: next, emit, notes };
 }
+
+/** The worsening roll for wounds whose part was trained (health §7; opt-2 E2; TRAIN_INJURED_WORSEN_CHANCE, a design default). */
+function worsenTrained(slice: HealthSlice, trained: (w: Wound) => boolean, rng0: RngState): { slice: HealthSlice; rng: RngState; rolled: boolean; notices: string[] } {
+  let rng = rng0;
+  let rolled = false;
+  const notices: string[] = [];
+  const wounds = (slice.wounds as Wound[]).map((w) => {
+    if (!trained(w) || w.severity === 'mortal' || w.severity === 'critical') return w;
+    let u: number;
+    [u, rng] = nextFloat(rng);
+    rolled = true;
+    if (u >= TRAIN_INJURED_WORSEN_CHANCE) return w;
+    const up = SEVERITIES[SEVERITIES.indexOf(w.severity) + 1]!;
+    notices.push(`Training on it has made the ${w.severity} wound to the ${partText(w.part)} worse: it is ${up} now.`);
+    return { ...w, severity: up, W: Math.max(w.W, SEVERITY_FLOOR[up] ?? w.W) };
+  });
+  return { slice: rolled ? { ...slice, wounds: wounds as HealthSlice['wounds'] } : slice, rng, rolled, notices };
+}
+/** The lowest wound damage of each band (health §5). */
+const SEVERITY_FLOOR: Readonly<Record<string, number>> = { minor: 1, moderate: 10, severe: 20, critical: 35, mortal: 50 };
 
 export const healthFeature: FeatureModule<HealthSlice, GameState> = {
   id: 'health',
@@ -308,6 +331,53 @@ export const healthFeature: FeatureModule<HealthSlice, GameState> = {
       handle: (slice, e) => ({ slice, notes: [`the character dies: ${String(e['cause'])}`] }),
     },
     /** Engine: a lasting injury added directly (tests, healed-wound rolls use the day hook). */
+    /**
+     * Pain suppression begun (health §8; opt-2 E1): Control Pain, Battlemind, Force Valor or dark-side channeling. The player's
+     * button, or the narrator when the player asks for it; the code checks the power is the character's and sets the share.
+     * Allowed while dying (a commander staying at their post), never once dead.
+     */
+    suppressionBegun: {
+      schema: z.object({ type: z.literal('suppressionBegun'), abilityId: z.enum(Object.keys(SUPPRESSION_POWERS) as [string, ...string[]]) }),
+      sources: ['player', 'ai', 'dev'],
+      handle: (slice, e, ctx) => {
+        const id = String(e['abilityId']);
+        const p = SUPPRESSION_POWERS[id]!;
+        if (slice.death) return { reject: 'the character is dead' };
+        if (slice.suppression.some((a) => a.abilityId === id)) return { reject: `${p.name} is already active` };
+        if (selectPath(ctx.state) === 'career') return { reject: `${p.name} is a Force power` };
+        if (p.paths && !p.paths.includes(selectPath(ctx.state))) return { reject: `${p.name} is a Sith's power` };
+        const level = p.skill ? selectLevelExact(ctx.state, p.skill) : 0;
+        if (p.skill && level < Math.max(p.minLevel, 1e-9)) return { reject: `${p.name} needs ${SKILL_BY_ID.get(p.skill)?.name ?? p.skill} ${p.minLevel > 1 ? `${p.minLevel} or more` : 'training'}` };
+        const now = ctx.state.clock.now.day * 86_400 + ctx.state.clock.now.second;
+        const share = p.skill ? Math.min(p.max, level / p.per) : p.max;
+        return { slice: { ...slice, suppression: [...slice.suppression, { abilityId: id, sinceAbs: now, minutes: 0 }] }, notes: [`${p.name}: wound penalties eased by ${Math.round(share * 100)}%`] };
+      },
+    },
+    /** Pain suppression ended: by the player, or by the code (the Force meter spent, no wound left). Battlemind and Force Valor crash (Q41). */
+    suppressionEnded: {
+      schema: z.object({ type: z.literal('suppressionEnded'), abilityId: z.string(), why: z.string().max(80).optional() }),
+      sources: ['player', 'ai', 'engine', 'dev'],
+      handle: (slice, e) => {
+        const id = String(e['abilityId']);
+        const p = SUPPRESSION_POWERS[id];
+        if (!p || !slice.suppression.some((a) => a.abilityId === id)) return { reject: `${p?.name ?? id} is not active` };
+        const crash = p.crash ? suppressionCrashMental(slice.wounds as Wound[]) : 0;
+        const meters = crash > 0 ? { ...slice.meters, m: slice.meters.m + crash } : slice.meters;
+        return { slice: { ...slice, meters, suppression: slice.suppression.filter((a) => a.abilityId !== id) }, notes: [`${p.name} ends${e['why'] ? ` (${String(e['why'])})` : ''}${crash > 0 ? `: the pain returns at once (+${crash} mental load)` : ''}`] };
+      },
+    },
+    /** Engine: a training session worked a part a wound penalizes (health §7; opt-2 E2): those wounds are marked for the day. */
+    injuredPartTrained: {
+      schema: z.object({ type: z.literal('injuredPartTrained'), skills: z.array(z.string()).min(1) }),
+      sources: ['engine'],
+      handle: (slice, e, ctx) => {
+        const skills = e['skills'] as string[];
+        const day = ctx.state.clock.now.day;
+        const hit = (w: Wound): boolean => !w.severed && skills.some((k) => locationPenalty([w], k) > 0);
+        if (!(slice.wounds as Wound[]).some(hit)) return { slice };
+        return { slice: { ...slice, wounds: (slice.wounds as Wound[]).map((w) => (hit(w) ? { ...w, trainedDay: day } : w)) as HealthSlice['wounds'] }, notes: ['an injured part was trained: half healing today, and a risk of making it worse'] };
+      },
+    },
     lastingAdded: {
       schema: z.object({ type: z.literal('lastingAdded'), lasting: lastingSchema }),
       sources: ['engine'],
@@ -323,6 +393,16 @@ export const healthFeature: FeatureModule<HealthSlice, GameState> = {
     // Meters recover on rest steps (D-52). Vitality: rest 50% of max per hour, light activity 15%, none in combat;
     // sleep resolves at its end (health §3).
     if (step.occupation === 'rest') next = { ...next, meters: rest(next.meters, hours) };
+    // Pain suppression (health §8; opt-2 E1): minutes and Force load accrue; it ends by itself once no wound is left or the
+    // Force meter passes its limit (the Battlemind and Valor crash comes with the end).
+    if (next.suppression.length) {
+      const minutes = step.seconds / 60;
+      const load = next.suppression.reduce((a, x) => a + (SUPPRESSION_POWERS[x.abilityId]?.load ?? 0), 0) * minutes;
+      next = { ...next, meters: { ...next.meters, f: addFixedLoad(next.meters.f, load) }, suppression: next.suppression.map((x) => ({ ...x, minutes: (x.minutes ?? 0) + minutes })) };
+      const cap = selectFatigue(ctx.state).capacity.f;
+      const why = !next.wounds.length ? 'no wound left to suppress' : cap > 0 && !forceWithin(next.meters.f, cap, SUPPRESSION_FORCE_LIMIT) ? 'the Force meter is spent' : null;
+      if (why) for (const x of next.suppression) if (SUPPRESSION_POWERS[x.abilityId]!.load > 0 || why.startsWith('no wound')) emit.push({ type: 'suppressionEnded', abilityId: x.abilityId, why });
+    }
     if (next.vitalityLost > 0 && (step.occupation === 'rest' || step.occupation === 'activity')) {
       const max = selectMaxVitality(ctx.state);
       const rate = step.occupation === 'rest' ? VITALITY_RECOVERY.restPerHour : VITALITY_RECOVERY.lightPerHour;
@@ -336,14 +416,20 @@ export const healthFeature: FeatureModule<HealthSlice, GameState> = {
       return { slice: next, notices, emit, interrupt: 'death' };
     }
     if (next.care && step.toAbs >= next.care.untilAbs) next = { ...next, care: null };
-    if (!step.endsDay) return { slice: next };
+    if (!step.endsDay) return { slice: next, ...(emit.length ? { emit } : {}), ...(notices.length ? { notices } : {}) };
     // Day by day (health §7; medicine.md §3, §5, D-511): first the untreated risks and toxins, then healing progress at the
     // day's multiplier; a healed severe-or-worse wound takes its treatment roll (or health §7's baseline when it had no care).
     const day = Math.floor(step.toAbs / 86_400);
     const medical = slice.care !== null;
     const mult = healMultiplier({ care: medical ? 'medical' : 'none' });
-    const risk = riskDay(next, selectSpeciesId(ctx.state), day, selectMaxVitality(ctx.state), ctx.state.meta.rngState);
-    const healed = healAll(risk.slice, ctx.state, (w) => progressHealing(w, 1, mult), risk.rng, day);
+    const risk0 = riskDay(next, selectSpeciesId(ctx.state), day, selectMaxVitality(ctx.state), ctx.state.meta.rngState);
+    // Training the injured part (health §7; opt-2 E2): the day it was trained it heals at half the rate (HEAL_MULT.trainingInjured)
+    // and may get worse (TRAIN_INJURED_WORSEN_CHANCE): one band up, its healing kept as a share.
+    const trainedYesterday = (w: Wound): boolean => w.trainedDay === day - 1;
+    const worse = worsenTrained(risk0.slice, trainedYesterday, risk0.rng);
+    const risk = { ...risk0, slice: worse.slice, rng: worse.rng, rolled: risk0.rolled || worse.rolled, notices: [...risk0.notices, ...worse.notices] };
+    const halfMult = healMultiplier({ care: medical ? 'medical' : 'none', trainingInjured: true });
+    const healed = healAll(risk.slice, ctx.state, (w) => progressHealing(w, 1, trainedYesterday(w) ? halfMult : mult), risk.rng, day);
     next = healed.slice;
     notices.push(...risk.notices, ...healed.notices);
     const rolled = risk.rolled || healed.rolled;

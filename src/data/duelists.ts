@@ -26,7 +26,12 @@ const MAP_A = 'D-490: the 3,661-3,640 BBY list';
 const MAP_B = 'D-490: the 3,640-1,000 BBY list';
 const MAP_C = 'D-490: the 1,000 BBY-4 ABY list';
 
-/** The years are the map's, or (invented) from when the figure is grown and trained. */
+/**
+ * The years are the map's, or (invented) from when the figure is grown and trained.
+ * One figure may have several rows (opt-2 G4; audit T2): each is a dated span of one bar (Revan 3, Vitiate 3, Scourge 2, Malgus 2,
+ * Luke 2), so a figure rises or falls between bars with the lore's dates. The spans of one figure do not overlap; this is one
+ * dated list (D-438), not duplicate ids.
+ */
 export const DUELISTS: readonly DuelistSpan[] = [
   ...span('top', -5000, -3662, MAP_D, 'naga-sadow', 'exar-kun', 'ulic-qel-droma', 'revan', 'malak', 'darth-nihilus', 'darth-sion', 'darth-traya', 'scourge', 'meetra-surik'),
   ...span('beyond', -5000, -3662, MAP_D, 'vitiate', 'tenebrae-lord-vitiate'),

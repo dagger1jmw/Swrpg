@@ -141,8 +141,6 @@ export const isNarratedBeat = (r: BeatReason): boolean => (NARRATED_BEATS as rea
 export const DUEL_CALL_BUDGET = { exchanges: 150, maxCalls: 12 } as const;
 
 // ---- Contests used by tactics (rolls §5) ----
-/** Disengage: d20 + Agility/10 (+ position) vs d20 + the opponent's form/10; success ends the fight as fled (D-143). */
-export const DISENGAGE = { advantagePenaltyPerStep: 1 } as const;
 
 // ---- Ranged (rolls §4) ----
 /** A defender margin this high redirects a bolt (Soresu / Shien per the lore). */
@@ -225,8 +223,6 @@ export const SITH_ACADEMIES: readonly SithAcademy[] = [
   },
 ];
 
-/** Sparring environment accidents (Jared, D-143): hazard chance per bout by terrain, plus a flat-floor floor. */
-export const SPARRING_ACCIDENT = { flatFloorChance: 1 / 200, flatFloorSeverity: 1 } as const;
 
 // ---- The narrator stopping a fight (D-181; D-196) ----
 /**

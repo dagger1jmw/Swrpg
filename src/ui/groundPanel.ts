@@ -3,6 +3,7 @@
 // manoeuvre from the tactics the character knows, which unit goes where and who leads it, support, a reserve and up to two
 // contingencies; then the word to begin. In the battle: where things stand, the map, the phase's orders, "let it play out" and
 // taking control back.
+import { whyBlock } from './why';
 import { ACTION_LABEL, CONTINGENCY_ACTIONS, CONTINGENCY_TRIGGERS, MAX_CONTINGENCIES, SCOUTING, TRIGGER_LABEL, type ContingencyAction, type ContingencyTrigger } from '../data/groundCommand.config';
 import { PLAN_LABEL } from '../data/ground.config';
 import { SEEN_TACTIC_PENALTY, TACTIC_BY_ID } from '../data/tactics';
@@ -201,8 +202,10 @@ export function renderGroundPanel(p: GroundPanelProps): HTMLElement | null {
         el('span', { class: 'hint', text: `${gname[0]!.toUpperCase()}${gname.slice(1)}: ` }),
         ...menu.options.filter((o) => o.group === gname).map((o) => el('button', { class: `small${o.available ? '' : ' unavailable'}`, text: o.label, attrs: { ...(o.available && !p.busy ? {} : { disabled: 'true' }), title: [o.strong ? `Strong: ${o.strong}` : '', o.weak ? `Weak: ${o.weak}` : '', o.why ?? ''].filter(Boolean).join('\n') }, on: { click: () => p.act({ kind: 'battle', label: o.label, ground: { act: 'order', orders: { ...o.orders } } }) } })),
       ]));
-      // Staying at one's post (m8-audit A4) says what it costs in words on screen, not only in a tooltip (touch has no hover).
-      if (gname === 'command') for (const o of menu.options.filter((x) => x.group === 'command' && x.why)) body.push(el('p', { class: 'hint battle-why', text: o.why! }));
+      // Each option's strengths, weaknesses and refusal reason on screen, not only in a tooltip (opt-2 I1; staying at one's post's
+      // cost among them, m8-audit A4): touch has no hover, and a disabled button cannot be tapped.
+      const why = whyBlock(menu.options.filter((o) => o.group === gname));
+      if (why) body.push(why);
     }
     body.push(el('div', { class: 'battle-go' }, [
       el('button', { class: 'small', text: 'Next phase', attrs: dis, on: { click: () => p.act({ kind: 'battle', label: 'Next phase', ground: { act: 'order' } }) } }),

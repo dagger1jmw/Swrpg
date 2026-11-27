@@ -2,6 +2,7 @@
 // loads per hour (physical, mental, Force), a default intensity, its drill ratings, a primary
 // skill and secondary weights (normalized at use: 0.75 primary / 0.25 secondaries, never
 // additive). docs-v2/calc/activities.mjs mirrors the subset the calculations use.
+import { PEER_DISCUSSION_RATE } from './skillXp.config';
 
 export const INTENSITIES = ['casual', 'standard', 'intense', 'extreme'] as const;
 export type Intensity = (typeof INTENSITIES)[number];
@@ -266,7 +267,7 @@ export const ACTIVITIES: readonly ActivityDef[] = [
   act('tradecraft', 'Tradecraft', 'career', T, 'standard', fixed('investigation'), { stealth: 0.3, charisma: 0.3 }, [TRADECRAFT]),
   // Cultural insight (Jared: Intelligence 80+, the Thrawn model): a culture's art or history, read for how its forces fight.
   act('cultureStudy', "Studying a culture's art and history", 'study', T, 'standard', fixed('tactics'), { intelligence: 0.4 }, [level(80, 'intelligence')], { insight: true }),
-  act('tacticsDiscussion', 'Discussing tactics', 'study', T, 'casual', fixed('tactics'), { intelligence: 0.2 }, [{ kind: 'partnerOrTeacher' }], { peerRate: 0.5 }),
+  act('tacticsDiscussion', 'Discussing tactics', 'study', T, 'casual', fixed('tactics'), { intelligence: 0.2 }, [{ kind: 'partnerOrTeacher' }], { peerRate: PEER_DISCUSSION_RATE }),
   act('styleTraining', 'Melee style training', 'career', P, 'standard', fixed('melee'), { strength: 0.4, agility: 0.4, endurance: 0.2 }, [{ kind: 'styleSource' }], { style: true }),
   // The Korriban acolyte's martial class with the warblade (D-427, ranks §1a): Shii-Cho basics with a Melee weight
   // (m8-skills: the Jedi and Sith curricula get a Melee weight; invented 0.2).
@@ -278,7 +279,6 @@ export const ACTIVITIES: readonly ActivityDef[] = [
 ];
 
 export const ACTIVITY_BY_ID: ReadonlyMap<string, ActivityDef> = new Map(ACTIVITIES.map((a) => [a.id, a]));
-export const ACTIVITY_IDS: readonly string[] = ACTIVITIES.map((a) => a.id);
 
 export function isActivityId(id: string): boolean {
   return ACTIVITY_BY_ID.has(id);

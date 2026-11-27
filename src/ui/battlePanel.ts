@@ -2,6 +2,7 @@
 // only; no rules here. Before each turn or round: where things stand, what is known of the enemy, the moves with what each is
 // strong and weak against and what it costs, and the map (redrawn only when something changed). "Let it play out" hands the
 // rest to the code; "Take the controls" takes it back.
+import { whyBlock } from './why';
 import { brokenSystems } from '../features/battles';
 import { selectActiveBattle, selectBattleMenu, selectBattleWaitsOnFight, selectEndedBattleToShow, selectGroundBattle, selectGroundPlanning, selectLastEndedBattle, selectOwnShipCondition } from '../features/battles/selectors';
 import type { MenuOption } from '../features/battles/selectors';
@@ -86,9 +87,11 @@ export function renderBattlePanel(p: BattlePanelProps): HTMLElement | null {
     });
     const picked = p.picks[g] !== undefined ? menu.options[p.picks[g]!] : undefined;
     body.push(el('div', { class: 'battle-group' }, [el('span', { class: 'hint', text: `${g[0]!.toUpperCase()}${g.slice(1)}: ` }), ...row]));
-    // Staying at one's post (m8-audit A4) says its cost on screen, not only in a tooltip (touch has no hover).
-    for (const { o } of opts) if (o.orders.stayAtPost && o.why) body.push(el('p', { class: 'hint battle-why', text: o.why }));
-    if (picked && (picked.strong || picked.weak || picked.cost)) body.push(el('div', { class: 'hint battle-detail', text: [picked.strong ? `Strong: ${picked.strong}` : '', picked.weak ? `Weak: ${picked.weak}` : '', picked.cost ? `Cost: ${picked.cost}` : ''].filter(Boolean).join(' · ') }));
+    // Each option's strengths, weaknesses, cost and refusal reason on screen, not only in a tooltip (opt-2 I1; staying at one's
+    // post's cost among them, m8-audit A4): touch has no hover, and a disabled button cannot be tapped.
+    const why = whyBlock(opts.map(({ o }) => o));
+    if (why) body.push(why);
+    if (picked && (picked.strong || picked.weak || picked.cost)) body.push(el('div', { class: 'hint battle-detail', text: `Chosen: ${picked.label}` }));
   }
   const go = GO_LABEL[menu.title] ?? 'Next round';
   const goes = menu.watching || !groups.includes('engage');

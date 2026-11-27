@@ -58,7 +58,6 @@ export const RUNNING_COSTS: Readonly<Record<ShipKind, RunningCosts>> = {
   battlecruiser: { dockingPerDay: 20_000, fuelPerJump: 300_000, upkeepShare: 0.004 },
   dreadnought: { dockingPerDay: 50_000, fuelPerJump: 1_000_000, upkeepShare: 0.003 },
 };
-export const RUNNING_COSTS_SOURCE = `freighter docking 30 cr a day: ${PS}, Docking Bay 87 (c. 19 BBY); every other figure invented`;
 
 /** Fees on record. */
 export const SHIP_FEES = {
@@ -72,4 +71,3 @@ export const SHIP_FEES = {
 
 /** Repairs as a share of the ship's price by damage (invented; a landing strut on record at 200 cr, c. 22 BBY). */
 export const REPAIR_SHARE = { light: 0.02, heavy: 0.1, crippled: 0.3 } as const;
-export type RepairLevel = keyof typeof REPAIR_SHARE;

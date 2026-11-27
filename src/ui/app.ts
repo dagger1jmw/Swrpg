@@ -886,6 +886,8 @@ export class App {
     autoRetry.checked = s.autoRetry;
     const narrateBattles = input({ type: 'checkbox' });
     narrateBattles.checked = s.narrateEveryBattleTurn === true;
+    const homeDays = input({ type: 'checkbox' });
+    homeDays.checked = s.stopOnHomeDays === true;
     const flashRouting = input({ type: 'checkbox' });
     flashRouting.checked = s.flashRouting !== false;
     const premiumModel = input({ type: 'text' });
@@ -898,7 +900,7 @@ export class App {
         err.textContent = k.error;
         return;
       }
-      let next: Settings = { ...this.settings, apiKey: k.key, autoRetry: autoRetry.checked, narrateEveryBattleTurn: narrateBattles.checked, flashRouting: flashRouting.checked, premiumModel: premiumModel.value.trim() || FLASH_ROUTING.model };
+      let next: Settings = { ...this.settings, apiKey: k.key, autoRetry: autoRetry.checked, narrateEveryBattleTurn: narrateBattles.checked, stopOnHomeDays: homeDays.checked, flashRouting: flashRouting.checked, premiumModel: premiumModel.value.trim() || FLASH_ROUTING.model };
       for (const f of modelFields) next = withModelList(next, f.ct, f.inp.value.split(','));
       const num = (i: HTMLInputElement): number | undefined => {
         const n = Number(i.value);
@@ -940,6 +942,7 @@ export class App {
       el('h3', { text: 'Behavior' }),
       el('label', { class: 'check' }, [autoRetry, ' Retry once automatically when a reply is cut off (uses one extra request)']),
       el('label', { class: 'check' }, [narrateBattles, ' Narrate every battle turn, ship or ground (otherwise only big moments and the end; each turn becomes a request)']),
+      el('label', { class: 'check' }, [homeDays, ' Stop time skips on free days at home (the day after a mission always stops)']),
       el('label', { class: 'check' }, [flashRouting, ' Use the stronger model for the big moments only']),
       el('div', { class: 'field' }, [el('label', { text: 'Model for the big moments' }), premiumModel]),
       el('p', {

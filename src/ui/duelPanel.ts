@@ -367,6 +367,8 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
         act('Resolve to end', { action: 'resolve' }, 'small act secondary', 'Fight it out to the end now'),
       ];
 
+  // The disabled Force actions' reasons, on screen under their row (opt-2 I1): a disabled button has no tooltip on touch.
+  const forceWhy: string[] = [];
   const more = el('details', { class: 'duel-more', ...(p.moreOpen ? { attrs: { open: '' } } : {}), on: { toggle: (e) => p.setMoreOpen((e.target as HTMLDetailsElement).open) } }, [
     el('summary', { text: 'More actions' }),
     el('div', { class: 'duel-more-body' }, [
@@ -397,18 +399,19 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
             el('span', { class: 'hint', text: 'Force' }),
             ...forceActs.filter(([, kind]) => kind !== 'throw' || throwable.length).map(([label, kind]) => {
               // A mind trick on a droid, a lore-immune species or a Force-invisible foe: greyed out, no exchange (D-194).
-              if (kind === 'mindTrick' && facing && mindImmune(facing)) return el('button', { class: 'small act', text: `${label} (immune)`, attrs: { disabled: 'true', title: `${facing.name} cannot be mind-tricked` } });
+              if (kind === 'mindTrick' && facing && mindImmune(facing)) return forceWhy.push(`${label}: ${facing.name} cannot be mind-tricked`), el('button', { class: 'small act', text: `${label} (immune)`, attrs: { disabled: 'true', title: `${facing.name} cannot be mind-tricked` } });
               // Where the Force cannot work (D-216): nothing in a Force-null bubble; nothing that touches a foe outside the
               // Force directly (a thrown object or saber still hits; D-192).
-              if (active.ctx.forceNegated) return el('button', { class: 'small act', text: `${label} (no Force here)`, attrs: { disabled: 'true', title: 'A Force-null bubble: the Force cannot be used here' } });
+              if (active.ctx.forceNegated) return forceWhy.push(`${label}: a Force-null bubble, the Force cannot be used here`), el('button', { class: 'small act', text: `${label} (no Force here)`, attrs: { disabled: 'true', title: 'A Force-null bubble: the Force cannot be used here' } });
               // Lightning (and its variants) still reaches them (D-447; SW_Force_Powers_Part2b F7).
-              if (facing?.forceTraits?.includes('forceInvisible') && (kind === 'push' || kind === 'choke')) return el('button', { class: 'small act', text: `${label} (immune)`, attrs: { disabled: 'true', title: `${facing.name} cannot be touched through the Force; a thrown object or lightning can` } });
+              if (facing?.forceTraits?.includes('forceInvisible') && (kind === 'push' || kind === 'choke')) return forceWhy.push(`${label}: ${facing.name} cannot be touched through the Force; a thrown object or lightning can`), el('button', { class: 'small act', text: `${label} (immune)`, attrs: { disabled: 'true', title: `${facing.name} cannot be touched through the Force; a thrown object or lightning can` } });
               const risk = forceRisk.over ? ` (${Math.round(forceRisk.risk * 100)}% collapse)` : '';
               return act(`${label}${risk}`, { action: 'force', force: { kind, ...(kind === 'throw' ? { objectTag: throwable[0]![0] } : {}) } }, `small act${forceRisk.over ? ' risky' : ''}`, forceRisk.over ? forceRisk.text : undefined);
             }),
             d.a.shatterpoint > 0 && !d.a.shatterpointUsed ? act('Read the shatterpoint', { action: 'shatterpoint' }) : null,
           ])
         : null,
+      forceWhy.length ? el('div', { class: 'hint battle-why' }, [...new Set(forceWhy)].map((t) => el('div', { text: t }))) : null,
       formSelect ? el('div', { class: 'beat-row' }, [el('span', { class: 'hint', text: 'Form' }), formSelect]) : null,
       sess && sess.playing ? el('div', { class: 'beat-row' }, [el('span', { class: 'hint', text: 'Sparring' }), act('Stop sparring', { action: 'stopSession' }, 'small act secondary')]) : null,
       // The narrator's suggestions go last (D-181).

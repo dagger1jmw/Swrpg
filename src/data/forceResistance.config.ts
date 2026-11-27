@@ -71,6 +71,8 @@ export const SPECIES_FORCE_TRAITS: Readonly<Record<string, readonly ForceTrait[]
  * nullify the Force around him"); a terrain tag in a fight. Taozin: Legends creatures invisible to the Force like the
  * Vong, but NOT in Docs/SWRPG lore (kept as a design default until a lore file covers them; D-192). Voxyn hunt Jedi
  * through the Force (Timeline ~27 ABY): they do not negate it, so they are not here.
+ * Kept as the rule's record (opt-2 G1): the code applies it as the terrain tag "ysalamiri" (data/terrain.ts forceNegation), which sets the
+ * fight's forceNegated bubble (features/combat/build.ts).
  */
 export const FORCE_NEGATING_CREATURES: Readonly<Record<string, { effect: 'bubble' | 'forceInvisible'; source: string }>> = {
   ysalamiri: { effect: 'bubble', source: 'SW_Characters_14 (Thrawn)' },

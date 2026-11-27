@@ -144,6 +144,9 @@ Force meter (replaces Force strain):
     (with a risk of making it worse). Field care x1 (D-511). The levels of care, the untreated
     risks, wound depth, surgery and toxins: medicine.md.
   Healing runs day by day through the clock's onTimeAdvanced.
+  Training the injured part (opt-2 E2, D-539): a session whose skills a wound penalizes marks the wound for the day
+    (`injuredPartTrained`); that day it heals at x0.5 and rolls TRAIN_INJURED_WORSEN_CHANCE (2%) to get worse: one band up
+    (a minor wound moderate, a moderate severe, a severe critical; critical and mortal never), its healing kept as a share.
   Chance of a lasting injury when it heals: severe 10% | critical 35% | mortal 70%
     (then progression spec section 18 adaptation applies). Since D-511 this is the untreated
     baseline: a wound that had care takes the treatment roll instead (medicine.md §5).
@@ -158,6 +161,16 @@ Force meter (replaces Force strain):
   Suppression crash (Q41, copied by D-63): when Battlemind or Force Valor ends while the
     character is wounded, the suppressed penalties return at once and the character takes
     +0.5 mental load.
+  In play (opt-2 E1, D-539; health.config SUPPRESSION_POWERS): no catalog entry exists for the four powers, so each reads an
+    existing skill: Control Pain and Battlemind Force Control (Battlemind from Force Control 20, invented), Force Valor Battle
+    Meditation (the canon sheets' "Force Valor (of Battle Meditation)"), dark-side channeling the Sith path (the alignment
+    system that would gate it is M6; its minutes are recorded for the dark pressure). The strongest active one counts (at most
+    80%), on the sheet's wound penalty and on the fighter's in a duel.
+    Starts: `suppressionBegun`, from the health card's buttons (wounded, a Force path) or from the narrator when the player asks
+      for it; the code checks the power is the character's. Allowed while dying: a commander who stays at the post can use it.
+    Ends: `suppressionEnded`, by the player's button; or by the code when no wound is left, or when the Force meter passes its
+      limit (SUPPRESSION_FORCE_LIMIT, 1.0 of capacity, invented). Ending Battlemind or Force Valor while wounded crashes.
+    Force load accrues by the minute (0.1, 0.15, 0.15, 0) through the Force meter's own functions.
 
 ## 9. Opponents
   Named NPCs use this full model. Minions (mooks) use a simplified rule: a moderate or

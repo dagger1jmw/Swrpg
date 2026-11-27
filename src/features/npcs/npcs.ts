@@ -76,6 +76,8 @@ export const npcSchema = z.object({
 
 export const npcsSliceSchema = z.object({
   byId: z.record(z.string(), npcSchema),
+  /** The cold store (opt-2 H2): the health of NPCs dead and unseen for a year, by id. Absent = none. Never read in a turn. */
+  cold: z.record(z.string(), npcHealthSchema).optional(),
   /** Training changes of canon figures not in play yet (D-506), applied when one is linked to its canon figure. */
   canonTraining: z.record(z.string(), z.object({ day: z.number().int(), reason: z.enum(['masterKilled', 'apprenticeshipBroken', 'joinedOrder']), recordedBy: z.enum(['engine', 'narrator']) })).optional(),
 });

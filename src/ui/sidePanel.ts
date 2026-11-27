@@ -169,9 +169,9 @@ function trainPanel(p: SidePanelProps): HTMLElement {
     { attrs: { 'aria-label': 'Activity' } },
     groups.map((g) =>
       el('optgroup', { attrs: { label: groupLabel[g]! } }, offered.filter((a) => a.group === g).map((a) => {
-        const o = el('option', { text: a.open ? a.name : `${a.name} (${a.why})`, attrs: { value: a.id } });
-        o.disabled = !a.open;
-        return o;
+        // Closed entries stay choosable with a short mark (opt-2 I3): iOS's picker cuts long texts, so the reason is shown under the
+        // select for the chosen entry, and Train waits.
+        return el('option', { text: a.open ? a.name : `${a.name} (not now)`, attrs: { value: a.id } });
       })),
     ),
   );
@@ -190,9 +190,19 @@ function trainPanel(p: SidePanelProps): HTMLElement {
     primary.hidden = !choices || choices.length === 0;
     if (c.mainFormId && choices?.includes(c.mainFormId)) primary.value = c.mainFormId;
   };
+  const reason = el('p', { class: 'hint train-why' });
+  const btn = el('button', { text: 'Train', on: { click: () => go() } });
+  const showReason = (): void => {
+    const o = offered.find((x) => x.id === activity.value);
+    reason.textContent = o && !o.open ? `Not now: ${o.why}` : '';
+    reason.hidden = !(o && !o.open);
+    btn.disabled = p.busy || !!(o && !o.open);
+  };
   activity.addEventListener('change', fillPrimary);
+  activity.addEventListener('change', showReason);
   fillPrimary();
-  const go = (): void => {
+  showReason();
+  function go(): void {
     const a = ACTIVITY_BY_ID.get(activity.value)!;
     const skillId = !primary.hidden && primary.value ? primary.value : a.primary.kind === 'skill' ? a.primary.skill : undefined;
     const h = Number(hours.value);
@@ -210,12 +220,11 @@ function trainPanel(p: SidePanelProps): HTMLElement {
         activity: { activityId: a.id, ...(intensity.value ? { intensity: intensity.value as (typeof INTENSITIES)[number] } : {}) },
       },
     });
-  };
-  const btn = el('button', { text: 'Train', on: { click: go } });
-  btn.disabled = p.busy;
+  }
   return el('div', { class: 'card train' }, [
     el('div', { class: 'card-title' }, [el('strong', { text: 'Train' })]),
     el('div', { class: 'train-row' }, [activity, primary]),
+    reason,
     el('div', { class: 'train-row' }, [hours, intensity, btn]),
     el('p', { class: 'hint', text: 'The engine resolves the session (fatigue, XP, outcome) and the GM narrates it. Locked activities are refused with the reason.' }),
   ]);
@@ -346,7 +355,7 @@ function character(p: SidePanelProps): HTMLElement[] {
       beats.length ? kv('Pending beats', beats.map((b) => (b.tier === 0 ? b.skillId : `${SKILL_BY_ID.get(b.skillId)?.name ?? b.skillId} reached ${b.tier}`)).join('; ')) : null,
     ]),
     traitsCard(s),
-    renderHealthCard(s),
+    renderHealthCard(s, (events) => p.playerEvents(events)),
     ...ordersCard(p),
     routineCard(p),
     trainPanel(p),

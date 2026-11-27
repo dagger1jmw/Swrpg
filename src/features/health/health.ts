@@ -17,6 +17,8 @@ export const woundSchema = z.object({
   day: z.number().int(),
   source: z.string().max(80),
   severed: z.boolean().optional(),
+  /** The last day the injured part was trained (health §7; opt-2 E2). */
+  trainedDay: z.number().int().optional(),
   // Medicine (D-511): all optional, so older saves load unchanged.
   cause: z.enum(WOUND_CAUSES).optional(),
   depth: z.enum(WOUND_DEPTHS).optional(),
@@ -63,8 +65,8 @@ export const healthSliceSchema = z.object({
    * Force healing apply per session; field care marks the wounds.
    */
   care: z.object({ kind: z.literal('medical'), untilAbs: z.number(), operator: z.number().min(0).optional() }).nullable(),
-  /** Active pain suppression (M6 abilities). */
-  suppression: z.array(z.object({ abilityId: z.string(), sinceAbs: z.number() })),
+  /** Active pain suppression (health §8; opt-2 E1): the power, since when, minutes active (dark channeling's pressure for M6). */
+  suppression: z.array(z.object({ abilityId: z.string(), sinceAbs: z.number(), minutes: z.number().min(0).optional() })),
   woundSeq: z.number().int().min(1),
   /** Deferred hazardOccurred (D-29): resolved at the start of the next turn's step b. */
   pendingHazards: z.array(z.object({ hazard: z.enum(HAZARD_TYPES), severity: z.number().int().min(1).max(3), cause: z.string().max(200) })),

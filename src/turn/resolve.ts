@@ -178,11 +178,11 @@ export function jumpTargetDay(fromDay: number, seconds: number, span?: Requested
   return fromDay + Math.max(1, Math.round(seconds / 86_400));
 }
 
-export function resolveJump(registry: Registry<GameState>, initial: GameState, level: JumpLevel, targetDay: number, reason: string, rest = false) {
+export function resolveJump(registry: Registry<GameState>, initial: GameState, level: JumpLevel, targetDay: number, reason: string, rest = false, homeDays = false) {
   const days = Math.max(1, targetDay - initial.clock.now.day);
   const wake = initial.routines.active.wakeSecond;
   const untilAbs = (initial.clock.now.day + days) * 86_400 + wake;
-  const run = advanceByRoutine(registry, initial, { untilAbs, reason, ...(rest ? { rest } : {}) });
+  const run = advanceByRoutine(registry, initial, { untilAbs, reason, ...(rest ? { rest } : {}), ...(homeDays ? { homeDays } : {}) });
   const report = buildMontageReport(initial, run, { level, requestedDays: days });
   return { run, report, days };
 }
@@ -221,7 +221,7 @@ function isSparringActivityIntent(intent: Intent | null): boolean {
   return id !== undefined && ACTIVITY_BY_ID.get(id)?.sparring === true;
 }
 
-export function resolveTurn(registry: Registry<GameState>, initial: GameState, intent: Intent | null, opts: { beat?: CombatActionInput; text?: string; battle?: { orders?: Readonly<Record<string, unknown>>; auto?: boolean; repairs?: boolean; ground?: GroundInput } } = {}): Resolution {
+export function resolveTurn(registry: Registry<GameState>, initial: GameState, intent: Intent | null, opts: { beat?: CombatActionInput; text?: string; homeDays?: boolean; battle?: { orders?: Readonly<Record<string, unknown>>; auto?: boolean; repairs?: boolean; ground?: GroundInput } } = {}): Resolution {
   let state = initial;
   const report: string[] = [];
   const applied: AppliedEvent[] = [];
@@ -482,11 +482,14 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
         report.push(...plan.report);
         if (plan.events.length) apply(plan.events);
       }
-      const j = resolveJump(registry, state, level, target, reason, resting);
+      const j = resolveJump(registry, state, level, target, reason, resting, opts.homeDays === true);
       if (resting) report.push('rest and recovery: no training on these days');
       state = j.run.state;
       applied.push(...j.run.applied);
       rejected.push(...j.run.rejected);
+      // Where the skip was going (opt-2 D5): kept when it stopped early, for "Resume the skip"; cleared when it ran to its end.
+      const stoppedEarly = j.run.interrupted !== undefined && state.clock.now.day < target;
+      if (stoppedEarly || state.duty.resume) apply([{ type: 'skipResumePoint', targetDay: stoppedEarly ? target : null }]);
       jump = { level, report: j.report };
       narrationLevel = level;
       timeAdvanced = {

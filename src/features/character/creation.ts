@@ -10,7 +10,7 @@ import { playerDroidRefusal } from '../../engine/droids';
 import { STUB_INSTRUCTOR_LEAD, STUB_MASTER_LEAD } from '../../data/stubs';
 import { gainE, sparringE } from '../../engine/appliedExperience';
 import { ARCHETYPE_BY_ID, ARCHETYPE_FORCE_ABILITIES, NPC_ARCHETYPES, ORDER_TACTICS_PACE, PATH_ARCHETYPES, PATH_START_RANGE, focusShares, mainShareOf, type ArchetypeDef, type CharacterPath, type Phase } from '../../data/archetypes';
-import { BUDGET, CAREER_YOUTH_TO, FORM_TRANSFER_SHARE, LONG_LIFE, K, TALENT_COST, TALENT_POINTS, type TalentLevel } from '../../data/progression.config';
+import { BUDGET, CAREER_YOUTH_TO, FORM_TRANSFER_SHARE, LONG_LIFE, K, TALENT_COST, TALENT_POINTS, TRAINING_DAYS_PER_YEAR, type TalentLevel } from '../../data/progression.config';
 import { orderHoursAt } from '../../data/orderRequirements';
 import { INITIATE_CURRICULUM, closedFormCurriculum } from '../../data/initiateCurriculum';
 import { interp } from '../../engine/interp';
@@ -28,8 +28,9 @@ import { ageFromTraining, bodyCapAt, humanEquivalentAge, naturalLevel, speciesLe
 import { crossTalentMult, isForceXpSkill, isOutsideForce, talentMult, type Talents } from '../../engine/speed';
 
 
-/** War years are served from this age (Human-equivalent; invented, the traits' veteran age; m8-fixes D1). */
-export const WAR_SERVICE_FROM_AGE = 14;
+/** War years are served from this age (the one constant in data/wars.ts, opt-2 A1; re-exported for the form). */
+export { WAR_SERVICE_FROM_AGE } from '../../data/wars';
+import { WAR_SERVICE_FROM_AGE } from '../../data/wars';
 export interface CreationInput {
   name: string;
   birthDay: number;
@@ -521,8 +522,8 @@ function startingApplied(i: {
   return { E, CI };
 }
 
-/** Order training sessions a year counted for starting E (the Average's 300 training days). */
-const ORDER_SESSIONS_PER_YEAR = 300;
+/** Order training sessions a year counted for starting E (the Average's training days; opt-2 G1: the one constant). */
+const ORDER_SESSIONS_PER_YEAR = TRAINING_DAYS_PER_YEAR;
 /** Knights and above: E +1 per year of missions, at most +15 (character-creation §2). */
 const MISSION_E_MAX = 15;
 

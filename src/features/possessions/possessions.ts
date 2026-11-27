@@ -32,4 +32,3 @@ export const possessionsSliceSchema = z.object({
   nextId: z.number().int().min(1),
 });
 export type PossessionsSlice = z.infer<typeof possessionsSliceSchema>;
-export const emptyPossessions = (): PossessionsSlice => ({ items: [], nextId: 1 });

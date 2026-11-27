@@ -40,6 +40,11 @@ export const settingsSchema = z.object({
   flashRouting: z.boolean().optional(),
   /** The model the big moments use (default FLASH_ROUTING.model). */
   premiumModel: z.string().min(1).optional(),
+  /**
+   * Home days (opt-2 D5a): a time skip also stops on the routine's free day at home base. Off by default; absent in settings
+   * saved before it (= off). The day after a mission is a home day whatever this says.
+   */
+  stopOnHomeDays: z.boolean().optional(),
 });
 
 export type Settings = z.infer<typeof settingsSchema>;
@@ -77,6 +82,7 @@ export function defaultSettings(): Settings {
     narrateEveryBattleTurn: false,
     flashRouting: FLASH_ROUTING.on,
     premiumModel: FLASH_ROUTING.model,
+    stopOnHomeDays: false,
   };
 }
 

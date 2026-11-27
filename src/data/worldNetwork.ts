@@ -202,8 +202,20 @@ export interface WorldEventDef {
    * figure lost once it has begun changes nothing; only what it consumes, and who was lost before it, reach it.
    */
   closed?: boolean;
-  /** Stops a montage or a time skip (galaxy-shaking events). */
+  /**
+   * Stops a montage or a time skip (galaxy-shaking events) when it touches the character (opt-2 D4): one of its places is where
+   * the character is or their home, one of its people is someone the character knows, or it is a major turn for the character's
+   * side (`turnFor`). Otherwise it goes into the skip's report without stopping.
+   */
   interrupts?: boolean;
+  /** The sides for which this is a major turn (a treaty, the fall of a capital: opt-2 D4); allies count (the Order with the Republic). */
+  turnFor?: readonly string[];
+  /**
+   * An all-hands-on-deck situation for these sides while it runs (opt-2 D3: a major offensive, the defence of a capital): a minor
+   * wound does not keep the character from an assignment. From its start to its end (or `days` after it settles; default
+   * duty.config ALL_HANDS_TAIL_DAYS).
+   */
+  allHands?: { factions: readonly string[]; days?: number };
   /** The timeline row. */
   source: string;
 }

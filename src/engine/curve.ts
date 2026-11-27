@@ -31,7 +31,3 @@ export function thresholdsCrossed(before: number, after: number): number[] {
   return TIER_THRESHOLDS.filter((t) => before < t && after >= t);
 }
 
-/** Progress from the current displayed level to the next, 0..1. */
-export function progressToNext(level: number): number {
-  return level - Math.floor(level + 1e-9);
-}

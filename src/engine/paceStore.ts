@@ -24,7 +24,6 @@ export interface PaceSkillStore {
   dh: number[];
 }
 
-export type PaceStore = Record<string, PaceSkillStore>;
 
 export const PACE_WEEK_DAYS = 7;
 /** A finished week counts when at least this many of its days are inside the window. */

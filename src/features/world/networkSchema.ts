@@ -166,6 +166,8 @@ export const worldEventDefSchema = z.strictObject({
   plotPoint: plotPointId.optional(),
   closed: z.boolean().optional(),
   interrupts: z.boolean().optional(),
+  turnFor: z.array(z.string()).optional(),
+  allHands: z.object({ factions: z.array(z.string()).min(1), days: z.number().int().min(0).optional() }).strict().optional(),
   source: text,
 });
 

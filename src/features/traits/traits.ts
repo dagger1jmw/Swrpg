@@ -49,7 +49,6 @@ export const traitsSliceSchema = z.object({
 });
 
 export type TraitsSlice = z.infer<typeof traitsSliceSchema>;
-export type QuizState = z.infer<typeof quizStateSchema>;
 
 /** The slice of a save from before traits (or a start made without them): nothing held, no quiz offered. */
 export const emptyTraits = (): TraitsSlice => ({ held: [], counts: {}, quiz: { status: 'never', seed: '' }, alignmentNudge: 0, darkPressureNudge: 0, standing: {}, leans: {}, history: [] });

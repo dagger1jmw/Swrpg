@@ -3,7 +3,7 @@
 Design: [m8-design-notes.md](m8-design-notes.md), "Starting traits and formative events", with its trait catalog (44 traits) and the five event sets, all agreed by Jared on 25 Nov 2026. Extends [character-creation.md](character-creation.md) (talents, background flags, backstory facts, philosophy). Decision: D-515. Report: docs-v2/reports/m8-traits.md. **Every number not from Jared is `invented`; section 9 lists them all.**
 
 Code:
-- Data: `src/data/traits.ts` (the catalog with its hooks and gates, the dated wars and massacres, tie names), `src/data/formativeEvents.ts` (the event pool, the quiz's stages and limits), `src/data/canon/canonTraits.ts` (canon figures' traits from the lore).
+- Data: `src/data/traits.ts` (the catalog with its hooks and gates, the dated massacres, tie names), `src/data/wars.ts` (the one war list with its factions, shared with the NPC generator; opt-2 A1, D-535), `src/data/formativeEvents.ts` (the event pool, the quiz's stages and limits), `src/data/canon/canonTraits.ts` (canon figures' traits from the lore).
 - Rules (pure): `src/features/traits/rules.ts` (gates, the creation check, hooks, the quiz's plan and scoring, suggestions, NPC traits).
 - Feature: `src/features/traits/` (slice, the `formativeQuizTaken`, `traitMoment` and `tieEnded` events, the youngling's skip hook, selectors).
 - Wiring: the check (`turn/resolve.ts`: the intent's `situation`, the NPC target's kind, a mind trick on a Stubborn target), the duel (`engine/duel.ts` trait edges, `engine/sequence.ts` taunts), learning (`engine/speed.ts`, `features/progression/training.ts`), the starting purse and an old debt (`features/economy`), Order standing (`features/ranks/selectors.ts`), ties ending (`features/npcs` npcDied), bonds from the past (`relationshipSeeded`), the narrator's STATE block (`turn/context.ts`), creation (`turn/campaign.ts`), the screens (`ui/traitsUi.ts`, `ui/app.ts`).
@@ -84,7 +84,7 @@ Only through recorded events (`traitMoment` from the narrator, `tieEnded` from t
 | Total roll cap +-2, learning 0.8-1.2, reaction +-2 (the band's edges) | `TRAIT_LIMITS` |
 | Mentor +10%; the rival's spur +10% for 30 days | `MENTOR_LEARNING`, `RIVAL_SPUR` |
 | Fears faced 3; temperament moments 3 | `FEAR_FACED_TO_OVERCOME`, `TEMPERAMENT_SHIFT_MOMENTS` |
-| Memory age 4; veteran age 14 | `rules.ts` |
+| Memory age 4; veteran age 14 (one constant with the form's, opt-2 A1) | `rules.ts`, `WAR_SERVICE_FROM_AGE` (data/wars.ts) |
 | The Sith Empire's years (4,980-3,600 BBY, end invented); the Forbidden bond to 19 ABY; the Galactic War's end at 3,637 (the lore's coverage) | `traits.ts` |
 | Tie names; tie bonds -25 / -5 / +30; tie ages | `TIE_NAMES`, `traitCreationEvents` |
 | Event age windows; roll chances 0.5 (0.25 for a disaster's loss); bond sizes 30 / 20 / 10 / -15 / -25 / -35 | `FORMATIVE_EVENTS`, `BOND` |

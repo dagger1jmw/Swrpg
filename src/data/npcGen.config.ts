@@ -100,8 +100,6 @@ export const ROLE_MIN_AGE: Readonly<Record<string, number>> = {
   droid: 0,
   other: 0,
 };
-/** Rank ages for the closed-form phases (D-105: Sith on the Jedi ages until M7). */
-export const RANK_AGES = { padawanAge: 12, knightAge: 25 } as const;
 
 // ---- Talents (npc-generation Â§2) ----
 export const TALENT_ROLL_ORDERS: Readonly<Record<'order' | 'other', readonly (readonly ['none' | 'gifted' | 'prodigy' | 'exceptional', number])[]>> = {
@@ -121,23 +119,7 @@ export const NPC_VARIANCE_SIGMA = 0.12;
  */
 export const NPC_SEED_SALT = 'npc-gen-v1';
 
-// ---- War years (npc-generation Â§1 war term; character-creation Â§2) ----
-export interface War {
-  id: string;
-  fromBby: number;
-  toBby: number;
-  factions: readonly string[];
-  source: string;
-}
-export const WARS: readonly War[] = [
-  {
-    id: 'greatGalacticWar',
-    fromBby: 3681,
-    toBby: 3653,
-    factions: ['republic', 'sithEmpire', 'jediOrder', 'sith', 'mandalorians'],
-    source: 'Timeline slice Part 1 (Great Galactic War; D-01)',
-  },
-];
+// ---- War years (npc-generation §1 war term; character-creation §2): the wars are in data/wars.ts (opt-2 A1) ----
 /** Roles that fight in a war (combatants gain war years). */
 export const COMBATANT_ROLES: readonly string[] = ['jediMaster', 'jediKnight', 'padawan', 'sithLord', 'sithAcolyte', 'darkJedi', 'darkAcolyte', 'inquisitor', 'soldier', 'officer', 'pilot', 'bountyHunter'];
 

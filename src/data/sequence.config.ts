@@ -3,7 +3,6 @@
 // covers the whole sequence. Every number here is tunable.
 
 export const SEQUENCE_STEP_KINDS = ['stance', 'tactic', 'maneuver', 'forceAction', 'strike'] as const;
-export type SequenceStepKind = (typeof SEQUENCE_STEP_KINDS)[number];
 
 /** The intent schema accepts at most this many steps; the engine truncates to the character's cap. */
 export const SEQUENCE_SCHEMA_MAX = 5;

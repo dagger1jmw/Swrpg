@@ -84,7 +84,7 @@ describe('A3: the quiz\'s first battle on the form', () => {
 /** A Jedi Knight commanding a ground battle (the briefing's planning scene, begun). */
 function commanding(): GameState {
   const s0 = meet(base(), [{ name: 'Major Tarsk', role: 'officer', faction: 'republic' }]);
-  const p = ev(s0, [{ type: 'groundBattlePlanned', site: 'the Aldera plains', enemy: 'five Sith infantry, armour, artillery', ours: 'four clone infantry, armour, artillery', details: 'terrain: a ridge, a river with a bridge, ruins' }]).state;
+  const p = ev(s0, [{ type: 'groundBattlePlanned', site: 'the Aldera plains', enemy: 'five Sith infantry, armour, artillery', ours: 'four clone infantry, armour, artillery', terrain: 'a ridge, a river with a bridge, ruins' }]).state;
   return resolveTurn(REGISTRY, p, null, { battle: { ground: { act: 'begin' } } } as never).state;
 }
 const dying = (s: GameState): GameState => ({ ...s, health: { ...s.health, wounds: [...s.health.wounds, { id: 'w-test', part: 'torso', severity: 'mortal', W: 60, stabilized: false, healProgress: 0, day: s.clock.now.day, source: 'test' }] as GameState['health']['wounds'] } });

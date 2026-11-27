@@ -12,20 +12,6 @@ export type DroidClass = (typeof DROID_CLASSES)[number];
  */
 export const DROID_SKILLS = ['medicine', 'science', 'repair', 'astrogation', 'slicing', 'languages', 'social', 'blaster', 'melee', 'security', 'labour', 'piloting'] as const;
 export type DroidSkill = (typeof DROID_SKILLS)[number];
-export const DROID_SKILL_GAME: Readonly<Record<DroidSkill, string | null>> = {
-  medicine: 'medicine',
-  science: 'intelligence',
-  repair: null,
-  astrogation: 'piloting',
-  slicing: 'investigation',
-  languages: 'charisma',
-  social: 'charisma',
-  blaster: 'blaster',
-  melee: 'melee',
-  security: 'investigation',
-  labour: 'strength',
-  piloting: 'piloting',
-};
 
 /**
  * The skills each class is programmed for (the lore's five classes; the design notes' list), with a factory rating

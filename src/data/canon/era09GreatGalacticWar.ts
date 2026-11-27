@@ -81,7 +81,7 @@ const NPCS: readonly Omit<CanonNpc, 'ranks'>[] = [
     birthSource: 'lore',
     unmapped: ['Force Body 86 (Enhance Attribute 88%)', 'Chain Lightning 80%'],
     note: "Darth Vindican's apprentice at Korriban (3,681), a Sith Lord after it, Darth c. 3,667; led the Rim Campaign with Venemal (c. 3,660); at the Sacking (3,653) he led the infiltration of the Jedi Temple, while Angral led the attack; survives Ilum (lore batch 19, SW_Characters_09_GGW_ColdWar)",
-    anchors: [{ bby: 3653, complete: true, basis: 'sheet', sources: 'Deceived (3,653); hand-set sheet (lore batch 19)', levels: { ...core(90, 82, 92, 94, 86, 80), ...force(84, 70, 80, 88, 90), djemSo: 92, shien: 92, shiiCho: 82, juyo: 80, ataru: 76, telekinesis: 88, forcePush: pct(88, 0.85), forceChoke: pct(88, 0.82), forceLightning: 85, forceBarrier: 78 } }],
+    anchors: [{ bby: 3653, complete: true, basis: 'sheet', sources: 'Deceived (3,653); hand-set sheet (lore batch 19)', levels: { ...core(90, 82, 92, 94, 86, 80), ...force(84, 70, 80, 88, 90), djemSo: 92, shien: 92, shiiCho: 82, juyo: 80, ataru: 76, telekinesis: 88, forcePush: pct(88, 0.85), forceChoke: pct(88, 0.82), forceLightning: 85, forceBarrier: 78 } }, { bby: 3660, complete: false, basis: 'sheet', sources: 'hand set (Jared, 26 Nov 2026, opt-2 A3; invented value): led the Rim Campaign with Venemal, c. 3,660 (his note; SW_Characters_09_GGW_ColdWar)', levels: { tactics: 88 } }],
   },
   {
     canonId: 'lore:darth-marr',
@@ -96,7 +96,7 @@ const NPCS: readonly Omit<CanonNpc, 'ranks'>[] = [
     deathSource: 'lore',
     unmapped: ['Force Body 82 (Remove Fatigue 82%)', 'Chain Lightning 70%'],
     note: 'died c. 3,636 BBY on Zakuul (lore batch 19)',
-    anchors: [{ bby: 3640, complete: true, basis: 'sheet', sources: 'the hand-set sheet (lore batch 19; SW_Characters_09_GGW_ColdWar)', levels: { ...core(84, 80, 88, 96, 84, 84), ...force(86, 82, 86, 92, 84), soresu: 88, djemSo: 84, shien: 84, shiiCho: 80, makashi: 76, forceBarrier: 88, forceAbsorb: pct(88, 0.8), telekinesis: 84, forcePush: pct(84, 0.8), forceLightning: 78 } }],
+    anchors: [{ bby: 3640, complete: true, basis: 'sheet', sources: 'the hand-set sheet (lore batch 19; SW_Characters_09_GGW_ColdWar)', levels: { ...core(84, 80, 88, 96, 84, 84), ...force(86, 82, 86, 92, 84), soresu: 88, djemSo: 84, shien: 84, shiiCho: 80, makashi: 76, forceBarrier: 88, forceAbsorb: pct(88, 0.8), telekinesis: 84, forcePush: pct(84, 0.8), forceLightning: 78 } }, { bby: 3661, complete: false, basis: 'sheet', sources: 'hand set (Jared, 26 Nov 2026, opt-2 A3; invented value): commander of the Sphere of Defense on the Dark Council from 3,661 (the timeline’s Dark Councilor span; SW_Great_Galactic_War)', levels: { tactics: 90 } }],
   },
   {
     canonId: 'lore:darth-baras',
@@ -307,7 +307,7 @@ const NPCS: readonly Omit<CanonNpc, 'ranks'>[] = [
     deathSource: 'lore',
     unmapped: ['Force Body 84 (Speed 85%)'],
     note: "Jedi Battlemaster; Jar'Kai, not Ataru, is his main form (his page names Jar'Kai; changed estimate, lore batch 19); dies buying Satele's escape at Korriban (3,681)",
-    anchors: [{ bby: 3681, complete: true, basis: 'sheet', sources: 'the hand-set sheet (lore batch 19; SW_Characters_09_GGW_ColdWar)', levels: { ...core(78, 84, 76, 86, 74, 80), ...force(84, 80, 80, 84, 82), jarKai: 86, ataru: 80, shiiCho: 80 } }],
+    anchors: [{ bby: 3681, complete: true, basis: 'sheet', sources: 'the hand-set sheet (lore batch 19; SW_Characters_09_GGW_ColdWar)', levels: { tactics: 60, ...core(78, 84, 76, 86, 74, 80), ...force(84, 80, 80, 84, 82), jarKai: 86, ataru: 80, shiiCho: 80 } }],
   },
   {
     canonId: 'lore:satele-shan',
@@ -332,7 +332,7 @@ const NPCS: readonly Omit<CanonNpc, 'ranks'>[] = [
       forceSpeed: pct(85, 0.9),
       telekinesis: 85,
       forcePush: pct(85, 0.8),
-    } }],
+    } }, { bby: 3651, complete: false, basis: 'sheet', sources: 'hand set (Jared, 26 Nov 2026, opt-2 A3; invented value): Grand Master from 3,651, directing the Order’s war (the timeline’s Grand Master span)', levels: { tactics: 88 } }],
   },
   {
     canonId: 'lore:orgus-din',
@@ -347,7 +347,7 @@ const NPCS: readonly Omit<CanonNpc, 'ranks'>[] = [
     deathSource: 'lore',
     unmapped: ['Precognition 70%', 'Force Body 75'],
     note: "the \"Plain Jedi\" from Rishi; mentor of the Hero of Tython; killed by Angral personally aboard the Oppressor in 3,643 BBY, persists as a Force spirit (lore batch 19, SW_Characters_09_GGW_ColdWar)",
-    anchors: [{ bby: 3643, complete: true, basis: 'sheet', sources: 'the hand-set sheet (lore batch 19; SW_Characters_09_GGW_ColdWar)', levels: { ...core(64, 72, 70, 86, 78, 80), ...force(82, 80, 82, 84, 78), djemSo: 78, shien: 78, shiiCho: 74, soresu: 74, ataru: 70, telekinesis: 80, forcePush: pct(80, 0.72), forceSpeed: pct(75, 0.7) } }],
+    anchors: [{ bby: 3643, complete: true, basis: 'sheet', sources: 'the hand-set sheet (lore batch 19; SW_Characters_09_GGW_ColdWar)', levels: { ...core(64, 72, 70, 86, 78, 80), ...force(82, 80, 82, 84, 78), djemSo: 78, shien: 78, shiiCho: 74, soresu: 74, ataru: 70, telekinesis: 80, forcePush: pct(80, 0.72), forceSpeed: pct(75, 0.7) } }, { bby: 3675, complete: false, basis: 'sheet', sources: 'hand set (Jared, 26 Nov 2026, opt-2 A3; invented value): fought the Sith offensive in the Minos Cluster "during much of" the war, a Master from 3,675 (SW_Characters_09_GGW_ColdWar; the year is a reading)', levels: { tactics: 65 } }],
   },
   {
     canonId: 'lore:darnala',
@@ -430,7 +430,7 @@ const NPCS: readonly Omit<CanonNpc, 'ranks'>[] = [
     deathSource: 'lore',
     note: 'led the doomed mission to redeem the Emperor and fell; died 3,640 BBY',
     facts: { alignment: 'fell to the dark side in 3,640 BBY (lore batch 19; M6 checklist item 14)' },
-    anchors: [{ bby: 3655, complete: true, basis: 'sheet', sources: 'the hand-set sheet (lore batch 19; SW_Characters_09_GGW_ColdWar)', levels: { ...core(62, 66, 66, 86, 80, 82), ...force(84, 84, 84, 82, 80), soresu: 78, niman: 74, battleMeditation: 80, forceBarrier: 82 } }],
+    anchors: [{ bby: 3655, complete: true, basis: 'sheet', sources: 'the hand-set sheet (lore batch 19; SW_Characters_09_GGW_ColdWar)', levels: { tactics: 60, ...core(62, 66, 66, 86, 80, 82), ...force(84, 84, 84, 82, 80), soresu: 78, niman: 74, battleMeditation: 80, forceBarrier: 82 } }],
   },
   {
     canonId: 'lore:syo-bakarn',
@@ -471,6 +471,8 @@ const NPCS: readonly Omit<CanonNpc, 'ranks'>[] = [
     note: 'died c. 3,642 BBY at the Foundry (temporarily) and again in 3,637 BBY on Yavin 4; absorbed into Satele Shan\'s mind as a spirit in 3,626 BBY; founder of the Order of Revan (lore batch 19)',
     facts: { alignment: 'yellow dark-side eyes in his Sith past (lore batch 19; M6 checklist item 14)' },
     anchors: [{ bby: 3640, complete: true, basis: 'sheet', sources: 'the hand-set sheet (lore batch 19; SW_Characters_09_GGW_ColdWar)', levels: {
+      // Hand set (Jared, 26 Nov 2026, opt-2 A3; invented value): the Supreme Commander of the Mandalorian Wars (3,964-3,960); a fixed figure, so it holds at every date.
+      tactics: 95,
       ...core(84, 94, 86, 106, 90, 100),
       ...force(94, 90, 98, 94, 92),
       niman: 94,

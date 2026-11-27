@@ -19,8 +19,6 @@ export type BattleEnd = (typeof BATTLE_ENDS)[number];
 /** The most ships a proposal may name a side (a cap on what the narrator can conjure; invented). */
 export const BATTLE_LIMITS = { capitalPerSide: 40, fightersPerSide: 24, queue: 24 } as const;
 
-/** An ambush starts with the ambusher this far up the track (a dogfight) or with the strike's intel (a fleet). */
-export const AMBUSH_TRACK = 2;
 
 /** A crew with no named figure: its level by the side's kind (invented: a navy's line crews 45, pirates 30). */
 export const GENERIC_CREW: Readonly<Record<string, number>> = { navy: 45, elite: 65, militia: 30, pirate: 30, droid: 35 };

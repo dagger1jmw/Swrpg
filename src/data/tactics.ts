@@ -38,7 +38,7 @@ const beatenBy = (id: string): string =>
 
 const dog = (id: keyof typeof MANOEUVRE, name: string, description: string, strong: string, weak: string, extra: Partial<TacticDef> = {}): TacticDef => ({ id, name, scale: 'dogfight', description, strong, weak, engine: true, source: ST, ...extra });
 
-export const TACTICS: readonly TacticDef[] = [
+const RAW_TACTICS: readonly TacticDef[] = [
   // ---- dogfight manoeuvres (the engine's) ----
   dog('fly', 'The head-on pass', 'Hold the fight and trade fire as you pass: no special move.', 'an even fight', 'any real manoeuvre'),
   dog('break', 'The Break', 'A sharp turn into the attack so the attacker overshoots.', 'an attacker on your tail', 'the Reverse Throttle Hop, the Tallon Roll; a snap shot if timed wrong'),
@@ -94,6 +94,10 @@ export const TACTICS: readonly TacticDef[] = [
   { id: 'infiltration', name: 'Infiltration or raid', scale: 'ground', description: 'Small units slip past the line to strike command, supply or a key point.', strong: 'defence in depth, a siege line', weak: 'patrols and alert sentries, open ground', engine: false, source: GC },
   { id: 'fightingWithdrawal', name: 'Fighting withdrawal', scale: 'ground', description: 'Fall back in order, covering each move with fire.', strong: 'an envelopment closing, a stronger enemy', weak: 'pursuit by faster units, a broken rear guard', engine: false, source: GC },
 ];
+/** A formation's strong and weak lists by name (opt-2 G3: beats() and beatenBy() can only see ids while the list is built). */
+const NAME_OF = new Map(RAW_TACTICS.map((t) => [t.id, t.name]));
+const named = (list: string): string => list.split(', ').map((x) => NAME_OF.get(x) ?? x).join(', ');
+export const TACTICS: readonly TacticDef[] = RAW_TACTICS.map((t) => (t.scale === 'fleet' ? { ...t, strong: named(t.strong), weak: named(t.weak) } : t));
 export const TACTIC_BY_ID: ReadonlyMap<string, TacticDef> = new Map(TACTICS.map((t) => [t.id, t]));
 
 /** In use in a calendar year (D-438). */
@@ -137,12 +141,10 @@ const ADVANCED_IDS = new Set<string>(['terrain', 'corellianSlip', 'slipJaws', 'u
 export const tacticTier = (id: string): TacticTier => (BASIC_IDS.has(id) ? 'basic' : ADVANCED_IDS.has(id) ? 'advanced' : 'standard');
 /**
  * The teacher's Tactics a tier needs (m8-fixes B3a; invented): anyone teaches the basics; standard tactics need some military
- * experience (Tactics 20: a sergeant's 22); advanced ones a seasoned commander (Tactics 50: a major's 74, a general's 91). Generated
- * Jedi Masters have no Tactics of their own, so they teach the basics only unless their sheet gives Tactics.
+ * experience (Tactics 20: a sergeant's 22); advanced ones a seasoned commander (Tactics 50: a major's 74, a general's 91). A teacher the
+ * game does not know (no NPC, or one the same reply introduced) teaches only the basics; a teacher must be in the scene (opt-2 C).
  */
 export const TEACH_NEEDS: Readonly<Record<TacticTier, number>> = { basic: 0, standard: 20, advanced: 50 };
-/** A teacher the story names but the game does not know (no NPC): an instructor of middling experience (invented). */
-export const UNKNOWN_TEACHER_TACTICS = 30;
 /** A seen tactic, not practised, chosen in battle (m8-fixes B4; invented): -2 on its roll. */
 export const SEEN_TACTIC_PENALTY = 2;
 

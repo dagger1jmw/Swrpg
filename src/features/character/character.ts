@@ -42,7 +42,6 @@ export const characterSliceSchema = z.object({
 });
 
 export type CharacterSlice = z.infer<typeof characterSliceSchema>;
-export type CharacterPathId = (typeof PATHS)[number];
 
 /** v4 -> v5: the test-character mark (D-178), false for every earlier character. */
 export function migrateCharacterV4(old: unknown): CharacterSlice {

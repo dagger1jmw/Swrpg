@@ -438,25 +438,9 @@ export const FEAR_FACED_TO_OVERCOME = 3;
 export const TEMPERAMENT_SHIFT_MOMENTS = 3;
 
 /**
- * Dated conditions for the gates (D-438: plain dated facts). Wars from the lore timelines and character files (the Great
- * Galactic War also in npcGen.config WARS); massacres from the catalog's list (the Sacking of Coruscant, the Massacre at
- * Ossus, Order 66). Years: negative = BBY.
+ * Dated conditions for the gates (D-438: plain dated facts). The wars are the one list in data/wars.ts (opt-2 A1); massacres
+ * from the catalog's list (the Sacking of Coruscant, the Massacre at Ossus, Order 66). Years: negative = BBY.
  */
-export const FORMATIVE_WARS: readonly { id: string; name: string; from: number; to: number; source: string }[] = [
-  { id: 'greatHyperspaceWar', name: 'the Great Hyperspace War', from: -5000, to: -4999, source: 'SW_Timeline_5000_3997BBY' },
-  { id: 'greatSithWar', name: 'the Great Sith War', from: -4000, to: -3996, source: 'SW_Characters_04-05_GreatSithWar (4,000-3,996 BBY)' },
-  { id: 'mandalorianWars', name: 'the Mandalorian Wars', from: -3976, to: -3960, source: 'SW_Characters_06-07 (3,976-3,960 BBY)' },
-  { id: 'jediCivilWar', name: 'the Jedi Civil War', from: -3959, to: -3956, source: 'SW_Characters_06-07 (3,959-3,956 BBY)' },
-  { id: 'greatGalacticWar', name: 'the Great Galactic War', from: -3681, to: -3653, source: 'npcGen.config WARS (D-01)' },
-  { id: 'galacticWar', name: 'the Galactic War', from: -3641, to: -3637, source: 'SW_Characters_09 "Cold War and Galactic War (3653-3637 BBY)": the war years the lore covers' },
-  { id: 'newSithWars', name: 'the New Sith Wars', from: -2000, to: -1000, source: 'SW_Timeline_2000_1000BBY' },
-  { id: 'cloneWars', name: 'the Clone Wars', from: -22, to: -19, source: 'SW_Timeline_32_19BBY; economy lore (22-19 BBY)' },
-  { id: 'galacticCivilWar', name: 'the Galactic Civil War', from: 0, to: 4, source: 'SW_Timeline_19BBY_4ABY' },
-  { id: 'yuuzhanVongWar', name: 'the Yuuzhan Vong War', from: 25, to: 29, source: 'SW_Timeline_25_44ABY' },
-  { id: 'secondGalacticCivilWar', name: 'the Second Galactic Civil War', from: 40, to: 41, source: 'SW_Characters_16 (c. 40 ABY)' },
-  { id: 'sithImperialWar', name: 'the Sith-Imperial War', from: 127, to: 130, source: 'SW_Characters_18_LegacyEra' },
-];
-
 export const MASSACRES: readonly { id: string; name: string; year: number; who: 'jedi' | 'coruscant'; source: string }[] = [
   { id: 'sacking', name: 'the Sacking of Coruscant', year: -3653, who: 'coruscant', source: 'OLD_SW_Characters_09 (3,653 BBY)' },
   { id: 'order66', name: 'Order 66', year: -19, who: 'jedi', source: 'SW_Timeline_19BBY_4ABY' },

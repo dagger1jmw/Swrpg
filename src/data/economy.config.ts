@@ -88,7 +88,7 @@ export const FOOD_INDEX_BLOCKADE = 'hydian-way-3661';
  */
 export const DEPRESSION = { outcome: 'O.treaty_signed', loreBby: 3653, years: 10, goods: 1.15, wages: 0.8 } as const;
 
-/** Military goods in wartime, on worlds of a side at war (WARS, npcGen.config): dearer by shortage (invented). */
+/** Military goods in wartime, on worlds of a side at war (data/wars.ts): dearer by shortage (invented). */
 export const WARTIME_MILITARY_X = 1.5;
 
 // ---------------------------------------------------------------- income
@@ -155,7 +155,6 @@ export const LOAN_TERMS: Readonly<Record<Lender, { yearRate: number; months: num
   exchange: { yearRate: 3.5, months: 6, name: 'the Exchange' },
 };
 export const LOAN_SIZES = { small: 1000, fair: 10_000, large: 100_000 } as const;
-export type LoanSize = keyof typeof LOAN_SIZES;
 /** A bank lends no more than this many months of the borrower's pay (invented); Hutts and the Exchange lend to anyone. */
 export const BANK_INCOME_MONTHS = 6;
 /** Missed payments: a warning, then collectors, then a bounty on the debtor (Jared), by count missed. */

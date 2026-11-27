@@ -148,10 +148,10 @@ export interface GroundPlanning {
   me: GLeader & { meditation: number; canMeditate: boolean };
   /** The tactics the player may order (ground ones): known, and seen ones at a penalty (m8-fixes B4). */
   known: string[];
-  /** Of those, the ones seen and not practised (m8-fixes B4): ordered at -SEEN_TACTIC_PENALTY. Absent in scenes saved before. */
-  seenOnly?: string[];
+  /** Of those, the ones seen and not practised (m8-fixes B4): ordered at -SEEN_TACTIC_PENALTY (older scenes migrated, battles v2). */
+  seenOnly: string[];
   /** What the one who plans knows: the player when they command, else the NPC commander (an army's officers). */
-  planKnows?: string[];
+  planKnows: string[];
   /** What the enemy's commanders know. */
   enemyKnows: string[];
 }
@@ -482,7 +482,7 @@ export function planProblems(p: GroundPlanning, plan: GroundPlan = p.plan): stri
   if (plan.secondary && plan.secondary === plan.primary) out.push('the secondary objective is the primary');
   if (!plan.manoeuvre) out.push('a manoeuvre is needed');
   else if (!TACTIC_PLAN[plan.manoeuvre]) out.push(`${plan.manoeuvre} is not a ground manoeuvre`);
-  else if (!(p.planKnows ?? p.known).includes(plan.manoeuvre)) out.push(`${TACTIC_BY_ID.get(plan.manoeuvre)?.name ?? plan.manoeuvre} is not a tactic ${p.role === 'commander' ? 'the character knows' : `${p.ours.commander.name} knows`}`);
+  else if (!p.planKnows.includes(plan.manoeuvre)) out.push(`${TACTIC_BY_ID.get(plan.manoeuvre)?.name ?? plan.manoeuvre} is not a tactic ${p.role === 'commander' ? 'the character knows' : `${p.ours.commander.name} knows`}`);
   if (!plan.sectors.some((s) => s.units.length)) out.push('at least one sector needs units');
   const leaders = new Set<string>();
   for (const s of plan.sectors) {
@@ -507,7 +507,7 @@ export function planProblems(p: GroundPlanning, plan: GroundPlan = p.plan): stri
   if (plan.contingencies.length > MAX_CONTINGENCIES) out.push(`at most ${MAX_CONTINGENCIES} contingencies`);
   for (const c of plan.contingencies) {
     if (!(CONTINGENCY_TRIGGERS as readonly string[]).includes(c.when) || !(CONTINGENCY_ACTIONS as readonly string[]).includes(c.then)) out.push('a contingency needs a trigger and an action');
-    if (c.then === 'switchPlan' && (!c.manoeuvre || !(p.planKnows ?? p.known).includes(c.manoeuvre))) out.push('switching the manoeuvre needs a known ground tactic');
+    if (c.then === 'switchPlan' && (!c.manoeuvre || !p.planKnows.includes(c.manoeuvre))) out.push('switching the manoeuvre needs a known ground tactic');
     if (c.then === 'commitReserve' && !plan.reserve.length) out.push('committing the reserve needs a reserve');
   }
   return out;
@@ -1015,7 +1015,7 @@ export function stepGround(g0: GroundState, orders: GroundOrders, ctx: GroundCtx
   const penalty: Modifier[] = g.penaltyAt === phaseNo ? [{ source: 'a change without contact', value: CHANGE.penalty }] : [];
   // A manoeuvre the player ordered from one only seen, not practised (m8-fixes B4).
   const planNow = tacticOfPlan(g.battle.a.plan);
-  const seenPlan = g.planning.role === 'commander' && !g.handedTo && (g.planning.seenOnly ?? []).includes(planNow);
+  const seenPlan = g.planning.role === 'commander' && !g.handedTo && g.planning.seenOnly.includes(planNow);
   const seenPen: Modifier[] = seenPlan ? [{ source: 'a tactic seen, not practised', value: -SEEN_TACTIC_PENALTY }] : [];
   g = { ...g, battle: { ...g.battle, rng, a: { ...g.battle.a, modifiers: [...ma, ...weatherMods(g, 'A'), ...penalty, ...seenPen] }, b: { ...g.battle.b, modifiers: [...mb, ...weatherMods(g, 'B')] } } };
   if (Math.abs(margin) >= 4) lines.push(`${margin > 0 ? 'Your' : 'The enemy\'s'} command reads the battle better this phase.`);
@@ -1143,4 +1143,3 @@ export function lossShare(g: GroundState, who: 'A' | 'B'): number {
   return 1 - forceLeft(g.battle, who);
 }
 
-export const ACTIVE_PHASE_HOURS = PHASE_HOURS;

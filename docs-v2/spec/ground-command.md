@@ -7,7 +7,7 @@ Code:
 - Engine (pure, D-505): `src/engine/groundBattle.ts`.
 - Feature: `src/features/battles/ground.ts` (the planning scene, the map, the plan's checks, scouting, a phase with orders, contingencies, the end; pure), `groundSetup.ts` (the narrator's words and the state into a planning scene), `index.ts` (the events and the end), `selectors.ts` (the menu, the STATE lines).
 - Turn: the `battle` input's `ground` field (`turn/record.ts`), `resolveTurn`'s battle branch; quiet phases and the BATTLE block as for ship battles.
-- UI: `src/ui/groundPanel.ts`. Dev: `/ground <site> | <enemy> [| <ours>] [| <details>]`.
+- UI: `src/ui/groundPanel.ts`. Dev: `/ground <site> | <enemy> [| <ours>] [| <details>]` (the details line is the dev command's shorthand, read into the fields).
 - Tests: `tests/m8/groundCommand.test.ts`, `tests/turn/groundPipeline.test.ts`.
 
 ## 1. When it applies
@@ -18,7 +18,7 @@ Code:
 
 ## 2. The planning scene
 
-- **The narrator's words** (one compact event, as combatStarted's `ships`): the site, the enemy forces in plain words with numbers, ours when the story says, and one details line: `defending; terrain: a ridge, a river with a bridge; weather: fog; commander: <name>; meditator: <name>; enemy meditator: <name>; command: <why handed>; jammed`. People are matched by their exact names among the NPCs met. Units are read against the ground units (`GROUND_UNITS`): "troops", "infantry", "battalions" are the side's ordinary troops of the year (the ship battles' `troopsFor`); named kinds (clones, B1s, commandos, Mandalorians, militia, armour, artillery, anti-air, air) are themselves. Words the code cannot read are refused.
+- **The narrator's words** (one compact event, as combatStarted's `ships`): the site, the enemy forces in plain words with numbers, ours when the story says, and the scene's fields (opt-2 F, D-540; were one details line read by regex): `defending`, `terrain` ("a ridge, a river with a bridge"), `weather`, `commander`, `meditator`, `enemyMeditator`, `commandHanded` (why command is handed over), `jammed`. People are matched by their exact names among the NPCs met. Units are read against the ground units (`GROUND_UNITS`): "troops", "infantry", "battalions" are the side's ordinary troops of the year (the ship battles' `troopsFor`); named kinds (clones, B1s, commandos, Mandalorians, militia, armour, artillery, anti-air, air) are themselves. Words the code cannot read are refused.
 - **Who plans goes by rank** (Jared): an army officer of any rung (a squad leader's raid to an army), a naval officer from captain, a Jedi Knight or Master, a Sith Lord, or the fleet-command flag. The story can hand command over (`command: why`). Otherwise the player is a **sector leader** (a Padawan, an acolyte, a serving soldier: they lead a sector under the NPC commander's plan) or **in the line** (no rank: they fight in a sector).
 - **Jedi plan alongside the officers, then lead from the front:** a Jedi or Sith commander starts at the front, leading a sector; the officers at the post keep the lines. The officer archetype and senior army officers (colonel and up) start at the post. The commander can change it in the planning panel.
 - **The enemy commander** picks a manoeuvre it knows (an army's officers the officer-academy set; droid armies the basics; irregulars their own fighting) for holding or attacking, and deploys: a defender spreads over the positions, heavier on the objectives; an attacker picks its targets by its manoeuvre (a raid or a siege the objectives, a flanking or an envelopment the ends of the line, a feint half of it).
@@ -43,7 +43,7 @@ Code:
 - **A lettered and numbered grid** (Jared): A-F by 1-6 for a typical battle; 7 x 7 when a side has more than 10 units, 8 x 8 above 16; 4 characters a column (36 at the widest, inside the keyboard map's width). One square per sector. The key below lists each feature and its squares, the positions and objectives, the squares still unknown and where the enemy's strength is not yet known.
 - **What is known:** the friendly side of the field and the front positions (the line can be seen; who holds it, and in what strength, takes scouting). A known site's ground is all on the maps.
 - **Known sites take their features from the lore files** (Jared): Ruusan (1,002-1,000 BBY: the Jedi's forest the Brotherhood set ablaze, the plains the Jedi were driven onto, Hoth's caves, the thought bomb's valley, the Brotherhood's camp), Geonosis (22-19 BBY: the Petranaki arena, the droid foundries, Point Rain), Jabiim (22-19 BBY: Cobalt Station, the mines, the Nationalists' stronghold). The features are the lore's; where they sit on the grid is invented, and so are the extras marked so.
-- **Elsewhere the narrator proposes them** (the details line's `terrain:`), read to features and placed on the grid by the seed, **tagged invented** on the key; with no words, the code's own few (a low ridge, a stand of woods, a fortified outpost), invented too. They stay fixed once shown (saved with the scene).
+- **Elsewhere the narrator proposes them** (the `terrain` field), read to features and placed on the grid by the seed, **tagged invented** on the key; with no words, the code's own few (a low ridge, a stand of woods, a fortified outpost), invented too. They stay fixed once shown (saved with the scene).
 - **Redrawn only when something changes:** after each phase and after a personal fight.
 - **The player's place** (m8-fixes C4, D-525): beginning the battle moves the player to its site (a map world the site names becomes its parent, else the world they are on); while it runs the narrator cannot move them; a battle lost or withdrawn from takes them back to the base they planned from, a field won or held keeps them on it.
 
@@ -97,7 +97,7 @@ Item 11 stays story-only. When it is built, a posting hooks in at three places: 
 - **The commanders' Tactics roll** each phase is the reading of "the commander's Tactics roll" in the brief; sector rolls still use each sector leader's Tactics or the troops' quality (D-505).
 - **Known sites:** the lore gives the features, not their layout; the grid squares are invented. Jabiim's lore names no terrain, only places (Cobalt Station, the mines); its "churned ground" is invented and marked so.
 - **Units' bond and fear** are 50 and 0 until postings (item 11) give them.
-- **A jammed command post** comes from the narrator's details; nothing in play cuts the lines yet (a lost command post square could, later).
+- **A jammed command post** comes from the narrator's `jammed` field; nothing in play cuts the lines yet (a lost command post square could, later).
 
 ## 12. Every invented number
 
