@@ -8,6 +8,7 @@
     "predev": "npm run lore",
     "build": "tsc --noEmit && vite build",
     "prebuild": "npm run lore",
+    "postbuild": "node scripts/check-dist.ts",
     "preview": "vite preview",
     "test": "vitest run --exclude \"tests/lifetime/**\" --exclude \"tests/sweep/**\" --exclude \"tests/spread/**\" --exclude \"tests/severs/**\" --exclude \"tests/mortals/**\" --exclude \"tests/forcexp/**\" --exclude \"tests/paces/**\" --exclude \"tests/missions/**\" --exclude \"tests/lifegap/**\"",
     "pretest": "npm run lore",

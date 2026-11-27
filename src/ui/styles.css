@@ -532,3 +532,10 @@ button.act.risky { border: 1px solid var(--bad); }
 .plan-fold-body { display: flex; flex-direction: column; gap: 6px; padding: 0 0 var(--pad-s); }
 .plan-fold-body select { max-width: 100%; }
 .plan-fold-body .battle-known > div { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+
+/* The installed app's first-run note in Settings (m9-release B4). */
+.modal .notice { border: var(--border); border-color: var(--accent); background: var(--accent-soft); border-radius: var(--r-inner); padding: var(--pad-s) var(--pad); margin-bottom: var(--gap); }
+.modal .notice p { margin: 0 0 var(--pad-s); }
+
+/* A waiting build's notice (m9-release B1): above every layer, the modal included. */
+.update-bar { position: fixed; z-index: 60; left: 50%; transform: translateX(-50%); bottom: calc(var(--gap) + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: var(--gap); padding: var(--pad-s) var(--pad); background: var(--box-2); border: var(--border); border-color: var(--accent); border-radius: var(--r-box); color: var(--text); font: var(--fs-s)/1.3 var(--font-ui); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5); max-width: calc(100vw - 2 * var(--gap)); }

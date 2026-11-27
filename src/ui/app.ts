@@ -33,6 +33,11 @@ import { selectCurrentLocation } from '../features/locations/selectors';
 import { selectPacingLevel } from '../features/pacing/selectors';
 import { makeEnvelope } from '../persist/envelope';
 import { exportCampaign, importCampaign } from '../persist/exportImport';
+import { backupDue, exportFileName, readBackup, writeBackup } from '../persist/backup';
+import { firstRunNote, storageLine, UPDATE_TEXT, updateReducer, type UpdateState } from './pwa';
+
+/** The first-run note in the installed app was read (m9-release B4). */
+const FIRST_RUN_KEY = 'swrpg.firstRunNoteSeen';
 import type { Storage } from '../persist/storage';
 import { applyEvents } from '../state/applyEvents';
 import type { GameState } from '../state/gameState';
@@ -97,6 +102,18 @@ export interface AppDeps {
   makeProvider: (getApiKey: () => string | null) => ModelProvider;
   newId: () => string;
   now: () => number;
+  /** The browser around the app (m9-release B; main.ts): absent in tests, where none of it applies. */
+  platform?: Platform;
+}
+
+/** What the browser tells and does for the installed app (m9-release B2-B4). */
+export interface Platform {
+  /** Running as the Home Screen app. */
+  standalone: boolean;
+  /** Whether storage is persistent, and the bytes used of the quota (navigator.storage); nulls when not reported. */
+  storageInfo(): Promise<{ persisted: boolean | null; usage: number | null; quota: number | null }>;
+  /** The share sheet with a file (the Web Share API): shared, cancelled by the player, or not possible here. */
+  shareFile(file: File, title: string): Promise<'shared' | 'cancelled' | 'unsupported'>;
 }
 
 type Modal = 'settings' | 'campaign' | 'routine' | 'quiz';
@@ -161,6 +178,11 @@ export class App {
   private summaryLog: SummaryOutcome[] = [];
   private summarizing = false;
   private settingsNote: string | null = null;
+  /** The installed app (m9-release B): the update banner, the storage line, the backup reminder put off this session. */
+  private update: UpdateState = { kind: 'current' };
+  private applyUpdate: (() => void) | null = null;
+  private storageText: string | null = null;
+  private backupLater = false;
   /** The current campaign's earlier saves (D-214), loaded when the campaign menu opens. */
   private readonly saves = new EarlierSaves((id) => this.d.storage.listSaves(id), () => this.render());
   /** The unsent text in the action box, kept across re-renders. */
@@ -341,14 +363,60 @@ export class App {
       this.render();
       return;
     }
-    const blob = new Blob([JSON.stringify(file)], { type: 'application/json' });
-    const a = el('a', { attrs: { href: URL.createObjectURL(blob), download: `swrpg-${file.campaign.name.replace(/[^\w-]+/g, '_')}-turn${file.transcript.length}.json` } });
-    document.body.append(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    this.settingsNote = `Exported ${file.campaign.name} (${file.transcript.length} turns).`;
+    const name = exportFileName(file.campaign.name, file.transcript.length);
+    const json = JSON.stringify(file);
+    // m9-release B3: on the iPad the share sheet, so the file goes straight to Files or iCloud Drive; elsewhere a download.
+    const shared = this.d.platform ? await this.d.platform.shareFile(new File([json], name, { type: 'application/json' }), file.campaign.name) : 'unsupported';
+    if (shared === 'cancelled') {
+      this.settingsNote = 'Export cancelled.';
+      this.render();
+      return;
+    }
+    if (shared === 'unsupported') {
+      const blob = new Blob([json], { type: 'application/json' });
+      const a = el('a', { attrs: { href: URL.createObjectURL(blob), download: name } });
+      document.body.append(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+    writeBackup(this.d.kv, file.campaign.campaignId, { at: this.d.now(), chapters: this.session?.state.memory.chapters.length ?? 0 });
+    this.backupLater = false;
+    this.settingsNote = `Exported ${file.campaign.name} (${file.transcript.length} turns)${shared === 'shared' ? ' through the share sheet' : ''}.`;
     this.render();
+  }
+
+  /** A new build is installed and waiting (m9-release B1): the banner offers the reload; `apply` lets it take over. */
+  setUpdateReady(apply: () => void): void {
+    this.applyUpdate = apply;
+    this.update = updateReducer(this.update, { type: 'waiting' });
+    this.render();
+  }
+
+  /** The reload into a waiting build (m9-release B1). */
+  private reloadIntoUpdate(): void {
+    this.update = updateReducer(this.update, { type: 'apply' });
+    this.render();
+    this.applyUpdate?.();
+  }
+
+  /** The storage line for Settings (m9-release B2), asked of the browser when Settings opens. */
+  private async refreshStorage(): Promise<void> {
+    if (!this.d.platform) return;
+    try {
+      this.storageText = storageLine(await this.d.platform.storageInfo());
+    } catch {
+      this.storageText = null;
+    }
+    if (this.modal === 'settings') this.render();
+  }
+
+  /** Why a backup is due (m9-release B3), or null: chapters or days since the last export. */
+  private backupReminder(): string | null {
+    const s = this.session;
+    if (!s || this.backupLater) return null;
+    const created = Date.parse(s.campaign.createdAt);
+    return backupDue({ now: this.d.now(), chapters: s.state.memory.chapters.length, last: readBackup(this.d.kv, s.campaign.campaignId), createdAt: Number.isFinite(created) ? created : null });
   }
 
   private async importFile(f: File): Promise<void> {
@@ -549,6 +617,10 @@ export class App {
       root.append(this.renderPanel(this.preview ? { ...this.session, state: this.preview.state } : this.session));
     }
     if (this.modal) root.append(this.renderModal(this.modal));
+    // m9-release B1: a waiting build's notice sits above everything (a modal included), so the reload is always at hand.
+    if (this.update.kind === 'ready' || this.update.kind === 'applying') {
+      root.append(el('div', { class: 'update-bar', attrs: { role: 'status' } }, [el('span', { text: UPDATE_TEXT }), el('button', { class: 'small', text: 'Reload', on: { click: () => this.reloadIntoUpdate() } })]));
+    }
     // Restore inner scroll positions; the feed follows new turns only while stuck to the bottom.
     for (const n of root.querySelectorAll<HTMLElement>('[data-scroll]')) {
       const key = n.dataset['scroll']!;
@@ -815,6 +887,14 @@ export class App {
         el('span', { class: 'status-text', text: note, attrs: { title: note } }),
         el('button', { class: 'small secondary', text: 'Dismiss', on: { click: () => ((this.devNote = null), this.render()) } }),
       ]);
+    } else if (this.backupReminder()) {
+      // m9-release B3: a reminder to export (every few chapters or every week), with the export at hand.
+      const why = this.backupReminder()!;
+      status = el('div', { class: 'status' }, [
+        el('span', { class: 'status-text', text: `Back up your campaign: ${why}.`, attrs: { title: why } }),
+        el('button', { class: 'small', text: 'Export', on: { click: () => void this.exportFile() } }),
+        el('button', { class: 'small secondary', text: 'Later', on: { click: () => ((this.backupLater = true), this.render()) } }),
+      ]);
     } else {
       status = el('div', { class: 'status' }, [el('span', { class: 'status-text hint', text: this.session ? 'Type an action, or pick a choice above.' : '' })]);
     }
@@ -901,6 +981,9 @@ export class App {
 
   private renderSettingsBody(): HTMLElement[] {
     const s = this.settings;
+    // The installed app's first run (m9-release B4): its storage is its own, apart from Safari's.
+    const firstRun = firstRunNote({ standalone: this.d.platform?.standalone === true, hasKey: !!s.apiKey, hasCampaign: this.session !== null, dismissed: this.d.kv.getItem(FIRST_RUN_KEY) === '1' });
+    if (this.storageText === null) void this.refreshStorage();
     const keyInput = input({ type: 'password', autocomplete: 'off', placeholder: 'AIza...', value: s.apiKey ?? '' });
     const err = el('div', { class: 'error' });
 
@@ -957,7 +1040,12 @@ export class App {
       this.render();
     };
 
+    const gotIt = (): void => {
+      this.d.kv.setItem(FIRST_RUN_KEY, '1');
+      this.render();
+    };
     return [
+      ...(firstRun ? [el('div', { class: 'notice' }, [el('p', { text: firstRun }), el('button', { class: 'small secondary', text: 'Got it', on: { click: gotIt } })])] : []),
       el('div', { class: 'field' }, [el('label', { text: 'Gemini API key' }), keyInput]),
       el('p', {
         class: 'hint',
@@ -986,6 +1074,9 @@ export class App {
         class: 'hint',
         text: 'On: ordinary story turns use the narrative list with this model moved to the end (the last fallback). The game picks the big moments and they try this model first: a campaign opening, the end of a fight or a battle, a time skip, a major world event, and chapter summaries. When its daily limit is spent they fall back to the list. Off: every story turn uses the narrative list in order.',
       }),
+      el('h3', { text: 'Storage' }),
+      el('p', { class: 'hint', text: this.storageText ?? (this.d.platform ? 'Asking the browser about storage…' : 'Storage details are not available here.') }),
+      el('p', { class: 'hint', text: 'Saves live in this browser (IndexedDB). On the iPad the Home Screen app and Safari each keep their own. Export a backup now and then (Campaign, Export campaign).' }),
       err,
       el('div', { class: 'row actions' }, [el('button', { text: 'Save', on: { click: save } })]),
     ];

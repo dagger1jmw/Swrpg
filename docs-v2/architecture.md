@@ -957,6 +957,7 @@ This section is the architecture.
 - **Export / import**: one JSON file with the envelope (state includes fact records, chapter
   summaries and arc summary) plus the transcript.
 - **V170 saves are not imported**; v2 starts a new campaign.
+- **Backups and the installed app** (m9-release B, D-559): the export goes through the share sheet where it can take a file (the iPad), else a download; a reminder after 5 chapters or 7 days since the last export (`persist/backup.ts`; the record in localStorage). The app asks for persistent storage on start and shows it, with the space used, in Settings. On iOS the Home Screen app's storage is its own, apart from Safari's: a first-run note says so. Steps for Jared: docs-v2/install.md.
 
 ---
 
@@ -986,7 +987,11 @@ D-56). Each milestone is its own session: plan mode first, then build. The specs
 pack prompts, where a section is not yet in this file) are checklists for the matching
 milestone. Each milestone ends **playable locally (`npm run dev`), tested and committed** on
 the `rebuild` branch. Nothing deploys to GitHub Pages until the Phase 9 cutover; the deploy
-workflow keeps its main-only trigger.
+workflow keeps its main-only trigger. Since m9-release (D-559) it builds the app and publishes `dist/`: the
+manifest and icons (`public/`), and a hand-written service worker (`sw/service-worker.js`, written to `dist/sw.js` with
+the build's file list by a small plugin in `vite.config.ts`; no PWA framework) that caches the app shell for offline
+starts and shows "A new version is ready: reload" for a new build. `npm run build` checks the result
+(`scripts/check-dist.ts`): every path relative, for the `/Swrpg/` project path.
 
 The clock and the module contract come first, before any feature.
 

@@ -60,6 +60,11 @@ export default tseslint.config(
     files: ['eslint.config.js', 'vite.config.ts', 'scripts/**'],
     languageOptions: { globals: { ...globals.node } },
   },
+  // The service worker template (m9-release B1): the worker's globals, and the marker the build replaces with the file list.
+  {
+    files: ['sw/**/*.js'],
+    languageOptions: { globals: { ...globals.serviceworker, __SWRPG_PRECACHE__: 'readonly' } },
+  },
   // Layer rules. Paths are relative imports from files directly inside src/<layer>/.
   {
     files: ['src/engine/**/*.ts'],
