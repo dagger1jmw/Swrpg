@@ -347,3 +347,49 @@ The real build passes the same check on every `npm run build`.
 | The status line's wait shown from 3 s | `busyLabel` (ui/app.ts) |
 | The icons' design and the manifest's short name | public/, scripts/make-icons.mjs |
 | The measure's long reply (about 2,400 characters) for the transcript size | tests/measure/campaignSize.measure.ts |
+
+## Addendum (27 Nov 2026, m9-tune): the life-gap breakdown
+
+Jared asked for the breakdown behind A15 before any fix. The life-gap counters are committed (tests/support/lifetime.ts, tests/lifegap/; commits e24a9d1 and e829b23): form XP by form, the XP duty's turns gave each skill, training hours inside duty's turns, fights, posted days and wounded days. The lifegap now runs **20 seeds** per life (seed 0 is the lifetime suite's own). Measured on e829b23, **before any m9-tune change**.
+
+- Missions off: 120 lives in 1,437 s (8 workers).
+- Missions on: 1,670 s. **Only 107 of 120 lives finished.** One Sentinel died on a mission (the duty player never stabilized a dying character). The harness then threw, and that took 12 more lives of the same shard with it. So the missions-on means are over 17-20 seeds (Guardian 20, Sentinel 18, Consular 17).
+
+**The main specialty by age** (means; the range at 41 in brackets). The Consular's main specialty is **Force Knowledge**, and the Inquisitor's is Force Output, not a form (the archetypes' `main`):
+
+| Life (main) | Off: 25 / 30 / 41 | On: 25 / 30 / 41 |
+| --- | --- | --- |
+| Jedi Guardian (highest form) | 49.2 / 55.5 / 67.6 (67.5-67.8) | 48.9 / 52.8 / **59.9** (56.2-62.6) |
+| Jedi Consular (Force Knowledge) | 18.0 / 35.6 / 61.6 (61.4-61.8) | 17.7 / 31.6 / **52.7** (50.0-56.0) |
+| Jedi Sentinel (highest form) | 48.5 / 54.4 / 65.9 (65.8-66.2) | 47.8 / 52.0 / **59.9** (57.2-61.4) |
+| Sith Warrior, Sith Inquisitor, soldier | unchanged | unchanged (no missions) |
+
+**Form XP by form at 41** (the three biggest forms; the rest change by under 1%):
+
+| Life | Soresu (main form) | Ataru | Shien | All forms |
+| --- | --- | --- | --- | --- |
+| Guardian | 18,571 -> 15,031 | 7,592 -> 6,250 | 3,273 -> 2,940 | 41,658 -> 36,040 (-5,617) |
+| Consular | 10,921 -> 11,101 | 4,598 -> 4,338 | 2,568 -> 2,517 | 29,508 -> 29,314 (-194) |
+| Sentinel | 17,756 -> 14,998 | 7,499 -> 6,292 | 3,249 -> 2,929 | 40,634 -> 36,011 (-4,623) |
+
+**Where the time went** (means per life, 4 to 41):
+
+| Life | Missions (failed, cut short) | Days in duty's turns | Days posted | Training h in duty's turns | Routine h (off -> on) | Training h a day, all (off -> on) | Days with a moderate+ wound (off -> on) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Guardian | 243 (70, 33) | 2,967 | 1,644 | 11,507 | 67,440 -> 41,912 | 4.95 -> 3.92 | 18 -> **2,490** |
+| Consular | 302 (90, 37) | 3,553 | 2,350 | 13,637 | 63,846 -> 40,490 | 4.69 -> 3.98 | 18 -> **1,667** |
+| Sentinel | 274 (84, 34) | 3,468 | 2,089 | 13,790 | 67,413 -> 41,178 | 4.95 -> 4.04 | 22 -> **1,926** |
+
+**The XP duty's turns gave** (means, the biggest): Guardian Soresu 4,076, Willpower 4,000, Force Control 2,023, Force Sense 1,914. Consular Force Knowledge 4,558 (long trips run the routine), Willpower 3,445, Soresu 2,854. Sentinel Soresu 4,485, Willpower 4,347.
+
+**Readings:**
+- **The Consular puzzle (m9-tune A1).** Its total form XP barely moves (-194) because its main specialty is Force Knowledge, not a form. Mission fights add Soresu XP (+180 net), while study time is lost: Force Knowledge ends 8.9 levels lower. Nothing routes mission-fight XP away from the main form: the duty player fights with the character's main form (`buildPlayerFighter` takes `mainFormId`, Soresu in these profiles).
+- **Training hours fall about 20%** with missions on, over the whole life.
+- **Wounds are the biggest single cost.** A Jedi with missions carries a moderate-or-worse wound for 1,667-2,490 days of the life, against about 20 without. Two harness choices cause it, not game rules:
+  - the duty player never asks for care after a mission's wound (the harness's own fights get Temple care, D-162);
+  - it never stabilizes a dying character (D-143 B does, for the harness's own fights).
+- **Posted lives went home every night.** The harness moved the life to its seat at each day's end, also while posted. So every morning of a posting began with the trip back to the front (posted days were always days away from the base).
+- **The Sith and the soldier got no missions.** The Sith: duty records a non-Jedi home once (Korriban), and at 13 the harness moves the life to Dromund Kaas, so it is never "at home" again. The soldier: the career profile has no place and no side, so duty sees no home.
+- **Mission fights win back little.** Duty's form XP (3,459-6,315) against a routine loss of 11,000-11,300 form XP.
+
+What m9-tune changed is in reports/m9-tune.md.
