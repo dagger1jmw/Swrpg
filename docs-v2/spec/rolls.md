@@ -135,6 +135,8 @@ Sparring sessions (Jared, D-168): a spar is a session of bouts up to 34 exchange
     top of the vs-blaster matchup: Shien +1 (net +2), Soresu -1 (net 0: it deflects well, redirects poorly), others 0. Target:
     the shooter named, else the first engaged blaster shooter. Not possible with no saber in hand, no blaster fire (dropped
     with the reason), or against slugs (D-200). A result short of the intent is told as the attempt and how it fell short.
+    The duel panel's Deflect back button (D-585) runs the same action: shown while someone fires a ranged weapon, enabled when
+    the redirect can be tried, else disabled with the reason; with several shooters it asks which (the default first).
   Force vs resistance (amended by D-192): almost nothing resists the Force. Mind abilities:
     d20 + effective ability level/10 vs d20 + Willpower/10 (+ half the Force resistance of a Force
     user); droids, Hutts and Toydarians cannot be affected. Avoidable manifestations (Push,

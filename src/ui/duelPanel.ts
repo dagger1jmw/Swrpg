@@ -13,7 +13,8 @@ import { selectNpc } from '../features/npcs/selectors';
 import { selectLevelExact } from '../features/progression/selectors';
 import type { GameState } from '../state/gameState';
 import type { CombatDraft } from '../turn/combatTurn';
-import type { TurnInput } from '../turn/record';
+import type { CombatActionInput, TurnInput } from '../turn/record';
+import { redirectOptions } from '../engine/sequence';
 import { el } from './dom';
 
 /** Short failure reasons on the roll card (D-192). */
@@ -285,6 +286,31 @@ function renderSummary(c: CombatDraft, close: () => void): HTMLElement {
   return el('div', { class: 'fight-summary' }, [...rows, el('div', { class: 'beat-row' }, [el('button', { class: 'small secondary', text: 'Close', on: { click: close } })])]);
 }
 
+/**
+ * The Deflect back button (Jared, m9-redirect-button, D-585): the redirect action (D-583) from the panel. Shown while someone in
+ * the fight fires a ranged weapon; enabled when the redirect can be tried (a lightsaber in hand, blaster fire from an engaged
+ * shooter), otherwise disabled with the reason. One choice per engaged shooter, the default first (the target when it
+ * shoots, else the first engaged: the typed action's pick; fights have no distances yet). Each choice is the same combat
+ * action the typed input resolves to: a sequence of one redirect step, with the shooter set as the target first.
+ */
+export interface RedirectButtonView {
+  show: boolean;
+  reason: string | null;
+  choices: { label: string; turnLabel: string; action: CombatActionInput }[];
+}
+
+export function redirectButtonView(d: DuelState): RedirectButtonView {
+  const o = redirectOptions(d);
+  const choices = o.reason
+    ? []
+    : o.shooters.map((sh, i) => ({
+        label: o.shooters.length > 1 && i === 0 ? `${sh.name} (default)` : sh.name,
+        turnLabel: `Deflect the bolts back at ${sh.name}`,
+        action: { action: 'sequence', steps: [{ kind: 'redirect' }], targetRef: sh.id } as CombatActionInput,
+      }));
+  return { show: o.relevant, reason: o.reason, choices };
+}
+
 /** The duel panel while a fight is on; afterwards the fate choices and the recording review. Null when nothing applies. */
 export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
   const s = p.state;
@@ -368,6 +394,23 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
         act('Narrate', { action: 'narrate' }, 'small act secondary', 'Narrate the exchanges so far (an AI call), no new exchange'),
         act('Resolve to end', { action: 'resolve' }, 'small act secondary', 'Fight it out to the end now'),
       ];
+
+  // Deflect back (D-585), beside the strike and defend choices: one shooter acts at once; several ask which, the default first.
+  const rd = montage ? null : redirectButtonView(d);
+  const redirectTitle = 'Send the shooters\' blaster bolts back with the lightsaber (the redirect, D-583)';
+  const redirectEl = !rd?.show
+    ? null
+    : rd.reason
+      ? el('button', { class: 'small act', text: 'Deflect back', attrs: { disabled: 'true', title: rd.reason } })
+      : rd.choices.length === 1
+        ? el('button', { class: 'small act', text: 'Deflect back', attrs: { title: redirectTitle, ...(p.busy ? { disabled: 'true' } : {}) }, on: { click: () => p.act({ kind: 'beat', label: rd.choices[0]!.turnLabel, action: rd.choices[0]!.action }) } })
+        : el('details', { class: 'redirect-pick' }, [
+            el('summary', { class: 'small act', text: 'Deflect back…', attrs: { title: redirectTitle } }),
+            el('div', { class: 'beat-row' }, [
+              el('span', { class: 'hint', text: 'At which shooter?' }),
+              ...rd.choices.map((c) => el('button', { class: 'small act', text: c.label, attrs: p.busy ? { disabled: 'true' } : {}, on: { click: () => p.act({ kind: 'beat', label: c.turnLabel, action: c.action }) } })),
+            ]),
+          ]);
 
   // The disabled Force actions' reasons, on screen under their row (opt-2 I1): a disabled button has no tooltip on touch.
   const forceWhy: string[] = [];
@@ -457,7 +500,9 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
       ]),
       // The opponent holds the strike (D-199): a typed sequence may be cut short by it.
       initiativeWarning(d.advantage) ? el('div', { class: 'warn-line initiative', text: initiativeWarning(d.advantage)! }) : null,
-      el('div', { class: 'beat-row main-actions' }, primary),
+      el('div', { class: 'beat-row main-actions' }, [...primary, redirectEl]),
+      // A disabled button has no tooltip on touch (opt-2 I1): the reason is on screen.
+      rd?.show && rd.reason ? el('div', { class: 'hint battle-why', text: `Deflect back: ${rd.reason}` }) : null,
       // The stance: one segmented setting (D-182), under the primary row.
       el('div', { class: 'stance-seg', attrs: { role: 'group', 'aria-label': 'Stance' } }, [
         el('span', { class: 'hint', text: 'Stance' }),

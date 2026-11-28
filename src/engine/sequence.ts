@@ -9,7 +9,7 @@ import type { BodyPart, ForceEffort } from '../data/health.config';
 import type { ObjectSize } from '../data/terrain';
 import { canThrowSaber, FORCE_ACTION_ABILITY, forceReason, resolveForceAction, type ForceActionKind, type ForceActionRecord } from './combatForce';
 import { beatAfter, exchangeOutcomeText, hasSaber, hitText, partText, redirectNote, resolveExchange, runUntilBeat, settleEnd, type DuelContext, type DuelState, type ExchangeRecord, type RunMode } from './duel';
-import { BLASTER_WEAPONS, SLUGTHROWERS } from '../data/weapons';
+import { BLASTER_WEAPONS, RANGED_WEAPONS, SLUGTHROWERS } from '../data/weapons';
 import type { BeatReason } from '../data/combat.config';
 import type { Modifier } from './rolls';
 import { SKILL_BY_ID } from '../data/skills';
@@ -323,23 +323,49 @@ function cannotAttempt(step: SequenceStep, duel: DuelState, force: ForceProfile)
   return null;
 }
 
+/** A blaster shooter facing the player (engaged, not out): a redirect's possible target. */
+const isFacingShooter = (o: DuelState['opponents'][number]): boolean => !o.out && !o.engagedElsewhere && BLASTER_WEAPONS.includes(o.weapon);
+
+/**
+ * Whether a redirect can be tried, and at whom (m9-fix-deflect, D-583; the duel panel's Deflect back button, D-585). One
+ * reading for the typed step and the button. `shooters`: the engaged blaster shooters, the default first (the target when it
+ * shoots, else the first engaged one; fights have no distances yet). `reason`: why it cannot be tried, or null. `relevant`:
+ * someone in the fight fires a ranged weapon (the button is shown only then).
+ */
+export interface RedirectOptions {
+  shooters: { id: string; name: string }[];
+  reason: string | null;
+  relevant: boolean;
+}
+
+export function redirectOptions(duel: DuelState): RedirectOptions {
+  const t = duel.opponents[duel.target];
+  const facing = duel.opponents.filter(isFacingShooter);
+  const ordered = t && isFacingShooter(t) ? [t, ...facing.filter((o) => o.id !== t.id)] : facing;
+  const shooters = ordered.map((o) => ({ id: o.id, name: o.name }));
+  const relevant = duel.opponents.some((o) => !o.out && RANGED_WEAPONS.includes(o.weapon));
+  let reason: string | null = null;
+  if (!hasSaber(duel.a) || duel.a.saberLost) reason = 'needs a lightsaber in hand to send the bolts back';
+  else if (!shooters.length) {
+    const live = duel.opponents.filter((o) => !o.out && !o.engagedElsewhere);
+    // Slugs melt on the blade and are never sent back (D-200).
+    if (live.some((o) => SLUGTHROWERS.includes(o.weapon))) reason = 'slugs melt on the blade: they cannot be sent back';
+    else if (duel.opponents.some((o) => !o.out && o.engagedElsewhere && BLASTER_WEAPONS.includes(o.weapon))) reason = 'no blaster fire at you: the shooters are fighting an ally';
+    else reason = 'no blaster fire to send back: no opponent here is shooting a blaster';
+  }
+  return { shooters, reason, relevant };
+}
+
 /** The duel aimed at a blaster shooter for a redirect: the target when it fires a blaster, else the first engaged one. */
 function aimAtShooter(duel: DuelState): DuelState {
-  const t = duel.opponents[duel.target];
-  if (t && !t.out && !t.engagedElsewhere && BLASTER_WEAPONS.includes(t.weapon)) return duel;
-  const k = duel.opponents.findIndex((o) => !o.out && !o.engagedElsewhere && BLASTER_WEAPONS.includes(o.weapon));
-  return k >= 0 ? { ...duel, target: k } : duel;
+  const first = redirectOptions(duel).shooters[0];
+  const k = first ? duel.opponents.findIndex((o) => o.id === first.id) : -1;
+  return k >= 0 && k !== duel.target ? { ...duel, target: k } : duel;
 }
 
 /** Why a redirect cannot be tried (m9-fix-deflect), or null: it needs a saber in hand and blaster fire to send back. */
 function cannotRedirect(duel: DuelState): string | null {
-  if (!hasSaber(duel.a) || duel.a.saberLost) return 'needs a lightsaber in hand to send the bolts back';
-  const t = duel.opponents[duel.target];
-  if (t && !t.out && !t.engagedElsewhere && BLASTER_WEAPONS.includes(t.weapon)) return null;
-  const live = duel.opponents.filter((o) => !o.out && !o.engagedElsewhere);
-  // Slugs melt on the blade and are never sent back (D-200).
-  if (live.some((o) => SLUGTHROWERS.includes(o.weapon))) return 'slugs melt on the blade: they cannot be sent back';
-  return 'no blaster fire to send back: no opponent here is shooting a blaster';
+  return redirectOptions(duel).reason;
 }
 
 /**

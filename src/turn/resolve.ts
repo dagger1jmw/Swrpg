@@ -372,7 +372,8 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
     else if (!opts.beat && sess && !sess.ended && !sess.playing && payload['action'] === 'continue' && !isSparringActivityIntent(intent)) payload = { action: 'playBout' };
     // The opponent the typed text aims at becomes the target first (D-212): "turn to the droids and cut at the nearest one".
     const duelNow = before.combat.active!.duel as DuelState;
-    const aimed = !opts.beat && opts.text ? targetFromText(opts.text, duelNow.opponents.map((o) => ({ id: o.id, name: o.name, out: o.out, engagedElsewhere: o.engagedElsewhere, minion: o.minion }))) : null;
+    // A beat that names its target (the Deflect back button's shooter, D-585) sets it the same way.
+    const aimed = opts.beat?.targetRef ? opts.beat.targetRef : !opts.beat && opts.text ? targetFromText(opts.text, duelNow.opponents.map((o) => ({ id: o.id, name: o.name, out: o.out, engagedElsewhere: o.engagedElsewhere, minion: o.minion }))) : null;
     const current = duelNow.opponents[duelNow.target];
     const retarget = aimed && aimed !== current?.id ? [{ type: 'targetSet', targetRef: aimed }] : [];
     const done = apply([...retarget, { type: 'combatAction', ...payload }], 'player');

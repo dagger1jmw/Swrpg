@@ -99,3 +99,6 @@ Items arrive here when a decision hands them to M8. Each says where it came from
 - [x] **16. Starting traits and formative events (Jared, 25 Nov 2026).** *Built: D-515 (spec/traits.md; docs-v2/reports/m8-traits.md), with the m8-skills review fixes (D-514). The alignment pressures wait for M6; the canon trait assignments are for Jared's review.*
 
   Designed in the design notes ("Starting traits and formative events"); build after item 12.
+- [ ] **17. Distances in fights (future work, not now; Jared, 28 Nov 2026; D-585).** *Backlog.*
+
+  Fights have no distance or range: every engaged opponent is equally close. Future: fights track distance and range (closing, melee reach, firing range, cover lines), so "the nearest shooter" and range-based choices become possible (a redirect at the nearest, a blade that must close on a gunman first, range modifiers for blasters). Until then the redirect (D-583) and its Deflect back button (D-585) default to the target when it shoots, else the first engaged shooter.
