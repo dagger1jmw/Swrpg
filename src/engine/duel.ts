@@ -23,6 +23,8 @@ import {
   EXCHANGE_SECONDS,
   EXERTION_PER_EXCHANGE,
   FIGHT_SAFETY_CAP,
+  PUSH_THROUGH,
+  SPAR_INJURY,
   COVER_DEFENSE,
   FORCED_MISS_MAX_LOSS,
   FORCE_INSIGHT,
@@ -124,6 +126,8 @@ export interface Fighter {
   lasting: readonly LastingInjury[];
   /** Physical and Force meter loads and their capacities; m is the mental load (Force backlash adds to it, D-194). */
   meters: { p: number; f: number; m?: number };
+  /** Pushing through (m9-tune2 addendum 3e): each exchange costs PUSH_THROUGH.strainMult x the strain. The player's setting. */
+  pushing?: boolean;
   caps: { p: number; f: number };
   /** Position held: 0 none, 1 held, 2 decisive. */
   position: 0 | 1 | 2;
@@ -245,6 +249,15 @@ export interface ExchangeRecord {
   /** Effective levels this exchange (combat XP gaps, combat-xp §1). */
   effA: number;
   effB: number;
+  /**
+   * m9-tune2 addendum 3 (absent on older logs): the effective levels with no fatigue (combat XP reads the gap from rested levels),
+   * A's natural d20, A's physical strain (meter / capacity) before the exchange, and whether A was pushing through.
+   */
+  restA?: number;
+  restB?: number;
+  dieA?: number;
+  strainA?: number;
+  pushA?: boolean;
   seconds: number;
   notes: string[];
   surprise: boolean;
@@ -345,13 +358,19 @@ export function cannotDuel(f: Fighter): 'leg' | 'arm' | null {
   return cannotStand(f) ? 'leg' : weaponArmState(f) === 'lost' ? 'arm' : null;
 }
 
-/** Effective level (rolls §1) with wounds, lasting injuries, rust, Spent and fatigue; the off hand when the weapon arm is badly wounded (D-198). */
-export function fighterEffectiveLevel(f: Fighter): number {
+/** A fighter's physical strain: the physical meter over its capacity (0 with no capacity). */
+export const strainOf = (f: Fighter): number => (f.caps.p > 0 ? f.meters.p / f.caps.p : 0);
+
+/**
+ * Effective level (rolls §1) with wounds, lasting injuries, rust, Spent and fatigue; the off hand when the weapon arm is badly wounded
+ * (D-198). `rested`: the same with no fatigue factor (combat XP's gap, m9-tune2 addendum 3a).
+ */
+export function fighterEffectiveLevel(f: Fighter, rested = false): number {
   const offHand = !f.minion && weaponArmState(f) === 'offHand' ? 1 - WOUND_FIGHTING.offHandPenalty : 1;
   const wound = woundPenalty(f.wounds, f.skillId, { willpower: f.willpower, suppression: f.suppression ?? 0 });
   const lasting = lastingPenalty(f.lasting, f.skillId);
   // Fatigue keeps biting past 1.0 x capacity, down to 0.4 at the hard limit (D-234).
-  const fat = fatigueLevelFactor(f.caps.p > 0 ? f.meters.p / f.caps.p : 0);
+  const fat = rested ? 1 : fatigueLevelFactor(strainOf(f));
   // m8-skills (D-513): the style adds to the skill (weapon proficiency would multiply it; not built yet).
   // The stacked skill (engine/martialStyles stackedSkill; opt-2 E3): weapon proficiency is not built, so its factor is 1.
   return stackedSkill(f.level, 1, f.style?.bonus ?? 0) * offHand * (1 - wound) * (1 - lasting) * (1 - f.rust) * (f.vitality <= 0 ? SPENT_LEVEL_FACTOR : 1) * fat;
@@ -591,6 +610,24 @@ export function damageFighter(
 
 const hideOf = (f: Fighter): number => (f.speciesId ? traitHide(f.speciesId) : 0);
 
+/** The chance a landed training-saber hit injures (SPAR_INJURY), by the struck fighter's strain. */
+export function sparInjuryChance(strain: number): number {
+  const s = Math.max(0, strain);
+  if (s <= 1) return SPAR_INJURY.atRest + (SPAR_INJURY.atCapacity - SPAR_INJURY.atRest) * s;
+  const t = Math.min(1, (s - 1) / (PHYSICAL_COLLAPSE.hardLimit - 1));
+  return SPAR_INJURY.atCapacity + (SPAR_INJURY.atHardLimit - SPAR_INJURY.atCapacity) * t;
+}
+
+/** A training-saber hit's minor injury (m9-tune2 addendum 2), or none: never worse than minor. */
+function sparInjury(f: Fighter, rng: RngState, day: number, woundSeq: number): { wound: Wound | null; rng: RngState } {
+  const [u, r1] = nextFloat(rng);
+  if (u >= sparInjuryChance(strainOf(f))) return { wound: null, rng: r1 };
+  const [k, r2] = nextInt(r1, 0, SPAR_INJURY.kinds.length - 1);
+  const kind = SPAR_INJURY.kinds[k]!;
+  const [part, r3] = rollLocation(r2, kind === 'a sprain from a fall' ? { ...LOCATION_WEIGHTS, head: 0, torso: 0 } : LOCATION_WEIGHTS);
+  return { wound: { id: `${f.id}:w${woundSeq}`, part, severity: 'minor', W: SPAR_INJURY.W, stabilized: false, healProgress: 0, day, source: `sparring: ${kind}` }, rng: r3 };
+}
+
 /**
  * A subduing hit (D-262): Vitality only, never a wound, a location or a sever. D = the means' base (a stun bolt: its
  * blaster's) x hit quality, less armor unless the means goes around it (a net, binders, a choke). A minion folds when
@@ -755,6 +792,7 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
   const modsB: Mods = { attack: baseB.attack, defense: [...baseB.defense, ...(extras.bDefense ?? [])] };
   const effA = fighterEffectiveLevel(A);
   const effB = fighterEffectiveLevel(B);
+  const strainBefore = strainOf(A);
   const advBefore = s.advantage;
   const surprise = s.surprise !== null;
   const defendOnly = extras.duringForce === true;
@@ -880,6 +918,16 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
           rng = d.rng;
           defF = d.f;
           hit = { by: striker, ...d.hit, avoided: false };
+          // A training-saber hit can leave a minor injury, likelier when the struck fighter is strained (m9-tune2 addendum 2).
+          if (vitalityOnly && !accident && ctx.sparring !== null) {
+            const sp = sparInjury(defF, rng, day, woundSeq);
+            rng = sp.rng;
+            if (sp.wound) {
+              defF = { ...defF, wounds: [...defF.wounds, sp.wound] };
+              hit = { ...hit, W: sp.wound.W, severity: 'minor' };
+              notes.push(`${defF.name}: ${sp.wound.source.replace(/^sparring: /, '')} (a minor injury from the spar)`);
+            }
+          }
         }
       }
     } else if (BLASTER_WEAPONS.includes(atkF.weapon) && hasSaber(defF) && -band(margin) >= DEFLECT_REDIRECT_MARGIN && (defF.form === 'soresu' || defF.form === 'shien')) {
@@ -924,7 +972,7 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
   // Exertion for both (rolls §3), by the form's stamina multiplier (D-147).
   const exert = (f: Fighter): Fighter => ({
     ...f,
-    meters: { ...f.meters, p: f.meters.p + EXERTION_PER_EXCHANGE * (f.form ? FORM_STAMINA[f.form] ?? 1 : 1) },
+    meters: { ...f.meters, p: f.meters.p + EXERTION_PER_EXCHANGE * (f.form ? FORM_STAMINA[f.form] ?? 1 : 1) * (f.pushing ? PUSH_THROUGH.strainMult : 1) },
     disarmedFor: Math.max(0, f.disarmedFor - (f.disarmedFor > 0 && maneuver?.kind !== 'disarm' ? 1 : 0)),
   });
   aOut = exert(aOut);
@@ -1064,6 +1112,11 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
     maneuver,
     effA,
     effB,
+    restA: fighterEffectiveLevel(A, true),
+    restB: fighterEffectiveLevel(B, true),
+    dieA: rollA.d20,
+    strainA: strainBefore,
+    ...(A.pushing ? { pushA: true } : {}),
     seconds: secs,
     notes,
     surprise,

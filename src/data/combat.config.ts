@@ -163,6 +163,21 @@ export type SparringMode = (typeof SPARRING_MODES)[number];
 /** Controlled live blades: a would-be strike lands for real as a graze when the margin is this high AND a natural 1 was rolled. */
 export const CONTROLLED_ACCIDENT = { minMargin: 16, quality: 'graze' as HitQuality } as const;
 /** Default mode by rank (anyone may choose a training saber). */
+/**
+ * Training-saber spars can injure, mildly (Jared, 27 Nov 2026, m9-tune2 addendum 2: any duel carries an injury chance; the numbers
+ * invented): a landed training-saber hit leaves a minor injury (a welt, a light burn, a bruise, a sprain from a fall) with this chance,
+ * by the struck fighter's physical strain (meter / capacity): `atRest` at 0, `atCapacity` at 1.0, `atHardLimit` at the collapse
+ * limit, linear between. Never worse than minor (W `W`): a serious injury from a spar is never possible.
+ */
+export const SPAR_INJURY = { atRest: 0.005, atCapacity: 0.03, atHardLimit: 0.1, W: 3, kinds: ['a welt', 'a light burn', 'a bruise', 'a sprain from a fall'] } as const;
+
+/**
+ * Push through (Jared, m9-tune2 addendum 3e; the number invented): a setting the player can switch on in any fight or spar. Each
+ * exchange costs `strainMult` x the physical strain instead of any roll penalty; the good-form threshold falls with Willpower and a
+ * good-form exchange teaches Endurance too (progression.config GOOD_FORM, PUSH_ENDURANCE).
+ */
+export const PUSH_THROUGH = { strainMult: 2 } as const;
+
 export const SPARRING_DEFAULT_BY_RANK: Readonly<Record<string, SparringMode>> = {
   initiate: 'trainingSaber',
   acolyte: 'trainingSaber',

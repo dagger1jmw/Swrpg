@@ -186,6 +186,12 @@ The Order's rules on Force powers (D-346, D-436; src/data/orderPowerRules.ts)
   Stealth) and recorded deeds (engine flags: a battle won in command, an operation, a serious fight
   won); the AI or the player proposes it (servicePromotionProposed) and the engine applies it, with
   the rung's military pay. Story-only rungs come only by serviceAppointed (engine). Numbers invented.
+  Enlisted (m9-tune2 item 3 and addendum 4, D-570): a record can be `enlisted`, in the ranks below
+  the first (officer) rung. Enlisting (serviceJoined with enlisted) needs no entry minimum and draws
+  a private's pay; intelligence takes no enlisted ranks. A commission (servicePromotionProposed while
+  enlisted) takes the first rung at its entry minimum. The military starts carry their record: the
+  Republic Army trooper and the Imperial conscript enlisted, the Republic starfighter pilot and the
+  junior Imperial naval officer on the first officer rung of their navy.
 
 ## 4. Milestones (recalibrated)
   Built (D-430): checked monthly after 3 years of training; the Average reference is the closed form for

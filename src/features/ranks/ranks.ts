@@ -33,9 +33,10 @@ export const ranksSliceSchema = z.object({
   covertDiscoveries: z.array(z.object({ abilityId: z.string(), day: z.number().int() })).optional(),
   /**
    * A non-Force career's service (m8-skills, D-513; ranks.md section 3a): the ladder (data/serviceRanks.ts), the rung held,
-   * the day it was reached and the deeds recorded since joining.
+   * the day it was reached and the deeds recorded since joining. `enlisted` (m9-tune2 item 3): serving in the ranks below the ladder's
+   * first (officer) rung, as a trooper or rating; a commission (servicePromotionProposed) takes the first rung. Absent = an officer.
    */
-  service: z.object({ ladderId: z.string(), rung: z.number().int().min(0), since: z.number().int(), deeds: z.number().int().min(0) }).optional(),
+  service: z.object({ ladderId: z.string(), rung: z.number().int().min(0), since: z.number().int(), deeds: z.number().int().min(0), enlisted: z.boolean().optional() }).optional(),
   /** A training programme the character is enrolled in (m8-skills, D-513; data/trainingProgrammes.ts), to its end day. */
   programme: z.object({ id: z.string(), startDay: z.number().int(), endDay: z.number().int() }).optional(),
 });

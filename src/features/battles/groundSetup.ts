@@ -138,7 +138,8 @@ export function planningFromProposal(s: GameState, p: GroundProposal, id: string
   const enemyFaction = p.enemyFaction ?? opposite(mine);
   const enemyKind = KIND_OF_FACTION[enemyFaction] ?? 'navy';
   const may = playerMayPlanGround(s) || !!p.commandHanded;
-  const role: GroundRole = may ? 'commander' : forceUser(s) || s.ranks.service ? 'leader' : 'soldier';
+  // An enlisted trooper (m9-tune2 item 3) fights in the line; an officer leads.
+  const role: GroundRole = may ? 'commander' : forceUser(s) || (s.ranks.service && !s.ranks.service.enlisted) ? 'leader' : 'soldier';
   const enemyRead = unitsFromWords(p.enemy, troopsFor(enemyFaction, year), 'e');
   if (enemyRead.errors.length && !enemyRead.units.length) return { reject: enemyRead.errors.join('; ') };
   if (!enemyRead.units.length) return { reject: `no enemy unit could be read from "${p.enemy}"` };

@@ -4,12 +4,13 @@
 // nearby one (D-07, skills-and-activities.md §2).
 import { PATH_WORDS, pathsInWords, ranksInWords } from '../../data/pathWords';
 import { locationPenalty, type Wound } from '../../engine/wounds';
-import { ACCELERATED_PATH, FORCE_RICH_FACTOR, INSTRUCTOR_SHARE, INTENSITY, MAJOR_NEXUS_FACTOR, NEXUS_SITE_FACTOR, ORDER_SPARRING_CLASSES, RECORDING_REVIEW_BONUS } from '../../data/progression.config';
+import { ACCELERATED_PATH, FORCE_RICH_FACTOR, FRONT_PACE, INSTRUCTOR_SHARE, INTENSITY, MAJOR_NEXUS_FACTOR, NEXUS_SITE_FACTOR, ORDER_SPARRING_CLASSES, RECORDING_REVIEW_BONUS } from '../../data/progression.config';
 import { forceFraction } from '../../engine/forceMeter';
 import { sparringE, splitDrillXp, type SparE } from '../../engine/appliedExperience';
 import { ACTIVITIES, ACTIVITY_BY_ID, DRILL_RATINGS, DRILL_RATING_NAMES, isPhysicalActivity, type ActivityDef, type Intensity, type Unlock } from '../../data/activities';
 import { FORM_TRANSFER_SHARE, PASSION_DARK_PRESSURE_PER_HOUR, STEP_HOURS } from '../../data/progression.config';
 import { CATEGORY_RULES, FORM_IDS, SKILL_BY_ID } from '../../data/skills';
+import { WARS } from '../../data/wars';
 import { JARKAI_NIMAN_MIN } from '../../data/formMatchups';
 import {
   STUB_ALIGNMENT_MULT,
@@ -41,7 +42,7 @@ import { windowSums } from '../../engine/paceStore';
 import { nextFloat, type RngState } from '../../engine/rng';
 import { bodyDecline, isPhysicalStat } from '../../engine/ageing';
 import { humanEquivalentAge, speciesLearning } from '../../engine/species';
-import { conditionedCap, conditionedM, crossTalentMult, isAcceleratedSkill, isChannelEligible, isForceSkill, speedM, stateMult, talentMult } from '../../engine/speed';
+import { conditionedCap, conditionedM, crossTalentMult, isAcceleratedSkill, isChannelEligible, isForceSkill, isForceXpSkill, speedM, stateMult, talentMult } from '../../engine/speed';
 import { selectCurrentLocationId, selectLocationChain } from '../locations/selectors';
 import { forceBonusAt, type NexusLeaning } from '../../data/forceNexus';
 import { speciesDef } from '../../data/species';
@@ -270,7 +271,7 @@ function unlockFails(u: Unlock, ctx: UnlockCtx): string | null {
     case 'partnerOrTeacher':
       return ctx.partner || ctx.teacher ? null : 'needs someone to talk it through with (a teacher, a partner or peers)';
     case 'service':
-      return u.archetypes.includes(selectCharacter(s).archetype) || (s.ranks.service && u.branches.includes(serviceBranchOf(s.ranks.service.ladderId))) ? null : 'only for officers, staff postings and the intelligence services';
+      return u.archetypes.includes(selectCharacter(s).archetype) || (s.ranks.service && !s.ranks.service.enlisted && u.branches.includes(serviceBranchOf(s.ranks.service.ladderId))) ? null : 'only for officers, staff postings and the intelligence services';
     case 'styleSource':
       return ctx.styleRefusal;
   }
@@ -292,6 +293,8 @@ export interface SpeedParts {
   review: number;
   /** The starting traits' learning factor (spec/traits.md section 3; inside the cap). */
   traits: number;
+  /** The front pace W (m9-tune2 item 1; forms and Force skills while posted at a front in a total war; past the cap). */
+  front: number;
   /** The M used: speedM's (capped) times the conditions and the review. */
   m: number;
 }
@@ -306,6 +309,7 @@ export function speedPartsFor(s: GameState, instruction: number, opts: { play?: 
   const grief = selectGriefMult(s);
   const despair = selectDespairMult(s);
   const conditions = selectTrainingConditions(s);
+  const frontPace = selectFrontPace(s);
   return (skill: string): SpeedParts | null => {
     const def = SKILL_BY_ID.get(skill);
     if (!def) return null;
@@ -322,6 +326,7 @@ export function speedPartsFor(s: GameState, instruction: number, opts: { play?: 
     };
     const m = speedM(parts).m;
     const review = reviewBuff(s, skill);
+    const front = frontPaced(skill) ? frontPace : 1;
     return {
       talent: parts.talent,
       crossTalent: parts.crossTalent,
@@ -333,9 +338,27 @@ export function speedPartsFor(s: GameState, instruction: number, opts: { play?: 
       accelerated: conditions.accelerated && isAcceleratedSkill(skill) ? ACCELERATED_PATH.mult : 1,
       review,
       traits: parts.traits,
-      m: conditionedM(m, skill, conditions) * review,
+      front,
+      m: conditionedM(m, skill, conditions) * review * front,
     };
   };
+}
+
+/**
+ * The skills the front pace speeds (m9-tune2 item 1): the lightsaber forms, the Force skills and powers, and Force Knowledge (a
+ * knowledge-category skill, but the Consular's main Force study: Jared's target for the Consular is on it).
+ */
+const frontPaced = (skill: string): boolean => FORM_IDS.includes(skill) || isForceXpSkill(skill) || skill === 'forceKnowledge';
+
+/**
+ * The front pace W now (m9-tune2 item 1, FRONT_PACE): the archetype's W while duty holds the character at a front in a total war
+ * (posted, arrived at the base and not on leave); 1 otherwise (peace, a limited war, a visit, a trip to the front, leave).
+ */
+export function selectFrontPace(s: GameState): number {
+  const p = s.duty?.posting;
+  if (!p || p.arrived === false || s.duty.leave) return 1;
+  if (WARS.find((w) => w.id === p.warId)?.intensity !== 'total') return 1;
+  return FRONT_PACE.byArchetype[selectCharacter(s).archetype ?? ''] ?? 1;
 }
 
 /** M per skill (progression-numbers §5): talent x cross-talent x instruction x age x state x alignment x species, capped at 2.8. */
@@ -378,13 +401,14 @@ export function clampFor(s: GameState): (skill: string, wanted: number, sessionH
   const win = s.progression.paceWindow;
   const windowAge = humanEquivalentAge(speciesDef(c.speciesId), selectExactAge(s) - 365 / 368);
   const accelerated = c.trainingPath === 'accelerated';
+  const front = selectFrontPace(s);
   return (skill, wanted, sessionHours) => {
     // The window's sums from the compact store (opt-1 F, D-533): the edge week counts whole with 4 of its days inside.
     const sums = windowSums(win[skill], today);
     const skillHours = sums.hours + sessionHours;
     const used = sums.xp;
-    // The accelerated path is the only condition allowed past the 4.0x ceiling (D-418).
-    return clampCredit(wanted, used, conditionedCap(paceCap(skill, windowAge, skillHours), skill, accelerated));
+    // The accelerated path (D-418) and the front pace (m9-tune2 item 1) are the conditions allowed past the 4.0x ceiling.
+    return clampCredit(wanted, used, conditionedCap(paceCap(skill, windowAge, skillHours), skill, accelerated) * (frontPaced(skill) ? front : 1));
   };
 }
 

@@ -58,9 +58,9 @@ export const AVERAGE_SKIRMISHES = 0.95;
 export const ANAKIN_MASTER_19 = 11;
 export const ANAKIN_MASTER_21 = 10;
 export const AVERAGE_DUEL_GAP = -25;
-export const ANAKIN_WAR_B1 = 80;
+export const ANAKIN_WAR_B1 = 100;
 export const ANAKIN_WAR_B2 = 20;
-export const ANAKIN_WAR_ELITE = 8;
+export const ANAKIN_WAR_ELITE = 16;
 
 /**
  * Where an archetype's measured life is spent (D-445, D-451): at its Order's seat by date (src/data/orderSeats.ts). A Jedi

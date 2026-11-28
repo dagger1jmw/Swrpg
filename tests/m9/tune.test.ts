@@ -125,12 +125,12 @@ describe('A2: field practice on a mission\'s working days', () => {
 describe('A3: field fights teach more than the same fight elsewhere', () => {
   const session = (stakes: 'serious' | 'spar', n: number) => ({ stakes, outcome: 'won' as const, exchanges: Array.from({ length: n }, () => ({ skillId: 'soresu', gap: 0 })), forceUses: [] });
   const xp = (n: number, field: boolean) =>
-    computeCombatXp({ session: session('serious', n), m: () => 1, physicalWeights: () => ({}), todayBeforeM: () => 0, fightsToday: () => 0, clamp: (_k, w) => ({ credited: w, discarded: 0 }), ...(field ? { fieldMult: FIELD_FIGHT.mult } : {}) }).credited['soresu'] ?? 0;
+    computeCombatXp({ session: session('serious', n), m: () => 1, physicalWeights: () => ({}), clamp: (_k, w) => ({ credited: w, discarded: 0 }), ...(field ? { fieldMult: FIELD_FIGHT.mult } : {}) }).credited['soresu'] ?? 0;
 
-  it(`x${FIELD_FIGHT.mult} on the exchanges, under the same daily cap`, () => {
+  it(`x${FIELD_FIGHT.mult} on the exchanges, with no daily cap since m9-tune2 item 8`, () => {
     expect(xp(10, true) / xp(10, false)).toBeCloseTo(FIELD_FIGHT.mult, 6);
-    expect(xp(400, true)).toBeCloseTo(COMBAT_XP.dailyCap, 6);
-    expect(xp(400, false)).toBeCloseTo(COMBAT_XP.dailyCap, 6);
+    expect(xp(400, true) / xp(400, false)).toBeCloseTo(FIELD_FIGHT.mult, 6);
+    expect(xp(400, false)).toBeCloseTo(400 * COMBAT_XP.perExchange * COMBAT_XP.stakes.serious, 6);
   });
 
   it('a fight begun on a mission is a field fight; a spar or a dev command\'s fight is not, nor one at home', () => {

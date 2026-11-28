@@ -3,6 +3,7 @@
 // the engine's (src/engine/duel.ts, combatForce.ts, sequence.ts); the AI only proposes that a fight starts, how it
 // ends without wounds (fled, surrendered, interrupted, truce), and which opponents are fighting an ally.
 import { sparGroupLevel } from '../../engine/appliedExperience';
+import { fightExchanges } from '../../engine/combatXp';
 import { z } from 'zod';
 import { STRIKE_AT, strikeIntentFor, INTERRUPT_CATEGORIES, INTERRUPT_CAUSES, INTERRUPT_FIGHTER_WORDS, INTERRUPT_RESTATES, CAPTOR_RULES, FATE_ACT_NOTE, FATE_BY_STAKES, FATE_CHOICE_EXPIRY, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, SPARRING_MODES, STANCES, TACTICS, FORM_CHANGE_COST, isNarratedBeat, type BeatReason, type FateKind, type InterruptCategory, type InterruptCause, type NpcFate } from '../../data/combat.config';
 import { afterBout, newSession, runSession, sessionOutcome, type SparSessionState } from '../../engine/sparSession';
@@ -219,7 +220,9 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
   const emit: GameEvent[] = [];
   const notes: string[] = [`fight ${active.id} ends: ${outcome} (${reason})`];
   const strikes = duel.log.filter((r) => r.kind !== 'force');
-  const exchanges = strikes.map((r, i) => ({ skillId: active.exchangeSkills[i] ?? duel.a.skillId, gap: r.effB - r.effA }));
+  // The exchanges for combat XP (m9-tune2): the gap from rested levels, the run against one opponent (a long close run pays more),
+  // the track, good form, strain and pushing through.
+  const exchanges = fightExchanges(duel.log, { skillAt: (i) => active.exchangeSkills[i] ?? duel.a.skillId, boutLengths: active.session?.bouts.map((x) => x.exchanges) ?? [], willpower: duel.a.willpower });
   const forceUses = duel.log.filter((r) => r.kind === 'force' && r.force?.side === 'A').map((r) => ({ abilityId: r.force!.abilityId, gap: r.force!.effTarget - r.force!.effUser }));
   // A spar with several partners counts as one at the strongest's level + 10 per extra (D-163); otherwise the largest gap.
   // An opponent who fought an ally the whole time (D-212) is not the player's: no gap, no heroic act, no fate.
@@ -745,6 +748,23 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
      * Player: the stance (D-182). A setting, not an action: no exchange, no AI call, no time. It stays until changed,
      * across a sparring session's bouts; exchanges resolve only from an action.
      */
+    /**
+     * Push through (Jared, m9-tune2 addendum 3e): a setting like the stance, in any fight or spar. While on, each exchange costs
+     * PUSH_THROUGH.strainMult x the strain; Willpower lowers the good-form threshold and good form teaches Endurance too.
+     */
+    pushSet: {
+      schema: z.object({ type: z.literal('pushSet'), on: z.boolean() }),
+      sources: ['player'],
+      handle: (slice, e) => {
+        const active = slice.active;
+        if (!active) return { reject: 'no fight in progress' };
+        const duel = active.duel as DuelState;
+        const on = e['on'] === true;
+        if ((duel.a.pushing === true) === on) return { slice };
+        const { pushing: _was, ...a } = duel.a;
+        return { slice: { ...slice, active: { ...active, duel: { ...duel, a: on ? { ...a, pushing: true } : a } } }, notes: [on ? 'pushing through: every exchange costs double the strain' : 'no longer pushing through'] };
+      },
+    },
     stanceSet: {
       schema: z.object({ type: z.literal('stanceSet'), stance: z.enum(STANCES) }),
       sources: ['player'],

@@ -25,17 +25,22 @@ const fresh = (path: 'jedi' | 'outsider' = 'jedi', startingXp: Record<string, nu
 const fight = (n: number) => ({ type: 'fightResolved', stakes: 'serious', outcome: 'won', exchanges: Array.from({ length: n }, () => ({ skillId: 'soresu', gap: 0 })), forceUses: [] });
 
 describe('fightResolved', () => {
-  it('credits combat XP with the daily cap, keeps the counters after the fight and resets them at midnight', () => {
+  it('credits combat XP with no daily limit (m9-tune2 item 8), keeps the counters after the fight and resets them at midnight', () => {
     const s0 = fresh();
     const r1 = applyEvents(REGISTRY, s0, [fight(34)], { source: 'engine' });
     expect(r1.rejected).toEqual([]);
     const gained = r1.state.progression.skills['soresu']!.xp - s0.progression.skills['soresu']!.xp;
     expect(gained).toBeGreaterThan(0);
-    expect(r1.state.progression.combatXpToday['soresu']).toBeCloseTo(12, 6);
+    expect(r1.state.progression.combatXpToday['soresu']).toBeCloseTo(8.16, 6);
     expect(r1.state.progression.fightsToday['soresu']).toBe(1);
-    // A second fight the same day earns nothing more for that skill (cap reached).
+    // A second and a third fight the same day pay in full: the body limits fighting, not an XP rule.
     const r2 = applyEvents(REGISTRY, r1.state, [fight(34)], { source: 'engine' });
-    expect(r2.state.progression.skills['soresu']!.xp).toBeCloseTo(r1.state.progression.skills['soresu']!.xp, 9);
+    const r3 = applyEvents(REGISTRY, r2.state, [fight(34)], { source: 'engine' });
+    const xp = (s: GameState): number => s.progression.skills['soresu']!.xp;
+    expect(xp(r2.state) - xp(r1.state)).toBeCloseTo(gained, 1);
+    expect(xp(r3.state) - xp(r2.state)).toBeCloseTo(gained, 1);
+    expect(r3.state.progression.fightsToday['soresu']).toBe(3);
+    expect(r3.state.progression.combatXpToday['soresu']).toBeCloseTo(3 * 8.16, 6);
     const next = advanceTime(REGISTRY, r2.state, { seconds: 86_400, reason: 't', source: 'turnDraft' }).state;
     expect(next.progression.fightsToday).toEqual({});
     expect(next.progression.combatXpToday).toEqual({});

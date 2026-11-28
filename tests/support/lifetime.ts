@@ -11,7 +11,8 @@
 import { windowSums } from '../../src/engine/paceStore';
 import { TEST_YEAR } from './dates';
 import { FORM_IDS, SKILLS } from '../../src/data/skills';
-import { PACE_WINDOW_DAYS } from '../../src/data/progression.config';
+import { LONG_BOUT, PACE_WINDOW_DAYS } from '../../src/data/progression.config';
+import { fightExchanges, longBoutFactor } from '../../src/engine/combatXp';
 import { absDayFromDate, dateFromAbsDay, type CalendarDate } from '../../src/engine/calendar';
 import { homeSeatAt, orderHomelessAt } from '../../src/data/orderSeats';
 import { planetByName } from '../../src/data/galaxyMap';
@@ -19,7 +20,7 @@ import { levelExact } from '../../src/engine/curve';
 import { selectCapacities, selectE, selectForceBoost, selectLevelExact, selectPerformance } from '../../src/features/progression/selectors';
 import type { Priority } from '../../src/features/routines/selectors';
 import { advanceByRoutine, nextWakeAbs, type DayLog } from '../../src/state/advanceRoutine';
-import { dutyNeedsPlayer, playDutyTurn } from './dutyPlayer';
+import { dutyNeedsPlayer, dutyWithdrawals, playDutyTurn } from './dutyPlayer';
 import { applyEvents } from '../../src/state/applyEvents';
 import type { GameState } from '../../src/state/gameState';
 import { REGISTRY } from '../../src/state/registry';
@@ -160,10 +161,10 @@ function moveForAge(p: LifeProfile, s: GameState, age: number): GameState {
 
 /**
  * m9-tune A6 (missions on): a career life's side and home (invented: the harness's career profiles had no place and no side, so
- * duty saw no home and gave no missions). A soldier is a Republic Army trooper (the faction as the trooper start sets it; the
- * service ladders are officer ladders, entered at Tactics 10) in a barracks on Coruscant.
+ * duty saw no home and gave no missions). A soldier is a Republic Army trooper (the faction and, since m9-tune2 item 3, the enlisted
+ * service record the trooper start sets) in a barracks on Coruscant.
  */
-const CAREER_HOME: Readonly<Record<string, { optionId: string; faction: string; world: string }>> = { soldier: { optionId: 'republic-trooper', faction: 'republic', world: 'Coruscant' } };
+const CAREER_HOME: Readonly<Record<string, { optionId: string; faction: string; world: string; enlisted: string }>> = { soldier: { optionId: 'republic-trooper', faction: 'republic', world: 'Coruscant', enlisted: 'republicArmy' } };
 
 function careerService(p: LifeProfile, s0: GameState): GameState {
   const c = CAREER_HOME[p.archetype];
@@ -173,6 +174,8 @@ function careerService(p: LifeProfile, s0: GameState): GameState {
   const r = applyEvents(REGISTRY, s, [
     { type: 'locationIntroduced', key: 'tmp:p', name: c.world, kind: 'planet', region, description: 'home world', moveHere: false },
     { type: 'locationIntroduced', key: 'tmp:b', name: 'the barracks', kind: 'building', region: c.world, parentRef: 'tmp:p', description: 'the barracks', moveHere: true },
+    // The start's service record (the profile is made without the start, so its event stands in for the start's own record).
+    { type: 'serviceJoined', ladderId: c.enlisted, enlisted: true },
   ], { source: 'engine' });
   if (r.rejected.length) throw new Error(`career home: ${JSON.stringify(r.rejected[0])}`);
   return r.state;
@@ -246,11 +249,38 @@ export const missionStats = {
   /** m9-tune A1: Dying states stabilized on a mission, and care given after a mission's wounds. */
   stabilized: 0,
   cared: 0,
+  /**
+   * m9-tune2 item 7: bouts by where they were fought (the harness's own fights and spars; duty's fights), how many ran past 10
+   * exchanges, and the exchanges the long-bout factor raised (close and past 10).
+   */
+  bouts: { harness: { bouts: 0, long: 0, ramped: 0 }, duty: { bouts: 0, long: 0, ramped: 0 } },
+  /** m9-tune2 item 5: the duty player's withdrawals (tried, got away): the duty player's own counter. */
+  withdrawals: dutyWithdrawals,
 };
+
+/** m9-tune2 item 7: counts a fightResolved's bouts (a bout's exchange numbers restart at 1) and its long and ramped exchanges. */
+export function tallyBouts(where: 'harness' | 'duty', exchanges: readonly { gap: number; n?: number; adv?: number; skillId: string }[]): void {
+  const t = missionStats.bouts[where];
+  let max = 0;
+  const close = (): void => {
+    if (max > 0) {
+      t.bouts += 1;
+      if (max > LONG_BOUT.from) t.long += 1;
+    }
+    max = 0;
+  };
+  for (const x of exchanges) {
+    if (x.n === 1) close();
+    max = Math.max(max, x.n ?? 0);
+    if (longBoutFactor(x) > 1) t.ramped += 1;
+  }
+  close();
+}
 
 /** Zeroes the missions-on counts before a life (the lifegap jobs). */
 export function resetMissionStats(): void {
-  Object.assign(missionStats, { missions: 0, success: 0, failure: 0, cutShort: 0, missionDays: 0, turns: 0, types: {}, dutyDays: 0, dutyFormXp: 0, routineHours: 0, routineFormXp: 0, dutyXpBy: {}, routineFormXpBy: {}, dutyTrainedHours: 0, dutyFights: 0, postedDays: 0, stabilized: 0, cared: 0 });
+  Object.assign(missionStats, { missions: 0, success: 0, failure: 0, cutShort: 0, missionDays: 0, turns: 0, types: {}, dutyDays: 0, dutyFormXp: 0, routineHours: 0, routineFormXp: 0, dutyXpBy: {}, routineFormXpBy: {}, dutyTrainedHours: 0, dutyFights: 0, postedDays: 0, stabilized: 0, cared: 0, bouts: { harness: { bouts: 0, long: 0, ramped: 0 }, duty: { bouts: 0, long: 0, ramped: 0 } } });
+  Object.assign(dutyWithdrawals, { tried: 0, away: 0 });
 }
 
 export function profileState(p: LifeProfile, startDay = START_DAY): GameState {
@@ -326,7 +356,7 @@ function minionFighter(kindId: string, id: string, level: number, beskar: boolea
 }
 
 /** A Force-using duelist at a level: form level = Force Sense = level, the same Vitality model as the profile. */
-function duelistFighter(id: string, level: number, vitality: number): Fighter {
+export function duelistFighter(id: string, level: number, vitality: number): Fighter {
   return {
     id,
     name: id,
@@ -521,7 +551,9 @@ function realFight(s0: GameState, p: LifeProfile, f: Fight, n: number, age: numb
   const events: GameEvent[] = [];
   const max = player.maxVitality;
   events.push({ type: 'healthSynced', vitalityLost: Math.max(0, max - d.a.vitality), addWounds: newWounds, meters: { p: d.a.meters.p, f: d.a.meters.f }, cause: 'lifetime duel' });
-  const exchanges = d.log.filter((x) => x.kind !== 'force').map((x) => ({ skillId: form, gap: x.effB - x.effA }));
+  // The exchanges as the game reads them (m9-tune2: rested gap, the run against one opponent, good form, strain).
+  const exchanges = fightExchanges(d.log, { skillAt: () => form, boutLengths: sess ? sess.session.bouts.map((b) => b.exchanges) : [], willpower: d.a.willpower });
+  tallyBouts('harness', exchanges);
   // A spar with several partners counts as one at the strongest's level + 10 per extra (D-163).
   const opponentGap = f.stakes === 'spar' ? sparGroupLevel(opponents.map((o) => o.level)) - player.level : f.gap;
   // A Force-using duelist's form (D-427: learning by dueling a stronger opponent; only serious fights 10+ stronger use it).
@@ -662,7 +694,8 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
       const x0 = formXp(s);
       const skills0 = s.progression.skills;
       const wounds0 = new Set(s.health.wounds.map((w) => w.id));
-      for (let k = 0; k < 60 && dutyNeedsPlayer(s); k++) {
+      // m9-tune2 item 5: a fight now takes a turn a beat (the duty player withdraws when hurt and losing), so the bound is wider.
+      for (let k = 0; k < 600 && dutyNeedsPlayer(s); k++) {
         const m = s.duty.mission;
         if (m && !seenMissions.has(m.id + m.assignedDay)) {
           seenMissions.add(m.id + m.assignedDay);
@@ -672,7 +705,10 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
         if (!t) break;
         for (const ap of t.draft.applied) {
           if (ap.event.type === 'activityResolved') missionStats.dutyTrainedHours += Number(ap.event['hours'] ?? 0);
-          if (ap.event.type === 'fightResolved') missionStats.dutyFights++;
+          if (ap.event.type === 'fightResolved') {
+            missionStats.dutyFights++;
+            tallyBouts('duty', ap.event['exchanges'] as { gap: number; n?: number; adv?: number; skillId: string }[]);
+          }
         }
         s = t.state;
         missionStats.turns++;

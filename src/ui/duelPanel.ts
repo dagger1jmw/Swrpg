@@ -235,6 +235,8 @@ export interface DuelPanelProps {
   act(input: TurnInput): void;
   /** The stance is a setting (D-182): no turn, no exchange, no AI call, no time. */
   setStance(stance: Stance): void;
+  /** Push through (m9-tune2 addendum 3e): a setting too, no turn. */
+  setPush(on: boolean): void;
   /** The target is a setting too (D-182): no turn. */
   setTarget(targetRef: string): void;
   /** While a fight is on, the narrator's tactical suggestions from the last turn live in the panel (D-181). */
@@ -460,6 +462,8 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
       el('div', { class: 'stance-seg', attrs: { role: 'group', 'aria-label': 'Stance' } }, [
         el('span', { class: 'hint', text: 'Stance' }),
         el('div', { class: 'seg' }, STANCES.map((st) => toggle(st, d.a.stance === st, p.busy, () => d.a.stance !== st && p.setStance(st), `${st} stance (a setting: no exchange)`))),
+        // Push through (m9-tune2 addendum 3e): double the strain each exchange; good form pays more and builds stamina.
+        toggle('Push through', d.a.pushing === true, p.busy, () => p.setPush(d.a.pushing !== true), 'Push through: every exchange costs double the strain; keeping good form while tired pays more and builds stamina (a setting: no exchange)'),
       ]),
       more,
     ]),

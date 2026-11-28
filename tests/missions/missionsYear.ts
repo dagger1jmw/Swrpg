@@ -14,7 +14,8 @@ import { resolveTurn } from '../../src/turn/resolve';
 import { runDevCommand } from '../../src/turn/devCommands';
 import { testStartInput, type TestStartArchetype } from '../../src/turn/testStart';
 import type { Job } from '../support/parallelRuns';
-import { playDutyTurn } from '../support/dutyPlayer';
+import { dutyWithdrawals, playDutyTurn } from '../support/dutyPlayer';
+import { LONG_BOUT } from '../../src/data/progression.config';
 
 export const SEEDS = Number(process.env['SEEDS'] ?? 20);
 const DAYS = 365;
@@ -72,6 +73,11 @@ export interface Year {
   gapsHome: number[];
   /** Mission types assigned (A11: the weights lean toward the path). */
   types: Record<string, number>;
+  /** m9-tune2: the duty player's withdrawals (tried, got away), and bouts (fights) and those past 10 exchanges. */
+  withdrawTried?: number;
+  withdrawAway?: number;
+  bouts?: number;
+  longBouts?: number;
 }
 
 /** Why a failure failed, in a few words, from its log line. */
@@ -94,6 +100,9 @@ export async function year(who: string, era: string, i: number): Promise<Year> {
   let postedNow = false;
   let leaveNow = false;
   let lastEnd: { day: number; front: boolean } | null = null;
+  const w0 = { ...dutyWithdrawals };
+  y.bouts = 0;
+  y.longBouts = 0;
   for (let guard = 0; guard < 4000 && s.clock.now.day - t0 < DAYS; guard++) {
     y.turns++;
     const before = s;
@@ -103,6 +112,20 @@ export async function year(who: string, era: string, i: number): Promise<Year> {
       if (r.state.clock.now.day === s.clock.now.day && r.state.duty === s.duty && !r.state.combat.active && !r.state.battles.planning) r = resolveTurn(REGISTRY, r.state, skip(1));
     }
     s = r.state;
+    for (const ap of r.draft.applied) {
+      if (ap.event.type !== 'fightResolved') continue;
+      const ns = (ap.event['exchanges'] as { n?: number }[]).map((x) => x.n ?? 0);
+      // A bout's exchange numbers restart at 1 (m9-tune2 item 7).
+      let max = 0;
+      for (const n of [...ns, 1]) {
+        if (n === 1 && max > 0) {
+          y.bouts++;
+          if (max > LONG_BOUT.from) y.longBouts++;
+          max = 0;
+        }
+        max = Math.max(max, n);
+      }
+    }
     if (templeOf(before)) y.templeDays += Math.max(0, s.clock.now.day - before.clock.now.day);
     if (templeOf(s)) {
       y.longestAway = Math.max(y.longestAway, s.clock.now.day - lastTemple);
@@ -140,6 +163,8 @@ export async function year(who: string, era: string, i: number): Promise<Year> {
   y.longestAway = Math.max(y.longestAway, s.clock.now.day - lastTemple);
   // Failures with no log line found (a capped log) count as complications.
   while (y.failWhy.length < y.failure) y.failWhy.push('complications');
+  y.withdrawTried = dutyWithdrawals.tried - w0.tried;
+  y.withdrawAway = dutyWithdrawals.away - w0.away;
   return y;
 }
 
@@ -192,5 +217,7 @@ export function summarize(ys: readonly Year[]): Record<string, unknown> {
     daysOffHome: gapsHome.length ? `${pct(gapsHome, 0.1)} / ${pct(gapsHome, 0.5)} / ${pct(gapsHome, 0.9)} (n ${gapsHome.length})` : '-',
     types,
     turns: med((y) => y.turns),
+    withdrawals: `${sum((y) => y.withdrawAway ?? 0)} got away of ${sum((y) => y.withdrawTried ?? 0)} tried`,
+    bouts: `${sum((y) => y.longBouts ?? 0)} past ${LONG_BOUT.from} exchanges of ${sum((y) => y.bouts ?? 0)}`,
   };
 }

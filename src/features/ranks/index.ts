@@ -15,6 +15,7 @@ import { selectExactAge } from '../character/selectors';
 import { selectHasFlag } from '../flags/selectors';
 import { selectLevelExact } from '../progression/selectors';
 import { migrateRanksV1, ranksSliceSchema, type RanksSlice } from './ranks';
+import { START_OPTION_BY_ID } from '../../data/startOptions';
 import { SERVICE_LADDER_BY_ID, SERVICE_LADDER_IDS, ladderExists } from '../../data/serviceRanks';
 import { PROGRAMME_BY_ID } from '../../data/trainingProgrammes';
 import { serviceEntryCheck, servicePromotionCheck } from '../../engine/serviceRanks';
@@ -57,7 +58,13 @@ function promote(slice: RanksSlice, rank: string, day: number): RanksSlice {
 export const ranksFeature: FeatureModule<RanksSlice, GameState> = {
   id: 'ranks',
   version: 2,
-  initialState: (ctx) => ({ ...migrateRanksV1({ rank: ctx.rank && RANK_BY_ID.has(ctx.rank) ? ctx.rank : 'none' }) }),
+  initialState: (ctx) => {
+    const base = migrateRanksV1({ rank: ctx.rank && RANK_BY_ID.has(ctx.rank) ? ctx.rank : 'none' });
+    // A military start begins with its service record (m9-tune2 item 3 and addendum 4): the trooper and the conscript in the ranks,
+    // the pilot and the junior naval officer on the first officer rung.
+    const sv = START_OPTION_BY_ID.get(ctx.character.start?.optionId ?? '')?.service;
+    return sv ? { ...base, service: { ladderId: sv.ladderId, rung: 0, since: ctx.start.day, deeds: 0, ...(sv.enlisted ? { enlisted: true } : {}) } } : base;
+  },
   // Saves from M1/M2: the migrated outsider has no rank.
   emptyState: () => migrateRanksV1({ rank: 'none' }),
   migrations: { 2: migrateRanksV1 },
@@ -259,14 +266,25 @@ export const ranksFeature: FeatureModule<RanksSlice, GameState> = {
       handle: (slice, e) => (slice.corps ? { slice } : { slice: { ...slice, corps: e['corps'] as RanksSlice['corps'] }, notes: [`the Council of Reassignment: the ${String(e['corps'])} Corps`] }),
     },
     // ---- non-Force careers (m8-skills, D-513; ranks.md section 3a) ----
-    /** Joining a service on its first rung (the player, or the engine for a start): the entry minimum must hold. */
+    /**
+     * Joining a service on its first rung (the player, or the engine for a start): the entry minimum must hold. Enlisting (m9-tune2
+     * item 3) joins an army or navy in the ranks below the first rung: no entry minimum, a private's pay.
+     */
     serviceJoined: {
-      schema: z.object({ type: z.literal('serviceJoined'), ladderId: z.enum(SERVICE_LADDER_IDS as [string, ...string[]]) }),
+      schema: z.object({ type: z.literal('serviceJoined'), ladderId: z.enum(SERVICE_LADDER_IDS as [string, ...string[]]), enlisted: z.boolean().optional() }),
       sources: ['player', 'engine'],
       handle: (slice, e, ctx) => {
         const l = SERVICE_LADDER_BY_ID.get(String(e['ladderId']))!;
         const year = dateFromAbsDay(ctx.state.clock.now.day).year;
         if (!ladderExists(l, year)) return { reject: `${l.faction} does not exist in this year` };
+        if (e['enlisted'] === true) {
+          if (l.branch === 'intelligence') return { reject: `${l.faction} takes no enlisted ranks` };
+          return {
+            slice: { ...slice, service: { ladderId: l.id, rung: 0, since: ctx.state.clock.now.day, deeds: 0, enlisted: true } },
+            emit: [{ type: 'militaryServiceSet', grade: 'private' }],
+            notes: [`enlisted in ${l.faction}`],
+          };
+        }
         const c = serviceEntryCheck(l, (k) => selectLevelExact(ctx.state, k));
         if (!c.ok) return { reject: `cannot join ${l.faction}: ${c.reasons.join('; ')}` };
         const rung = l.rungs[0]!;
@@ -307,6 +325,17 @@ export const ranksFeature: FeatureModule<RanksSlice, GameState> = {
         if (!sv) return { reject: 'not in any service' };
         const l = SERVICE_LADDER_BY_ID.get(sv.ladderId);
         if (!l) return { reject: `unknown service ${sv.ladderId}` };
+        // A commission from the ranks (m9-tune2 item 3): the first rung's entry minimum.
+        if (sv.enlisted) {
+          const c = serviceEntryCheck(l, (k) => selectLevelExact(ctx.state, k));
+          if (!c.ok) return { reject: `commission refused: ${c.reasons.join('; ')}` };
+          const { enlisted: _ranks, ...officer } = sv;
+          return {
+            slice: { ...slice, service: { ...officer, rung: 0, since: ctx.state.clock.now.day } },
+            emit: [{ type: 'militaryServiceSet', grade: l.rungs[0]!.pay }],
+            notes: [`commissioned from the ranks: ${l.rungs[0]!.title}${e['reason'] ? ` (${String(e['reason'])})` : ''}`],
+          };
+        }
         const c = servicePromotionCheck(l, sv.rung, { yearsInRank: (ctx.state.clock.now.day - sv.since) / DAYS_PER_YEAR, level: (k) => selectLevelExact(ctx.state, k), deeds: sv.deeds });
         if (!c.ok) return { reject: `promotion refused: ${c.reasons.join('; ')}` };
         const to = l.rungs[sv.rung + 1]!;
@@ -327,7 +356,8 @@ export const ranksFeature: FeatureModule<RanksSlice, GameState> = {
         const l = SERVICE_LADDER_BY_ID.get(sv.ladderId)!;
         const i = l.rungs.findIndex((r) => r.storyOnly && r.title === String(e['title']));
         if (i < 0) return { reject: `${String(e['title'])} is not an appointment in ${l.faction}` };
-        return { slice: { ...slice, service: { ...sv, rung: i, since: ctx.state.clock.now.day } }, notes: [`appointed ${l.rungs[i]!.title}`] };
+        const { enlisted: _ranks, ...officer } = sv;
+        return { slice: { ...slice, service: { ...officer, rung: i, since: ctx.state.clock.now.day } }, notes: [`appointed ${l.rungs[i]!.title}`] };
       },
     },
     /** Enrolling in a training programme: its entry rules; it runs its length, then ends with its graduation. */

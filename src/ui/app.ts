@@ -777,6 +777,7 @@ export class App {
           busy: this.busy,
           act: (input) => void this.runTurn(input),
           setStance: (stance) => void this.playerEvents([{ type: 'stanceSet', stance }]),
+          setPush: (on) => void this.playerEvents([{ type: 'pushSet', on }]),
           setTarget: (targetRef) => void this.playerEvents([{ type: 'targetSet', targetRef }]),
           suggestions: view && !this.busy && !this.failed ? view.suggestions : [],
           pick: (choice) => void this.runTurn({ kind: 'choice', choice }),

@@ -332,7 +332,11 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         type: z.literal('fightResolved'),
         stakes: z.enum(COMBAT_STAKES),
         outcome: z.enum(COMBAT_OUTCOMES),
-        exchanges: z.array(z.object({ skillId: z.string(), gap: z.number() })).max(2000),
+        /**
+         * n: the exchange's number in its run against one opponent; adv: the track before it (LONG_BOUT); form: good form (the natural
+         * d20 met the threshold); strain: the fighter's physical strain before it; push: pushing through (m9-tune2 and its addendum).
+         */
+        exchanges: z.array(z.object({ skillId: z.string(), gap: z.number(), n: z.number().int().min(1).optional(), adv: z.number().optional(), form: z.boolean().optional(), strain: z.number().min(0).optional(), push: z.boolean().optional() })).max(2000),
         forceUses: z.array(z.object({ abilityId: z.string(), gap: z.number() })).max(500),
         /** The opponent's largest level advantage in the opposed skill (E: life-or-death vs 5+ stronger, combat-xp §3). */
         opponentGap: z.number().optional(),
@@ -340,7 +344,7 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         surrendered: z.boolean().optional(),
         /** The strongest opponent's lightsaber form (D-427: learning by dueling a stronger opponent). */
         opponentForm: z.string().optional(),
-        /** A field fight (m9-tune A3): FIELD_FIGHT.mult on its exchanges, before the daily cap. */
+        /** A field fight (m9-tune A3): FIELD_FIGHT.mult on its exchanges. */
         field: z.boolean().optional(),
       }),
       sources: ['engine'],
@@ -360,8 +364,6 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
           session,
           m: speedFor(ctx.state, 1),
           physicalWeights: combatPhysicalWeights,
-          todayBeforeM: (k) => slice.combatXpToday[k] ?? 0,
-          fightsToday: (k) => slice.fightsToday[k] ?? 0,
           clamp: (_k, wanted) => ({ credited: wanted, discarded: 0 }),
           ...(e['field'] === true && session.stakes !== 'spar' ? { fieldMult: FIELD_FIGHT.mult } : {}),
         });

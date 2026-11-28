@@ -6,6 +6,8 @@ Jared, 27 Nov 2026 (m9-missions B; revised ~1:45 a.m.: total-war postings). Exte
 
 **Amended by m9-tune (27 Nov 2026; D-560 to D-565; report docs-v2/reports/m9-tune.md):** field practice on a mission's working days, field fights teach more, every stage roll teaches the skill it used (section 4 and 4a), influence and reading people for Force users on the social and investigation stages (section 4), the slow-call cap (architecture section 7).
 
+**Amended by m9-tune2 (27 Nov 2026; D-566 to D-571; report docs-v2/reports/m9-tune2.md):** the front pace W (section 6a), the trooper's enlisted service record and the Sith side by date, with the Brotherhood's own fronts (section 6), travel days ruled (section 4a), near-level opponents as future content (section 13). Combat XP has no daily limit and long duels pay more (combat-xp.md).
+
 Missions are where most turns go. A mission is code-owned and multi-turn: the code builds it, decides each stage, moves the character on its travel and ends it; the narrator tells it.
 
 Code:
@@ -74,6 +76,7 @@ The player chooses the approach; the narrator describes it and proposes approach
 
 Jedi keep training in the field (Jared). A day of a mission's stage work ends with a short session on the routine's plan (`FIELD_PRACTICE`: 1.5 h, shared over the day's plan's biggest blocks in half-hour steps, so a Guardian drills its forms and a Consular studies), through the routine's own training rules (state/fieldPractice.ts). None on a day with a fight or a battle, none while a moderate or worse wound is less than three-quarters healed, one a day (a day the routine already trained is not a field day). A stage attempt that runs past a day has one each evening. The turn's log shows it ("field practice after the day's work (1.5 h): ...").
 - A trip past 12 hours was already a montage, and a montage runs the routine day by day: those travel days have the whole routine, not a short session. Quiet days on a posting run the routine at the forward base (it is home). Neither changed here.
+- **Ruled (Jared, m9-tune2 item 2):** montage trips keep the whole routine: Jedi train and meditate aboard on long trips. No change.
 
 ## 5. Travel (B4)
 
@@ -86,6 +89,7 @@ Jedi keep training in the field (Jared). A day of a mission's stage work ends wi
 ## 6. Postings (B5)
 
 - **Each war has an intensity** (data/wars.ts): total for the Great Sith War and the Jedi Civil War (Jared, m9-release A14), the Great Galactic War, the Galactic War, the Clone Wars, the Yuuzhan Vong War and the Ruusan campaign (the Light and Darkness War, 1,010-1,000); limited for the rest. Fronts added for the two: the war against the Krath (Empress Teta, 3,998-3,996, a reading), the defence of Ossus and the assault on Yavin 4 (3,996), the Dantooine front (3,959-3,956, a reading).
+- **Who serves (m9-tune2 items 3 and 4):** a serving soldier is one with a service record; the enlisted starts (the Republic Army trooper, the Imperial conscript) begin with one, in the ranks below the ladder's first rung (`enlisted`; a commission takes the first rung at its entry minimum). A Sith's side is the era's Sith power by date (data/wars.ts `SITH_POWERS`: the Sith Empire where it exists, else the Sith order of the day, the Brotherhood of Darkness in 1,032-995 BBY), so a Sith fights that power's war. The Light and Darkness War has the Brotherhood's own fronts (Korriban 1,010-1,004, Kashyyyk 1,003-1,001, Ruusan 1,002-1,000; bases invented); the Army of Light's fleet and camp are the Republic's and the Order's only.
 - **In a total war** Knights, Masters and Lords, and serving soldiers, officers, pilots, gunners, snipers and Mandalorians, are posted by default, at the first midnight they are fit and off duty: a front of their side's war this year (`FRONTS`, each with its world, forward base or flagship and dated span). While posted, home is the forward base: the daily roll, the war cadence, home days and the day after a mission all run there; the HOME DAY and POSTING lines put the downtime among the officers, the other Jedi on that front and the local people.
 - **The posting ends** when its front's dates end (its war events), on a recall to another front (section 9), or on an evacuation for a serious wound (section 8).
 - **Days off on a front** (m9-release A7, Jared: a front line won't give 10-11 days of peace): at the forward base the gap between missions is 2-5 days (the daily roll's front numbers: none on the first day back, median 3.5, shape 4; the rank's scale stretches it). The Temple cadence (10-11 days in war) is unchanged.
@@ -94,6 +98,10 @@ Jedi keep training in the field (Jared). A day of a mission's stage work ends wi
 - **Leave:** every 90-180 days, 7-14 days, counted from the first posting of the war (m9-release A8; a later posting in the same war keeps the clock while it runs ahead); the Temple (or the path's home) is home for its length and the code offers the trip home; then back to the front.
 - **In a limited war and in peace** the old model holds: missions out from home and back.
 - The daily roll now runs only at home (at base), as duty.md section 3 says.
+
+### 6a. The front pace (Jared, m9-tune2 item 1)
+
+War makes a Jedi stronger (Jared's revised target, m9-tune): while duty holds the character at a front in a total war (a posting, arrived at the base and not on leave; not a visit to a war zone, not the trip out), XP from every source to the lightsaber forms and the Force skills takes the front pace W (`FRONT_PACE`, by archetype; past the 2.8 cap and the per-hour 4.0x ceiling, as the accelerated path). A Padawan with a posted master is posted too. W is tuned on the full 20 seeds so that a full war career lands on the closed form with its war years (the NPC generator's own war term), which makes the player's war veterans match the generator's: see the values in section 12 and the report. Peace and limited wars are untouched.
 
 ## 7. Padawans (B7)
 
@@ -151,3 +159,10 @@ The record counts missions, successes, failures, missions cut short and chains; 
 | The curated mission worlds | `MISSION_WORLDS` |
 | The fleet action's forces (three frigates and two corvettes a side) and the ground battle's (six troops with artillery against six with armour and artillery) | `turn/missionTurn.ts` |
 | The war intensities marked "reading" | data/wars.ts |
+| The front pace W by archetype (m9-tune2 item 1; tuned) | `FRONT_PACE` (progression.config) |
+| The Brotherhood's fronts' bases and the Korriban span (m9-tune2 item 4) | `FRONTS` |
+| The Sith powers marked "reading" (m9-tune2 item 4) | data/wars.ts `SITH_POWERS` |
+
+## 13. Future mission content (not built)
+
+- **Near-level opponents on war missions** (Jared, m9-tune2 item 6: not now): generated or named Sith (or Jedi, for a Sith) of the character's own strength on war missions, so a veteran meets foes that teach. Today a war mission's foes are the era's minions, 25-35 levels below a veteran Knight (m9-tune B).

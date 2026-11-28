@@ -4,7 +4,7 @@ import { PATH_WORDS } from '../../data/pathWords';
 import { selectFormativeStanding } from '../traits/selectors';
 import { archetypeDef } from '../../data/archetypes';
 import { TALENT_ROLL_ORDERS } from '../../data/npcGen.config';
-import { factionAtWar } from '../../data/wars';
+import { factionAtWar, sithSideAt } from '../../data/wars';
 import { KNIGHT_TRIALS, RANK_BY_ID, ranksForPath } from '../../data/rankMinimums';
 import { COUNCIL_SEAT, MASTER_APPROVAL, SELECTION, TAKE_PADAWAN_AGE, type TrialId } from '../../data/ranks.config';
 import { FORM_IDS, SKILL_BY_ID, TALENT_DOMAINS } from '../../data/skills';
@@ -47,7 +47,10 @@ export function selectYearsInRank(s: GameState): number {
 /** The character's side (the start option's faction, else the path's). */
 export function selectSide(s: GameState): string | null {
   const c = selectCharacter(s);
-  return c.start?.faction ?? (c.path === 'jedi' ? 'jediOrder' : c.path === 'sith' ? 'sithEmpire' : null);
+  // A Sith serves the era's Sith power by date (m9-tune2 item 4, data/wars.ts SITH_POWERS): a start's own Sith faction too, so a
+  // long life follows the date (the starts are dated, so a start's faction and the date agree when it begins).
+  if (c.path === 'sith' && (!c.start?.faction || c.start.faction === 'sith' || c.start.faction === 'sithEmpire')) return sithSideAt(dateFromAbsDay(s.clock.now.day).year);
+  return c.start?.faction ?? (c.path === 'jedi' ? 'jediOrder' : null);
 }
 /** Wartime for the character's side (the one war list, data/wars.ts). */
 export function selectWartime(s: GameState): boolean {

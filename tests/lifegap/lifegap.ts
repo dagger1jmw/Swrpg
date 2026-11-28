@@ -81,7 +81,7 @@ export const GAP_JOBS: Job<GapRow>[] = GAP_ARCHETYPES.filter((id) => !LIVES || L
         skills,
         woundedDays: Object.values(r.woundedDaysByAge).reduce((x, y) => x + y, 0),
         tankDays: r.tankDays,
-        missions: { ...m, dutyTrainedHours: Math.round(m.dutyTrainedHours), types: { ...m.types }, dutyFormXp: Math.round(m.dutyFormXp), routineHours: Math.round(m.routineHours), routineFormXp: Math.round(m.routineFormXp), dutyXpBy: rounded(m.dutyXpBy), routineFormXpBy: rounded(m.routineFormXpBy) },
+        missions: { ...m, bouts: { harness: { ...m.bouts.harness }, duty: { ...m.bouts.duty } }, withdrawals: { ...m.withdrawals }, dutyTrainedHours: Math.round(m.dutyTrainedHours), types: { ...m.types }, dutyFormXp: Math.round(m.dutyFormXp), routineHours: Math.round(m.routineHours), routineFormXp: Math.round(m.routineFormXp), dutyXpBy: rounded(m.dutyXpBy), routineFormXpBy: rounded(m.routineFormXpBy) },
         seconds: Math.round((Date.now() - t) / 1000),
       };
     },
@@ -126,6 +126,10 @@ export function summarize(rows: readonly GapRow[]): Record<string, unknown>[] {
       routineFormXp: mean(rs.map((r) => r.missions.routineFormXp)),
       routineFormXpBy: avg((r) => r.missions.routineFormXpBy),
       types: avg((r) => r.missions.types),
+      // m9-tune2 items 5 and 7: the duty player's withdrawals, and bouts past 10 exchanges (harness fights and spars; duty's fights).
+      withdrawTried: mean(rs.map((r) => r.missions.withdrawals?.tried ?? 0)),
+      withdrawAway: mean(rs.map((r) => r.missions.withdrawals?.away ?? 0)),
+      bouts: Object.fromEntries((['harness', 'duty'] as const).map((w) => [w, { bouts: mean(rs.map((r) => r.missions.bouts?.[w].bouts ?? 0)), long: mean(rs.map((r) => r.missions.bouts?.[w].long ?? 0)), ramped: mean(rs.map((r) => r.missions.bouts?.[w].ramped ?? 0)) }])),
       seconds: mean(rs.map((r) => r.seconds)),
     });
   }

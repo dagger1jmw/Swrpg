@@ -20,7 +20,6 @@ const yearOf = (s: GameState): number => dateFromAbsDay(s.clock.now.day).year;
 const WORLDS = [...PLANETS, ...MENTION_ONLY];
 const mapWorld = (name: string) => WORLDS.find((p) => p.name.toLowerCase() === name.toLowerCase()) ?? null;
 
-const PATH_FACTION: Readonly<Record<string, string>> = { jedi: 'jediOrder', sith: 'sithEmpire' };
 const OFF_ROUTE = /wild space|unknown regions/i;
 
 /**
@@ -31,7 +30,8 @@ const OFF_ROUTE = /wild space|unknown regions/i;
 export function worldOpen(s: GameState, name: string): boolean {
   const w = mapWorld(name);
   if (!w || OFF_ROUTE.test(w.region)) return false;
-  const faction = s.character.start?.faction ?? PATH_FACTION[s.character.path] ?? 'unknown';
+  // The character's side (a Sith's by date, m9-tune2 item 4), as duty reads it.
+  const faction = selectDutySide(s) ?? 'unknown';
   const bby = -yearOf(s);
   const n = w.name.toLowerCase();
   return !closedWorlds(mapSide(faction), bby).some((g) => g.place.toLowerCase() === n || n.startsWith(`${g.place.toLowerCase()} `));

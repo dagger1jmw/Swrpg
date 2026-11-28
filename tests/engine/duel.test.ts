@@ -93,15 +93,20 @@ describe('determinism (rolls §8 test 8)', () => {
 });
 
 describe('sparring modes (D-144)', () => {
-  it('training sabers: Vitality only, no wounds; the first side Spent loses', () => {
+  it('training sabers: Vitality only, at worst a minor injury (m9-tune2 addendum 2); the first side Spent loses', () => {
     let rng = seedRng('ts');
+    let injuries = 0;
     for (let i = 0; i < 300; i++) {
       const s = runUntilBeat(startDuel(forceUser('A', 50, { weapon: 'trainingSaber' }), [forceUser('B', 50, { weapon: 'trainingSaber' })], rng), { ...REAL, sparring: 'trainingSaber' }, 0, 'toEnd').state;
       rng = s.rng;
-      expect(s.a.wounds).toEqual([]);
-      expect(s.opponents[0]!.wounds).toEqual([]);
+      for (const w of [...s.a.wounds, ...s.opponents[0]!.wounds]) {
+        expect(w.severity).toBe('minor');
+        expect(w.source).toMatch(/^sparring: /);
+        injuries++;
+      }
       expect(s.end?.reason).toBe('spent');
     }
+    expect(injuries).toBeGreaterThan(0);
   });
   it('controlled live blades: a landed strike ends the bout on a point; damage only by the 16+ and natural-1 accident', () => {
     let rng = seedRng('ctl');

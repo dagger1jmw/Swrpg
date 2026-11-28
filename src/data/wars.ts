@@ -150,6 +150,40 @@ export const WARS: readonly War[] = [
   },
 ];
 
+/**
+ * The Sith power a Sith character serves, by date (Jared, 27 Nov 2026, m9-tune2 item 4; D-438: one dated list, no era framing): the
+ * Sith Empire where it exists (`sithEmpire`), else the Sith order of the day (`sith`), so a Sith life fights its era's war. Where two
+ * rows cover a year, the power that rose latest is the one a Sith joins (Kun's Brotherhood and Revan's Sith fought while Vitiate's
+ * Empire hid). Years in BBY (negative = ABY), inclusive. Rows marked "reading" are not stated as such in the lore files.
+ */
+export interface SithPower {
+  faction: 'sith' | 'sithEmpire';
+  name: string;
+  fromBby: number;
+  toBby: number;
+  source: string;
+}
+
+export const SITH_POWERS: readonly SithPower[] = [
+  { faction: 'sithEmpire', name: 'the Sith Empire (the ancient Empire, then Vitiate\'s and Empress Acina\'s)', fromBby: 100000, toBby: 3600, source: 'SW_Sith_Training_AllEras cross-era table (the Ancient Sith Empire; Vitiate\'s Empire to 3,636); orderSeats SITH_SEATS (the Empire held to 3,600, a design default: the lore files stop at 3,630)' },
+  { faction: 'sith', name: 'Exar Kun\'s Brotherhood of the Sith', fromBby: 4000, toBby: 3996, source: 'SW_Characters_04-05_GreatSithWar; the wars list (the Great Sith War fought by sith)' },
+  { faction: 'sith', name: 'Revan\'s and Malak\'s Sith', fromBby: 3959, toBby: 3956, source: 'SW_Characters_07_JediCivilWar; the wars list (sith, not sithEmpire: a reading of the faction ids)' },
+  { faction: 'sith', name: 'the scattered Sith after the Empire', fromBby: 3599, toBby: 2001, source: 'a reading (no Sith Empire on record after 3,600; the New Sith Wars begin c. 2,000)' },
+  { faction: 'sith', name: 'the New Sith and their warlords', fromBby: 2000, toBby: 1033, source: 'SW_Timeline_2000_1000BBY_Part1 (the New Sith Wars)' },
+  { faction: 'sith', name: 'the Brotherhood of Darkness', fromBby: 1032, toBby: 995, source: 'Jared, 27 Nov 2026 (m9-tune2 item 4: 1,032-995 BBY); SW_Timeline_2000_1000BBY_Part2 (Kaan founds it in 1,010 from the New Sith, also sith)' },
+  { faction: 'sith', name: 'the Sith of the Rule of Two', fromBby: 994, toBby: 20, source: 'SW_Sith_Training_AllEras cross-era table (the Rule of Two); the wars list (Dooku\'s Sith in the Clone Wars)' },
+  { faction: 'sithEmpire', name: 'the Galactic Empire of Palpatine and Vader', fromBby: 19, toBby: -4, source: 'SW_Timeline_19BBY_4ABY (the Empire to Endor); the wars list (the Galactic Empire reads as sithEmpire)' },
+  { faction: 'sith', name: 'the Lost Tribe and the Dark Jedi', fromBby: -5, toBby: -26, source: 'a reading (SW_Sith_Training_AllEras: no Sith order in the New Republic era, Lumiya, the Lost Tribe)' },
+  { faction: 'sith', name: 'the One Sith', fromBby: -27, toBby: -200, source: 'SW_Korriban_Planet (27 ABY: Darth Krayt founds the One Sith); SW_Characters_18_LegacyEra' },
+];
+
+/** The faction a Sith character serves in a year (signed: negative = BBY): the latest-risen power on record then (SITH_POWERS). */
+export function sithSideAt(year: number): 'sith' | 'sithEmpire' {
+  const bby = -year;
+  const at = SITH_POWERS.filter((p) => bby <= p.fromBby && bby >= p.toBby);
+  return [...at].sort((a, b) => a.fromBby - b.fromBby)[0]?.faction ?? 'sith';
+}
+
 /** A faction's own years in a war (signed years: negative = BBY), or null when it did not fight it. */
 export function factionWarYears(w: War, faction: string): { from: number; to: number } | null {
   if (!w.factions.includes(faction)) return null;

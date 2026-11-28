@@ -21,9 +21,9 @@ import { isSkillId } from '../../data/skills';
 import { gradeMargin, type CheckCard } from '../../engine/rolls';
 import { nextFloat, type RngState } from '../../engine/rng';
 import type { GameState } from '../../state/gameState';
-import { selectCharacter } from '../character/selectors';
 import { selectNpcs } from '../npcs/selectors';
 import { selectPerformance } from '../progression/selectors';
+import { selectSide } from '../ranks/selectors';
 
 export const CAPTIVITY_ENDS = ['escaped', 'rescued', 'foughtFree', 'released', 'ransomed'] as const;
 export type CaptivityEnd = (typeof CAPTIVITY_ENDS)[number];
@@ -88,8 +88,8 @@ export function applyEscape(c: Captivity, card: Pick<CheckCard, 'success' | 'mar
 
 /** The daily chance that allies come: the player's side, their master, and the friends they have (more for a crew). */
 export function rescueChance(s: GameState, c: Captivity): number {
-  const ch = selectCharacter(s);
-  const side = ch.start?.faction ?? (ch.path === 'jedi' ? 'jediOrder' : ch.path === 'sith' ? 'sithEmpire' : '');
+  // The character's side (a Sith's by date, m9-tune2 item 4).
+  const side = selectSide(s) ?? '';
   let p = RESCUING_FACTIONS.includes(side) ? RESCUE.faction : 0;
   if (s.ranks.masterId && s.npcs.byId[s.ranks.masterId]?.status === 'active') p += RESCUE.master;
   const friends = selectNpcs(s)

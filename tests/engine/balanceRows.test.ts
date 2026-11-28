@@ -155,7 +155,7 @@ describe('rows 13 and 15, D-225 and D-227: capture and surrender', () => {
   });
   it('a surrender pays the surrender factor 0.5, below fled (0.8) and lost (1.2)', () => {
     const session: CombatSession = { stakes: 'serious', outcome: 'lost', exchanges: [{ skillId: 'makashi', gap: 0 }], forceUses: [] };
-    const run = (x: CombatSession): number => computeCombatXp({ session: x, m: () => 1, physicalWeights: () => ({}), todayBeforeM: () => 0, fightsToday: () => 0, clamp: (_k, w) => ({ credited: w, discarded: 0 }) }).beforeM['makashi'] ?? 0;
+    const run = (x: CombatSession): number => computeCombatXp({ session: x, m: () => 1, physicalWeights: () => ({}), clamp: (_k, w) => ({ credited: w, discarded: 0 }) }).beforeM['makashi'] ?? 0;
     expect(COMBAT_XP.surrendered).toBe(0.5);
     expect(run({ ...session, surrendered: true }) / run(session)).toBeCloseTo(0.5 / 1.2, 6);
     expect(run({ ...session, surrendered: true })).toBeLessThan(run({ ...session, outcome: 'fled' }));

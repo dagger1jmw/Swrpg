@@ -320,8 +320,8 @@ export type CombatStakes = (typeof COMBAT_STAKES)[number];
 export const COMBAT_OUTCOMES = ['won', 'lost', 'fled', 'truce', 'interrupted', 'stalemate'] as const;
 export type CombatOutcome = (typeof COMBAT_OUTCOMES)[number];
 export const COMBAT_XP = {
-  /** XP per exchange before challenge, stakes, outcome and M (tunable, §5). */
-  perExchange: 0.25,
+  /** XP per exchange before challenge, stakes, outcome and M (tunable, §5; 0.25 until m9-tune2, lowered with the daily cap gone, D-566). */
+  perExchange: 0.16,
   /** XP per Force use before challenge, stakes and M. */
   perForceUse: 0.1,
   stakes: { spar: 0.5, skirmish: 1.0, serious: 1.5, lethal: 2.0 } as Record<CombatStakes, number>,
@@ -332,11 +332,6 @@ export const COMBAT_XP = {
    * surrender paid more than fleeing). Below fled, so giving up is never the XP-best way out of a fight.
    */
   surrendered: 0.5,
-  /** Daily cap per skill, before M. */
-  dailyCap: 12,
-  /** The third and later fights in one day. */
-  laterFightFactor: 0.5,
-  laterFightFrom: 3,
   /** Challenge ramps linearly from the §4 curve's value at gap -25 to 0 at gap -35 (D-65). */
   rampFrom: -25,
   zeroAt: -35,
@@ -349,6 +344,46 @@ export const COMBAT_XP = {
  * cannot be farmed.
  */
 export const FIELD_FIGHT = { mult: 1.5 } as const;
+
+/**
+ * Long duels grant increasing returns (Jared, 27 Nov 2026, m9-tune2 item 7; the numbers invented): within one continuous bout or
+ * duel, an exchange past `from` pays more, rising linearly to `maxMult` at exchange `full` and capped there. Only while the fight is
+ * close: the exchange's challenge above 0 and the advantage track (before the exchange) within +/-`closeTrack`. Normal bouts of
+ * 5-10 exchanges pay as before. Spars and live fights alike; sparring XP stays under the drill ceiling (D-45).
+ */
+export const LONG_BOUT = { from: 10, full: 40, maxMult: 2.0, closeTrack: 2 } as const;
+
+/**
+ * Fighting tired (Jared, 27 Nov 2026, m9-tune2 addendum 3: pushing while tired is the best way to grow, but only while keeping form;
+ * the numbers invented). Good form: an exchange whose natural d20 is `threshold` or more (while pushing through, `threshold` minus
+ * Willpower / `pushWillpowerPer`, never below `pushFloor`) pays its skill XP x (1 + (maxMult - 1) x strain / the hard limit), strain
+ * being the physical meter over its capacity (capped at the hard limit, PHYSICAL_COLLAPSE). Low rolls get no bonus and no penalty in
+ * a live fight; in a spar they pay the training efficiency e(strain) (addendum 3d: a spar is a training session). The raw die, not the
+ * margin (the margin mostly reflects the skill gap). No cap: the body is the limit.
+ */
+export const GOOD_FORM = { threshold: 14, pushFloor: 10, pushWillpowerPer: 25, maxMult: 2.0 } as const;
+
+/**
+ * Willpower from fighting on under strain (addendum 3b; invented): an exchange fought at strain `from` or more teaches Willpower
+ * `perExchange` x g(strain) (the training rule's fatigue curve, FATIGUE_WILLPOWER: 0.25 at 0.6, 1.0 at capacity, 1.5 past it) x the
+ * challenge of the gap (nothing against foes 35+ levels weaker) x M. Training sessions keep their own rule (FATIGUE_WILLPOWER).
+ */
+export const STRAIN_WILLPOWER = { perExchange: 0.02, from: 0.6 } as const;
+
+/** Endurance from a good-form exchange while pushing through (addendum 3e; invented): `perExchange` x the challenge x M. */
+export const PUSH_ENDURANCE = { perExchange: 0.05 } as const;
+
+/**
+ * The front pace W (Jared, 27 Nov 2026, m9-tune2 item 1: the war-year pace proposed in reports/m9-tune.md D, approved): while duty
+ * holds the character at a front in a total war (a posting, arrived and not on leave; not a visit to a war zone), XP from every source
+ * to forms, Force skills and powers and Force Knowledge takes W, past the 2.8 cap and the per-hour 4.0x ceiling (as the accelerated path, D-418). Tuned per main
+ * specialty (the archetype) on the full 20 seeds so a full war career lands on the closed form with its war years (the NPC
+ * generator's own war term, CLOSED_FORM.warFactor). The Sith take their Jedi counterpart's value (the Warrior the Guardian's, the
+ * Inquisitor the Consular's). Other archetypes: 1. Peace and limited wars: 1.
+ */
+export const FRONT_PACE = {
+  byArchetype: { jediGuardian: 2.75, jediSentinel: 2.15, jediConsular: 1.9, sithWarrior: 2.75, sithInquisitor: 1.9 } as Readonly<Record<string, number>>,
+} as const;
 
 // ---- Applied experience E, combat integration CI, the drill ceiling and bank (progression-numbers §7, §8;
 // combat-xp §3; D-45; Order classes as sparring, D-143 A). Built in M5. ----

@@ -76,6 +76,12 @@ export interface StartOption {
   pureblood: PurebloodRule;
   /** Non-Human species on an Imperial start (D-388 [10], D-407). Absent = any species. */
   alien?: AlienRule;
+  /**
+   * A military start's service record (m9-tune2 item 3 and addendum 4): the ladder, and whether the character serves in the ranks
+   * below its first (officer) rung (the trooper, the conscript) or holds that first rung (the pilot, the junior naval officer). A
+   * total war posts serving soldiers (missions.md section 6).
+   */
+  service?: { ladderId: string; enlisted: boolean };
   /** The architecture §15 note and decisions it comes from. */
   source: string;
 }
@@ -267,6 +273,7 @@ export const START_OPTIONS: readonly StartOption[] = [
     threads: [{ fromBby: 3665, toBby: 3653, title: 'The Geonosis campaign', stakes: 'A long, grinding front; veterans of Alderaan and Hoth tell new recruits what the Empire does to the losing side.', source: 'Timeline slice Part 1 (3,665); SW_Republic_Military_GGW_Part1; D-387' }, BLOCKADE],
     premises: [{ fromBby: 3661, toBby: 3661, text: 'A Republic Army trooper in {year}, a veteran of four to six years since joining after Alderaan, on the Geonosis front.' }, { text: 'A Republic Army trooper in {year}, on the Geonosis front.' }],
     pureblood: 'refused',
+    service: { ladderId: 'republicArmy', enlisted: true },
     source: 'architecture §15 "M7 Republic military starts" (trooper); D-386, D-387',
   },
   {
@@ -282,6 +289,7 @@ export const START_OPTIONS: readonly StartOption[] = [
     threads: [BLOCKADE],
     premises: [{ fromBby: 3661, toBby: 3661, text: 'A Liberator pilot flying off the Valor-class cruiser Intercessor in {year}, as the Navy weighs breaking the blockade.' }, { text: 'A Liberator pilot flying off the Valor-class cruiser Intercessor in {year}.' }],
     pureblood: 'refused',
+    service: { ladderId: 'republicNavy', enlisted: false },
     source: 'architecture §15 "M7 Republic military starts" (pilot); D-387',
   },
   {
@@ -312,6 +320,7 @@ export const START_OPTIONS: readonly StartOption[] = [
     threads: [RIM],
     premises: [{ fromBby: 3661, toBby: 3661, text: 'An Imperial conscript in {year}, mustering for the Rim Campaign under officers who answer to Sith Lords.' }, { text: 'An Imperial conscript in {year}, under officers who answer to Sith Lords.' }],
     pureblood: 'allowed',
+    service: { ladderId: 'sithImperialArmy', enlisted: true },
     alien: 'refused',
     source: 'architecture §15 "M7 Imperial non-Sith starts" (soldier); D-388, D-389',
   },
@@ -328,6 +337,7 @@ export const START_OPTIONS: readonly StartOption[] = [
     threads: [RIM],
     premises: [{ fromBby: 3661, toBby: 3661, text: 'The junior captain of a Gage-class transport in {year}, carrying troops for the Rim Campaign.' }, { text: 'The junior captain of a Gage-class transport in {year}, carrying troops to the front.' }],
     pureblood: 'allowed',
+    service: { ladderId: 'sithImperialNavy', enlisted: false },
     alien: 'chissLiaison',
     source: 'architecture §15 "M7 Imperial non-Sith starts" (junior naval officer); D-389',
   },

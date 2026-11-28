@@ -5,7 +5,7 @@
 // or when the player stops. Exchange numbering, seconds and the log run on across bouts, so combat XP reads the whole
 // session from one log. Pure.
 import { SPAR_SESSION } from '../data/combat.config';
-import { runUntilBeat, startDuel, type DuelContext, type DuelState, type Fighter, type SideId } from './duel';
+import { collapsedFromExhaustion, runUntilBeat, startDuel, type DuelContext, type DuelState, type Fighter, type SideId } from './duel';
 import { isDying, isIncapacitated } from './wounds';
 import { rollBoutHazards } from './terrainHazard';
 
@@ -55,6 +55,9 @@ export function afterBout(session: SparSessionState, d: DuelState): { session: S
   const bouts = [...session.bouts, bout];
   const done = (ended: SessionEnd) => ({ session: { ...session, bouts, ended, playing: false }, next: null });
   if (hurt(d.a) || d.opponents.some(hurt)) return done('injury');
+  // A side collapsed from exhaustion ends the session (D-208: nobody fights on past the hard limit; m9-tune2 found the next bout
+  // starting with the collapsed fighter, who went on earning XP to the session's 34 exchanges).
+  if (collapsedFromExhaustion(d.a) || d.opponents.some(collapsedFromExhaustion)) return done('spent');
   if (sessionBudget(d) <= 0 || !d.end) return done('exchanges');
   const a = recovered(d.a);
   const opponents = d.opponents.map((o) => (hurt(o) ? o : recovered(o)));

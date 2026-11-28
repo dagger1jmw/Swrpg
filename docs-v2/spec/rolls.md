@@ -93,8 +93,12 @@ Sparring sessions (Jared, D-168): a spar is a session of bouts up to 34 exchange
   blades: a point; training sabers: the first side Spent; Sith academy: wounds). Between bouts
   each side gets back 50% of its maximum Vitality (design default); fatigue and wounds carry.
   The session ends at the exchange count, or early when a side is still Spent after the
-  recovery, when someone is really hurt (an accident, an academy wound), or when the player
-  stops. Exchange numbering and the log run on across bouts; the session's outcome is the bout
+  recovery, when someone is really hurt (an accident, an academy wound), when a side has collapsed
+  from exhaustion (D-208; m9-tune2 found the next bout starting with the collapsed fighter), or
+  when the player stops. Training sabers can injure mildly (Jared, m9-tune2 addendum 2;
+  combat.config SPAR_INJURY, invented): a landed hit leaves a minor injury (a welt, a light burn,
+  a bruise, a sprain from a fall) with a chance by the struck fighter's strain: 0.5% at rest, 3% at
+  capacity, 10% at the hard limit, linear between; never worse than minor. Exchange numbering and the log run on across bouts; the session's outcome is the bout
   tally (more won: won; more lost: lost; equal: truce).
   Live play: by default the session resolves in code like a montage, with one narration call
   for the whole session (bouts won and lost, the highlights, any accident or injury). The
