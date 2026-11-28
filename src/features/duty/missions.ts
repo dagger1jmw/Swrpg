@@ -115,6 +115,9 @@ export function frontsFor(warId: string, side: string, year: number, s?: GameSta
   return FRONTS.filter((f) => f.warId === warId && f.sides.includes(side) && year >= -f.fromBby && year <= -f.toBby && mapWorld(f.world) !== null && (!s || worldOpen(s, f.world)));
 }
 
+/** A side's base on a front (m9-tune3 item 5): its own where the front names one, else the front's base. */
+export const frontBaseFor = (f: FrontDef, side: string): string => f.sideBases?.[side] ?? f.base;
+
 /** A front still has its war events running (B5b: a posting ends when they end). */
 export function frontRunning(frontId: string, year: number): boolean {
   const f = FRONTS.find((x) => x.id === frontId);
@@ -134,7 +137,7 @@ export function postingFor(s: GameState, u: number, leaveU: number, except?: str
   // Leave from the war's first posting (m9-release A8): a later posting in the same war keeps the clock while it runs ahead.
   const clock = s.duty.leaveClock;
   const nextLeaveDay = clock && clock.warId === war.id && clock.nextLeaveDay > day ? clock.nextLeaveDay : day + Math.round(lo + leaveU * (hi - lo));
-  const base = { name: f.base, planet: f.world };
+  const base = { name: frontBaseFor(f, side), planet: f.world };
   return { frontId: f.id, front: f.name, warId: war.id, base, sinceDay: day, nextLeaveDay, arrived: selectAtPlace(s, base) };
 }
 

@@ -4,6 +4,7 @@
 // number: npm run lifegap, then LIFETIME_MISSIONS=on npm run lifegap. SEEDS (default 20) narrows it for a look, never for a tuning
 // decision (CLAUDE.md rule 6).
 import { ARCHETYPE_BY_ID } from '../../src/data/archetypes';
+import { FRONT_PACE } from '../../src/data/progression.config';
 import { FORM_IDS } from '../../src/data/skills';
 import { levelExact } from '../../src/engine/curve';
 import { missionStats, resetMissionStats } from '../support/lifetime';
@@ -12,6 +13,8 @@ import { runArchetype } from '../lifetime/archetypeLife';
 
 export const GAP_ARCHETYPES = ['jediGuardian', 'jediConsular', 'jediSentinel', 'sithWarrior', 'sithInquisitor', 'soldier'] as const;
 export const GAP_SEEDS = Number(process.env['SEEDS'] ?? 20);
+/** FRONT_PACE_W (a JSON map of archetype id to W) runs a candidate front pace without editing the config (m9-tune3; tuning only). */
+if (process.env['FRONT_PACE_W']) Object.assign(FRONT_PACE.byArchetype as Record<string, number>, JSON.parse(process.env['FRONT_PACE_W']) as Record<string, number>);
 
 export interface GapRow {
   id: string;

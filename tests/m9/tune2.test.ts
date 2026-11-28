@@ -163,17 +163,20 @@ describe('addendum 3: fighting tired', () => {
     expect(fightExchanges([rec], { skillAt: () => 'soresu', willpower: 0 })[0]!.gap).toBe(0);
   });
 
-  it(`3c: good form (d20 ${GOOD_FORM.threshold}+) under strain pays more, up to x${GOOD_FORM.maxMult} at the hard limit; low rolls no bonus, no penalty in a live fight`, () => {
+  it(`3c (m9-tune3): good form (d20 ${GOOD_FORM.threshold}+) under strain pays more: flat near rest, about x2 at capacity, still rising to the hard limit; low rolls no bonus, no penalty in a live fight`, () => {
     expect(goodFormMult(0)).toBe(1);
-    expect(goodFormMult(2)).toBeCloseTo(1.5, 10);
-    expect(goodFormMult(4)).toBeCloseTo(2, 10);
-    expect(goodFormMult(9)).toBeCloseTo(2, 10);
+    expect(goodFormMult(0.3)).toBeLessThan(1.05);
+    expect(goodFormMult(1)).toBeCloseTo(1 + GOOD_FORM.gain / 2, 10);
+    expect(goodFormMult(1)).toBeGreaterThan(1.85);
+    expect(goodFormMult(2)).toBeGreaterThan(goodFormMult(1));
+    expect(goodFormMult(4)).toBeGreaterThan(goodFormMult(2));
+    expect(goodFormMult(9)).toBe(goodFormMult(4));
     const rest = xp([one({ form: false, strain: 0 })])['soresu']!;
-    expect(xp([one({ form: true, strain: 2 })])['soresu']! / rest).toBeCloseTo(1.5, 10);
+    expect(xp([one({ form: true, strain: 1 })])['soresu']! / rest).toBeCloseTo(goodFormMult(1), 10);
     expect(xp([one({ form: false, strain: 2 })])['soresu']! / rest).toBeCloseTo(1, 10);
     const rec = (d: number) => ({ n: 1, kind: 'buildUp', targetId: 'b', effA: 50, effB: 50, advBefore: 0, dieA: d, strainA: 1 }) as unknown as ExchangeRecord;
-    expect(fightExchanges([rec(14)], { skillAt: () => 'soresu', willpower: 0 })[0]!.form).toBe(true);
-    expect(fightExchanges([rec(13)], { skillAt: () => 'soresu', willpower: 0 })[0]!.form).toBe(false);
+    expect(fightExchanges([rec(GOOD_FORM.threshold)], { skillAt: () => 'soresu', willpower: 0 })[0]!.form).toBe(true);
+    expect(fightExchanges([rec(GOOD_FORM.threshold - 1)], { skillAt: () => 'soresu', willpower: 0 })[0]!.form).toBe(false);
   });
 
   it('3d: a spar follows the training efficiency: a tired low roll pays e(strain), good form still earns the bonus', () => {
@@ -189,8 +192,9 @@ describe('addendum 3: fighting tired', () => {
   });
 
   it('3e: pushing lowers the threshold by Willpower (never below 10), and good form while pushing teaches Endurance', () => {
-    expect(goodFormThreshold(false, 100)).toBe(14);
+    expect(goodFormThreshold(false, 100)).toBe(16);
     expect(goodFormThreshold(true, 50)).toBe(12);
+    expect(goodFormThreshold(true, 100)).toBe(10);
     expect(goodFormThreshold(true, 150)).toBe(10);
     expect(xp([one({ form: true, strain: 1, push: true })])['endurance']).toBeCloseTo(PUSH_ENDURANCE.perExchange, 10);
     expect(xp([one({ form: false, strain: 1, push: true })])['endurance']).toBeUndefined();

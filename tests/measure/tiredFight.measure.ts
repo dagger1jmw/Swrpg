@@ -20,6 +20,7 @@ const RUNS = 1000;
 const STRAIN: Record<string, { strain: number; push: boolean }> = {
   rest: { strain: 0, push: false },
   moderate: { strain: 1.0, push: false },
+  'moderate, pushing': { strain: 1.0, push: true },
   'near the hard limit': { strain: 3.8, push: false },
   'pushing from rest': { strain: 0, push: true },
 };

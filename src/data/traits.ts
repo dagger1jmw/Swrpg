@@ -447,8 +447,6 @@ export const MASSACRES: readonly { id: string; name: string; year: number; who: 
   { id: 'ossus', name: 'the Massacre at Ossus', year: 130, who: 'jedi', source: 'SW_Characters_18_LegacyEra' },
 ];
 
-/** The Sith Empire of the Emperor (Imperial-born): from its founding on Dromund Kaas to the end of the Galactic War (lore range, invented end). */
-export const SITH_EMPIRE_YEARS = { from: -4980, to: -3600 } as const;
 /** The Jedi Order's attachment rules (the Forbidden bond): the Order of the Republic eras and the New Jedi Order before Luke allowed marriage (invented ends: c. 19 ABY lifted). */
 export const JEDI_ATTACHMENT_RULE_YEARS: readonly { from: number; to: number }[] = [{ from: -25000, to: 19 }];
 

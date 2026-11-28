@@ -105,8 +105,10 @@ describe('25: talking in a fight', () => {
   });
 });
 
+// m9-tune3 item 5: by the one dated list (SITH_POWERS): Revan's Sith are the Sith of the day (was sithEmpire here); Vitiate's Empire
+// stands to 3,600 (was its war years only); Palpatine's Empire and Krayt's (130-138 ABY, was 130-140) are Empires.
 describe('26: a dev Sith duelist belongs to a Sith Empire only when there is one', () => {
-  it.each([[-22, 'sith'], [25, 'sith'], [-3653, 'sithEmpire'], [-3957, 'sithEmpire'], [135, 'sithEmpire'], [-1032, 'sith']])('%i -> %s', (year, f) => {
+  it.each([[-22, 'sith'], [25, 'sith'], [-3653, 'sithEmpire'], [-3957, 'sith'], [-3620, 'sithEmpire'], [-4500, 'sithEmpire'], [-10, 'sithEmpire'], [135, 'sithEmpire'], [139, 'sith'], [-1032, 'sith']])('%i -> %s', (year, f) => {
     expect(sithFactionAt(year)).toBe(f);
   });
 });

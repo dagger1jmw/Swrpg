@@ -82,9 +82,16 @@ export function goodFormThreshold(push: boolean, willpower: number): number {
   return push ? Math.max(GOOD_FORM.pushFloor, GOOD_FORM.threshold - willpower / GOOD_FORM.pushWillpowerPer) : GOOD_FORM.threshold;
 }
 
-/** The good-form factor at a strain: 1 at rest, rising linearly to GOOD_FORM.maxMult at the hard limit. */
+/**
+ * The good-form factor at a strain (GOOD_FORM; m9-tune3): 1 + gain x s^steep / (half^steep + s^steep), s the strain capped at the hard
+ * limit. Flat near rest (a fresh fighter's fight barely moves), 1 + gain / 2 at `half` (capacity: about x2), still rising toward the
+ * hard limit.
+ */
 export function goodFormMult(strain: number): number {
-  return 1 + (GOOD_FORM.maxMult - 1) * Math.min(1, Math.max(0, strain) / PHYSICAL_COLLAPSE.hardLimit);
+  const s = Math.min(PHYSICAL_COLLAPSE.hardLimit, Math.max(0, strain));
+  if (s === 0) return 1;
+  const k = Math.pow(s, GOOD_FORM.steep);
+  return 1 + (GOOD_FORM.gain * k) / (Math.pow(GOOD_FORM.half, GOOD_FORM.steep) + k);
 }
 
 /**

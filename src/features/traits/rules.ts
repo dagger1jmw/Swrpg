@@ -10,7 +10,6 @@ import {
   MENTOR_LEARNING,
   PRESSURE_KINDS,
   RIVAL_SPUR,
-  SITH_EMPIRE_YEARS,
   TRAITS,
   TRAIT_BY_ID,
   TRAIT_LIMITS,
@@ -20,7 +19,7 @@ import {
   type TraitKind,
   type TraitSituation,
 } from '../../data/traits';
-import { WARS, WAR_SERVICE_FROM_AGE, type War } from '../../data/wars';
+import { sithEmpireSpans, WARS, WAR_SERVICE_FROM_AGE, type War } from '../../data/wars';
 import {
   FORMATIVE_EVENTS,
   FORMATIVE_EVENT_BY_ID,
@@ -115,7 +114,8 @@ function needsMet(need: NonNullable<TraitDef['gate']>['needs'], ctx: TraitContex
       // Slavery stands in Hutt space and beyond the Republic in every era the lore covers (SW_Hutt and economy files): open always.
       return true;
     case 'sithEmpire':
-      return overlaps(ctx.birthYear, ctx.startYear, SITH_EMPIRE_YEARS.from, SITH_EMPIRE_YEARS.to) && (ctx.path === 'sith' || ctx.imperialBorn === true);
+      // The Sith Empires on record (m9-tune3 item 5: the one dated list, data/wars.ts SITH_POWERS).
+      return sithEmpireSpans().some((e) => overlaps(ctx.birthYear, ctx.startYear, e.from, e.to)) && (ctx.path === 'sith' || ctx.imperialBorn === true);
     case 'jediAttachmentRules':
       return JEDI_ATTACHMENT_RULE_YEARS.some((r) => ctx.startYear >= r.from && ctx.startYear <= r.to);
   }

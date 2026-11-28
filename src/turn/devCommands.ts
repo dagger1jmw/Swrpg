@@ -6,6 +6,7 @@ import type { Choice } from '../ai/schemas/compose';
 import type { Intent, RequestedSpan } from '../ai/schemas/intent';
 import { CANON_NPCS, type CanonNpc } from '../data/canonNpcs';
 import { COMBAT_STAKES } from '../data/progression.config';
+import { sithSideAt } from '../data/wars';
 import { moraleFor, STRIKE_INTENTS, withdrawChanceFor, type SPARRING_MODES, type StrikeIntent } from '../data/combat.config';
 import { BODY_PARTS, SEVERITIES, type BodyPart, type Severity } from '../data/health.config';
 import { MINION_KINDS, minionKindPlural, roleForYear } from '../data/npcGen.config';
@@ -96,12 +97,11 @@ export const DEV_PLACE_NAMES: Readonly<Record<string, string>> = {
 /** A fight with no place word in a scene with no place, or a leftover dev place, is set here (D-215). */
 export const DEV_DEFAULT_PLACE = 'an abandoned hangar on Nar Shaddaa';
 /**
- * The years a Sith Empire exists (D-216; pass 2 had "sithEmpire" duelists in 22 BBY and 25 ABY): the Great Hyperspace
- * War's empire, Revan's, the Sith Empire of the Great Galactic War and the Cold War, and Krayt's empire of the Legacy era.
- * Outside them a dev Sith duelist is of the Sith, not the Empire.
+ * The faction of a dev Sith duelist in a year (D-216; m9-tune3 item 5): the era's Sith power by date, the one dated list
+ * (data/wars.ts SITH_POWERS, sithSideAt). Was a list of its own that disagreed with it (Revan's Sith as an Empire; only the war
+ * years of Vitiate's Empire; no Galactic Empire).
  */
-export const SITH_EMPIRE_YEARS: readonly (readonly [number, number])[] = [[-5000, -4989], [-3959, -3955], [-3681, -3627], [130, 140]];
-export const sithFactionAt = (year: number): 'sithEmpire' | 'sith' => (SITH_EMPIRE_YEARS.some(([a, b]) => year >= a && year < b) ? 'sithEmpire' : 'sith');
+export const sithFactionAt = (year: number): 'sithEmpire' | 'sith' => sithSideAt(year);
 const isDevPlace = (name: string | undefined): boolean => !name || /dev sandbox|testing|simulation|sandbox/i.test(name);
 /**
  * Place words for /fight terrain (design default, D-180): each stands for the terrain tags such a place has, with

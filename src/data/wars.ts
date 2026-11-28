@@ -175,7 +175,16 @@ export const SITH_POWERS: readonly SithPower[] = [
   { faction: 'sithEmpire', name: 'the Galactic Empire of Palpatine and Vader', fromBby: 19, toBby: -4, source: 'SW_Timeline_19BBY_4ABY (the Empire to Endor); the wars list (the Galactic Empire reads as sithEmpire)' },
   { faction: 'sith', name: 'the Lost Tribe and the Dark Jedi', fromBby: -5, toBby: -26, source: 'a reading (SW_Sith_Training_AllEras: no Sith order in the New Republic era, Lumiya, the Lost Tribe)' },
   { faction: 'sith', name: 'the One Sith', fromBby: -27, toBby: -200, source: 'SW_Korriban_Planet (27 ABY: Darth Krayt founds the One Sith); SW_Characters_18_LegacyEra' },
+  // m9-tune3 item 5: from devCommands' old dev-duelist list (130-140 ABY there); the years from the lore file.
+  { faction: 'sithEmpire', name: 'Darth Krayt\'s Sith Empire (the One Sith on the Imperial throne)', fromBby: -130, toBby: -138, source: 'SW_Characters_18_LegacyEra (Krayt seizes the throne from Roan Fel in 130 ABY; Wyyrlok rules as regent; Cade Skywalker kills Krayt for good in 138 ABY)' },
 ];
+
+/**
+ * The spans of the Sith Empires on record (signed years, inclusive; m9-tune3 item 5): every sithEmpire row of SITH_POWERS, whether
+ * or not a later-risen Sith order is the one a Sith joins then (Vitiate's Empire stood, hidden, through Kun's and Revan's wars). The
+ * Imperial-born trait reads it; it replaced traits' own SITH_EMPIRE_YEARS.
+ */
+export const sithEmpireSpans = (): { from: number; to: number }[] => SITH_POWERS.filter((p) => p.faction === 'sithEmpire').map((p) => ({ from: -p.fromBby, to: -p.toBby }));
 
 /** The faction a Sith character serves in a year (signed: negative = BBY): the latest-risen power on record then (SITH_POWERS). */
 export function sithSideAt(year: number): 'sith' | 'sithEmpire' {

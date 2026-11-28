@@ -23,7 +23,7 @@ export const SHARDS = 8;
 export const KEEP_RUNS = 5;
 
 /** Environment settings that change what a run measures; recorded in run.json. */
-export const RUN_ENV_KEYS = ['LIFETIME_MISSIONS', 'LIVES', 'CANDIDATE', 'FORCE_XP', 'PRECOG_M6', 'D158_N', 'D158_PATTERNS', 'TRACE_YEARS', 'TRACE_SEED', 'TRACE_PLAIN'] as const;
+export const RUN_ENV_KEYS = ['LIFETIME_MISSIONS', 'LIVES', 'CANDIDATE', 'FORCE_XP', 'PRECOG_M6', 'D158_N', 'D158_PATTERNS', 'TRACE_YEARS', 'TRACE_SEED', 'TRACE_PLAIN', 'FRONT_PACE_W'] as const;
 
 export interface Job<R> {
   /** Stable order of the merged output (configuration, then seed). */

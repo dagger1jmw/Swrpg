@@ -5,6 +5,9 @@ returns, counted per opponent (section 1); there is no daily combat XP limit: th
 (section 2); fighting tired (section 1a: the gap from rested levels, good form, Willpower under strain, spars as training,
 pushing through); the base 0.16.
 
+**Amended by m9-tune3 (Jared, 27 Nov 2026; D-574; report docs-v2/reports/m9-tune3.md):** fighting tired retuned so that keeping
+form while tired is the best way to grow (section 1a: the good-form curve, the threshold, pushing's threshold).
+
 ## 1. Per fight
 XP per exchange to the skill used = 0.16 * challenge(gap) * stakes * outcome * long(n, track) * M
   (the base was 0.25 until m9-tune2; lowered to 0.16 to keep the section 5 shares with no daily cap, D-566)
@@ -32,8 +35,14 @@ Force abilities used in the fight: 0.1 XP per use * challenge * stakes * M (no s
 ## 1a. Fighting tired (Jared, m9-tune2 addendum 3; numbers invented)
   Strain = the physical meter over its capacity, before the exchange (the hard limit is 4.0, where the fighter
   collapses). Pushing while tired is the best way to grow, but only while keeping form; the risk is the trade-off.
-  Good form (GOOD_FORM): an exchange whose natural d20 is 14 or more. Its skill XP x (1 + 1.0 x strain / 4.0), up to
-    x2.0 at the hard limit. The raw die, not the margin (the margin mostly reflects the skill gap). No cap.
+  Good form (GOOD_FORM; retuned in m9-tune3, D-574): an exchange whose natural d20 is 16 or more (14 before). Its skill XP
+    x (1 + 1.8 x s^3 / (1 + s^3)), s the strain capped at the hard limit: flat near rest (x1.05 at 0.3, so a fresh fighter's
+    fight barely moves), x1.9 at capacity, x2.6 at twice capacity, x2.77 at the hard limit (was linear, x1.25 at capacity and
+    x2.0 at the hard limit). The raw die, not the margin (the margin mostly reflects the skill gap). No cap.
+  Targets (Jared, m9-tune3 item 1; measured by tests/measure/tiredFight.measure.ts, 1,000 runs a case): a good-form exchange at
+    capacity pays about x2 a rested one; a live fight at moderate strain while pushing ends at about 1.3-1.5x the rested fight's
+    form XP, with its higher Dying and injury rates; a tired spar while pushing pays about a rested spar's or a little more,
+    paid in minor injuries and burnout; a tired spar without pushing stays well below rested.
   Low rolls: in a live fight, no bonus and no penalty (fatigue already lowers the effective level: more losses, more
     injuries, and in lethal fights death). In a spar (a training session, addendum 3d; amends D-55 for spars), a low
     roll pays the training efficiency e(strain) of the fatigue rules (1.0 to 0.4, 0.3 at capacity, 0.1 past it), so
@@ -42,10 +51,12 @@ Force abilities used in the fight: 0.1 XP per use * challenge * stakes * M (no s
     rule's fatigue curve: 0.25 at 0.6, 1.0 at capacity, 1.5 past it) x challenge x M. Training sessions keep their own
     rule (FATIGUE_WILLPOWER: 1.5 XP an hour x g, at most 3 XP a day); before m9-tune2 a fight taught no Willpower.
   Push through (a setting in any fight or spar, as the stance; pushSet): each exchange costs x2 the physical strain
-    instead of a roll penalty; the good-form threshold is 14 - Willpower / 25, never below 10; a good-form exchange
+    instead of a roll penalty; the good-form threshold is 16 - Willpower / 12.5, never below 10 (m9-tune3; was
+    14 - Willpower / 25: a Willpower-50 Knight keeps form on 12+ pushing, 16+ otherwise); a good-form exchange
     gives the bonus above plus Endurance 0.05 x challenge x M (PUSH_ENDURANCE). The narrator is told the character
     is pushing; the code decides the numbers. The harness's duty player never pushes.
-  Measured (1,000 runs each, reports/m9-tune2.md section C): tests/measure/tiredFight.measure.ts.
+  Measured (1,000 runs each, reports/m9-tune2.md section C; after the retune reports/m9-tune3.md section A):
+    tests/measure/tiredFight.measure.ts.
 
 Session shape for computeXp (D-55): combat is a branch of the one computeXp function, with
   session = { source: combat, fightId, stakes, outcome: won / lost / fled / truce
@@ -139,6 +150,7 @@ Session shape for computeXp (D-55): combat is a branch of the one computeXp func
     normal bout of 5-10 exchanges pays as before (tests/engine/combatXp.test.ts, tests/m9/tune2.test.ts).
 10. A live fight's fightResolved carries each exchange's run number, the track, good form and strain
     (the duel log; a spar's bouts from its session).
-11. Section 1a: the gap from rested levels; good form x1 to x2 by strain, from a natural 14; a spar's
+11. Section 1a: the gap from rested levels; good form by the curve (about x2 at capacity, rising to the hard limit), from a
+    natural 16; a spar's
     low roll at e(strain); Willpower from strain 0.6 by g; pushing: x2 strain, the threshold by
     Willpower (never below 10), Endurance on good form (tests/m9/tune2.test.ts).

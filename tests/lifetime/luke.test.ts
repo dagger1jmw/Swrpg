@@ -1,7 +1,7 @@
 // Luke lifetime test (70 years; progression-targets §2, §6 tests 1-3; progression-numbers §20 test 3).
 import { beforeAll, describe, expect, it } from 'vitest';
 import { runLifetime, type LifeResult } from '../support/lifetime';
-import { LUKE_BODY, LUKE_FORCE, expectMilestones, expectNotFasterThanAnakin, expectWithin4x, lukeLateLife } from './checks';
+import { LUKE_AGES, LUKE_BODY, LUKE_FORCE, expectMilestones, expectNotFasterThanAnakin, expectWithin4x, lukeLateLife } from './checks';
 import { LUKE, TARGETS, gated } from './profiles';
 
 let r: LifeResult;
@@ -25,7 +25,7 @@ describe('Luke lifetime (70 years)', () => {
   });
   // D-474 (Jared): two gates in place of "effective physical performance peaks at 58-68". Fate of the Jedi is his last
   // appearance, so nothing caps his growth in the Force, but his body declines.
-  it('the body: Strength, Agility and Endurance have each peaked by 68 and are slowly declining', () => {
+  it(`the body: Strength, Agility and Endurance have each peaked by 68 (within ${LUKE_AGES.peakTolerance} of the peak, D-577) and are slowly declining`, () => {
     const l = lukeLateLife(r.levelsByYear, r.startAge);
     expect(l.body, JSON.stringify(l.peaks)).toBe(true);
   });

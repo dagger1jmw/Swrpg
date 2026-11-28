@@ -326,7 +326,7 @@ export function speedPartsFor(s: GameState, instruction: number, opts: { play?: 
     };
     const m = speedM(parts).m;
     const review = reviewBuff(s, skill);
-    const front = frontPaced(skill) ? frontPace : 1;
+    const front = frontPaced(skill, c.path) ? frontPace : 1;
     return {
       talent: parts.talent,
       crossTalent: parts.crossTalent,
@@ -345,10 +345,14 @@ export function speedPartsFor(s: GameState, instruction: number, opts: { play?: 
 }
 
 /**
- * The skills the front pace speeds (m9-tune2 item 1): the lightsaber forms, the Force skills and powers, and Force Knowledge (a
- * knowledge-category skill, but the Consular's main Force study: Jared's target for the Consular is on it).
+ * The skills the front pace speeds (m9-tune2 item 1; m9-tune3 item 3), by path: for the Jedi and Sith, the lightsaber forms, the
+ * Force skills and powers, and Force Knowledge (a knowledge-category skill, but the Consular's main Force study: Jared's target for
+ * the Consular is on it); for a non-Force career, its weapon skills (FRONT_PACE.careerSkills: Blaster, Melee, Gunnery).
  */
-const frontPaced = (skill: string): boolean => FORM_IDS.includes(skill) || isForceXpSkill(skill) || skill === 'forceKnowledge';
+export function frontPaced(skill: string, path: string): boolean {
+  if (path === 'jedi' || path === 'sith') return FORM_IDS.includes(skill) || isForceXpSkill(skill) || skill === 'forceKnowledge';
+  return FRONT_PACE.careerSkills.includes(skill);
+}
 
 /**
  * The front pace W now (m9-tune2 item 1, FRONT_PACE): the archetype's W while duty holds the character at a front in a total war
@@ -408,7 +412,7 @@ export function clampFor(s: GameState): (skill: string, wanted: number, sessionH
     const skillHours = sums.hours + sessionHours;
     const used = sums.xp;
     // The accelerated path (D-418) and the front pace (m9-tune2 item 1) are the conditions allowed past the 4.0x ceiling.
-    return clampCredit(wanted, used, conditionedCap(paceCap(skill, windowAge, skillHours), skill, accelerated) * (frontPaced(skill) ? front : 1));
+    return clampCredit(wanted, used, conditionedCap(paceCap(skill, windowAge, skillHours), skill, accelerated) * (frontPaced(skill, c.path) ? front : 1));
   };
 }
 

@@ -355,13 +355,14 @@ export const LONG_BOUT = { from: 10, full: 40, maxMult: 2.0, closeTrack: 2 } as 
 
 /**
  * Fighting tired (Jared, 27 Nov 2026, m9-tune2 addendum 3: pushing while tired is the best way to grow, but only while keeping form;
- * the numbers invented). Good form: an exchange whose natural d20 is `threshold` or more (while pushing through, `threshold` minus
- * Willpower / `pushWillpowerPer`, never below `pushFloor`) pays its skill XP x (1 + (maxMult - 1) x strain / the hard limit), strain
- * being the physical meter over its capacity (capped at the hard limit, PHYSICAL_COLLAPSE). Low rolls get no bonus and no penalty in
- * a live fight; in a spar they pay the training efficiency e(strain) (addendum 3d: a spar is a training session). The raw die, not the
- * margin (the margin mostly reflects the skill gap). No cap: the body is the limit.
+ * retuned in m9-tune3 to Jared's targets, D-574; the numbers invented). Good form: an exchange whose natural d20 is `threshold` or more
+ * (while pushing through, `threshold` minus Willpower / `pushWillpowerPer`, never below `pushFloor`) pays its skill XP x
+ * (1 + gain x s^steep / (half^steep + s^steep)), s the strain (the physical meter over its capacity, capped at the hard limit,
+ * PHYSICAL_COLLAPSE): flat near rest, x1.9 at capacity, x2.6 at twice it, x2.77 at the hard limit. Low rolls get no bonus and no
+ * penalty in a live fight; in a spar they pay the training efficiency e(strain) (addendum 3d: a spar is a training session). The raw
+ * die, not the margin (the margin mostly reflects the skill gap). No cap: the body is the limit.
  */
-export const GOOD_FORM = { threshold: 14, pushFloor: 10, pushWillpowerPer: 25, maxMult: 2.0 } as const;
+export const GOOD_FORM = { threshold: 16, pushFloor: 10, pushWillpowerPer: 12.5, gain: 1.8, half: 1, steep: 3 } as const;
 
 /**
  * Willpower from fighting on under strain (addendum 3b; invented): an exchange fought at strain `from` or more teaches Willpower
@@ -374,15 +375,18 @@ export const STRAIN_WILLPOWER = { perExchange: 0.02, from: 0.6 } as const;
 export const PUSH_ENDURANCE = { perExchange: 0.05 } as const;
 
 /**
- * The front pace W (Jared, 27 Nov 2026, m9-tune2 item 1: the war-year pace proposed in reports/m9-tune.md D, approved): while duty
- * holds the character at a front in a total war (a posting, arrived and not on leave; not a visit to a war zone), XP from every source
- * to forms, Force skills and powers and Force Knowledge takes W, past the 2.8 cap and the per-hour 4.0x ceiling (as the accelerated path, D-418). Tuned per main
- * specialty (the archetype) on the full 20 seeds so a full war career lands on the closed form with its war years (the NPC
- * generator's own war term, CLOSED_FORM.warFactor). The Sith take their Jedi counterpart's value (the Warrior the Guardian's, the
- * Inquisitor the Consular's). Other archetypes: 1. Peace and limited wars: 1.
+ * The front pace W (Jared, 27 Nov 2026, m9-tune2 item 1: the war-year pace proposed in reports/m9-tune.md D, approved; m9-tune3 items
+ * 2 and 3, D-575, D-576): while duty holds the character at a front in a total war (a posting, arrived and not on leave; not a visit to
+ * a war zone), XP from every source to the paced skills takes W, past the 2.8 cap and the per-hour 4.0x ceiling (as the accelerated
+ * path, D-418). The paced skills: for the Jedi and Sith, the forms, Force skills and powers and Force Knowledge; for a non-Force
+ * career, `careerSkills` (its weapon skills; training.ts frontPaced). Tuned per main specialty (the archetype) on the full 20 seeds so
+ * a full war career lands on the closed form with its war years (the NPC generator's own war term, CLOSED_FORM.warFactor). The Sith
+ * Warrior takes the Guardian's value (1 level under at 41, accepted by Jared); the Inquisitor and the soldier have their own. Other
+ * archetypes: 1. Peace and limited wars: 1.
  */
 export const FRONT_PACE = {
-  byArchetype: { jediGuardian: 2.75, jediSentinel: 2.15, jediConsular: 1.9, sithWarrior: 2.75, sithInquisitor: 1.9 } as Readonly<Record<string, number>>,
+  byArchetype: { jediGuardian: 2.75, jediSentinel: 2.15, jediConsular: 1.9, sithWarrior: 2.75, sithInquisitor: 2.4, soldier: 1.4 } as Readonly<Record<string, number>>,
+  careerSkills: ['blaster', 'melee', 'gunnery'] as readonly string[],
 } as const;
 
 // ---- Applied experience E, combat integration CI, the drill ceiling and bank (progression-numbers §7, §8;
