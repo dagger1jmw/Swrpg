@@ -434,6 +434,7 @@ function toStep(x: z.infer<typeof stepSchema>): SequenceStep | null {
   if (x.kind === 'maneuver' && x.maneuver) return { kind: 'maneuver', maneuver: x.maneuver };
   if (x.kind === 'forceAction' && x.action) return { kind: 'forceAction', action: x.action, ...(x.objectTag ? { objectTag: x.objectTag } : {}) };
   if (x.kind === 'strike') return x.aim ? { kind: 'strike', aim: x.aim } : { kind: 'strike' };
+  if (x.kind === 'redirect') return { kind: 'redirect' };
   return null;
 }
 

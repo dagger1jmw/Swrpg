@@ -20,6 +20,7 @@ import {
   DISENGAGE,
   CUT_DOWN_MARGIN,
   DEFLECT_REDIRECT_MARGIN,
+  REDIRECT,
   EXCHANGE_SECONDS,
   EXERTION_PER_EXCHANGE,
   FIGHT_SAFETY_CAP,
@@ -225,7 +226,7 @@ export interface Hit {
   avoided: boolean;
   /** Controlled live blades: the bout ended on a point instead (D-144). */
   point?: boolean;
-  /** A deflected blaster bolt sent back at the shooter. */
+  /** A deflected blaster bolt sent back at the shooter (the passive redirect, or the player's redirect action). */
   redirected?: boolean;
   /** A subduing hit (D-262): Vitality only, by this means. */
   stun?: SubdueMode;
@@ -267,7 +268,16 @@ export interface ExchangeRecord {
   step?: number;
   /** The opponents' exchange while the player used the Force (D-204): the player only defended. */
   duringForce?: boolean;
+  /** The player's redirect action this exchange (m9-fix-deflect): how it went against what was asked (send a bolt back). */
+  redirect?: RedirectOutcome;
 }
+
+/**
+ * How a redirect went (m9-fix-deflect): sentBack (a bolt back into the shooter: the intent), or short of it: gainedGround
+ * (a mid win, the bolts turned aside), deflectedAway (a small win), held (a tie), lostGround (the shooter's barrage won),
+ * recovered (holding the strike, the margin under the strike minimum: the bolt goes wide).
+ */
+export type RedirectOutcome = 'sentBack' | 'gainedGround' | 'deflectedAway' | 'held' | 'lostGround' | 'recovered';
 
 export type DuelEnd =
   | { winner: SideId; reason: 'incapacitated' | 'dying' | 'dead' | 'allOut' | 'spent' | 'point' | 'exhausted' | 'opponentsDefeated' | 'yielded' | 'captured' }
@@ -762,6 +772,11 @@ export interface ExchangeExtras {
    * action's seconds cover it).
    */
   duringForce?: boolean;
+  /**
+   * The player's redirect action (m9-fix-deflect): A sends the shooter's bolts back with the main form against the shooter's
+   * Blaster roll. Needs A's saber and a blaster shooter as the target; otherwise the exchange resolves as a plain one.
+   */
+  redirect?: boolean;
 }
 
 export function resolveExchange(initial: DuelState, ctx: DuelContext, day: number, extras: ExchangeExtras = {}): DuelState {
@@ -788,7 +803,11 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
   const numbersOnA = s.surprise === 'A' ? 0 : Math.min(CIRCUMSTANCE.maxNumbers, Math.floor(extra + 1e-9));
   const baseA = sideMods(A, B, ctx, 0, nEngaged);
   const baseB = sideMods(B, A, ctx, numbersOnA, 1);
-  const modsA: Mods = { attack: [...baseA.attack, ...(extras.a ?? [])], defense: baseA.defense };
+  // The redirect action (m9-fix-deflect): the form's redirect modifier on top of its vs-blaster matchup.
+  const redirecting = extras.redirect === true && extras.duringForce !== true && hasSaber(A) && !A.saberLost && BLASTER_WEAPONS.includes(B.weapon);
+  const redirectMod = redirecting && A.form ? (REDIRECT.formMod[A.form] ?? 0) : 0;
+  const aExtra: Modifier[] = [...(extras.a ?? []), ...(redirectMod ? [{ source: `${A.form} redirect`, value: redirectMod }] : [])];
+  const modsA: Mods = { attack: [...baseA.attack, ...aExtra], defense: baseA.defense };
   const modsB: Mods = { attack: baseB.attack, defense: [...baseB.defense, ...(extras.bDefense ?? [])] };
   const effA = fighterEffectiveLevel(A);
   const effB = fighterEffectiveLevel(B);
@@ -796,7 +815,12 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
   const advBefore = s.advantage;
   const surprise = s.surprise !== null;
   const defendOnly = extras.duringForce === true;
-  const striker: SideId | null = surprise ? s.surprise : advBefore <= -STRIKE_AT ? 'B' : defendOnly ? null : advBefore >= STRIKE_AT ? 'A' : extras.forceStrike ? 'A' : null;
+  const striker: SideId | null = surprise ? s.surprise : advBefore <= -STRIKE_AT ? 'B' : defendOnly ? null : advBefore >= STRIKE_AT ? 'A' : extras.forceStrike && !redirecting ? 'A' : null;
+  const redirectStrike = redirecting && striker === 'A';
+  let redirectOutcome: RedirectOutcome | undefined;
+  // A bolt sent back into the shooter, with the shooter's own weapon (rolls §4); a stun bolt stuns its shooter (D-262).
+  const sendBack = (shooter: Fighter, quality: HitQuality, m: number, r0: RngState): { f: Fighter; hit: Omit<Hit, 'by' | 'avoided'>; rng: RngState } =>
+    subduingMeans(shooter) === 'stunBolt' ? { ...subdueFighter(shooter, quality, shooter.weapon, 'stunBolt'), rng: r0 } : damageFighter(shooter, quality, m, shooter.weapon, ctx, r0, day, shooter.wounds.length + 1, ctx.sparring !== null);
   const forced = striker === 'A' && !surprise && advBefore < STRIKE_AT;
 
   let rng = s.rng;
@@ -806,12 +830,12 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
   const exNo = s.log.length;
   const nOpp = engaged(s).length;
   if (striker === null) {
-    [rollA, rng] = basicRoll(rng, effA, [...netMods(baseA, extras.a ?? []), ...styleMods(A, B, ctx, exNo, 'buildUp', false, nOpp), ...traitMods(A, 'buildUp', exNo, false)]);
+    [rollA, rng] = basicRoll(rng, effA, [...netMods(baseA, aExtra), ...styleMods(A, B, ctx, exNo, 'buildUp', false, nOpp), ...traitMods(A, 'buildUp', exNo, false)]);
     [rollB, rng] = basicRoll(rng, effB, [...netMods(baseB, extras.bDefense ?? []), ...styleMods(B, A, ctx, exNo, 'buildUp', false, 1), ...traitMods(B, 'buildUp', exNo, false)]);
     margin = rollA.total - rollB.total;
   } else {
     // An aimed strike costs AIMED_STRIKE.attackPenalty on the strike roll (D-171).
-    const aiming = (striker === 'A' ? A : B).aim;
+    const aiming = redirectStrike ? null : (striker === 'A' ? A : B).aim;
     const atk = [
       ...(striker === 'A' ? modsA.attack : modsB.attack),
       ...(aiming ? [{ source: `aimed at the ${partText(aiming)}`, value: AIMED_STRIKE.attackPenalty }] : []),
@@ -863,7 +887,7 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
     }
     // Cut-down (D-158): against a minion, a build-up margin of 6+ is already a hit, unless the minion wears
     // saber-resistant armor. Minion groups are mass, not duelists.
-    if (!defendOnly && B.minion && !B.saberResistant && band(margin) >= CUT_DOWN_MARGIN) {
+    if (!defendOnly && !redirecting && B.minion && !B.saberResistant && band(margin) >= CUT_DOWN_MARGIN) {
       const q = qualityOf(band(margin)) ?? 'graze';
       const d = damageFighter(B, q, band(margin), A.weapon, ctx, rng, day, B.wounds.length + 1, ctx.sparring === 'trainingSaber' || A.weapon === 'trainingSaber');
       rng = d.rng;
@@ -872,13 +896,37 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
       // Cut down only when the minion is actually out (D-194); otherwise it is wounded or grazed and fights on.
       notes.push(minionHitNote(A.name, B.name, bOut, hit, isRanged(A)));
     }
+    // The redirect action in a build-up (m9-fix-deflect): the bands as above; the strike band (the cut-down margin against a
+    // minion) sends a bolt back into the shooter. A duelist hit that way resets the track like a landed strike.
+    if (redirecting) {
+      const bm = band(margin);
+      if (bm >= (B.minion ? REDIRECT.sendBackMinionMargin : REDIRECT.sendBackMargin)) {
+        const d = sendBack(B, qualityOf(bm) ?? 'graze', bm, rng);
+        rng = d.rng;
+        bOut = d.f;
+        hit = { by: 'A', ...d.hit, avoided: false, redirected: true };
+        if (!B.minion) advAfter = 0;
+        redirectOutcome = 'sentBack';
+      } else redirectOutcome = bm >= REDIRECT_MID_WIN ? 'gainedGround' : bm > BUILD_UP.tieWithin ? 'deflectedAway' : bm >= -BUILD_UP.tieWithin ? 'held' : 'lostGround';
+      notes.push(redirectNote(redirectOutcome, A.name, B.name));
+    }
   } else {
     const atkF = striker === 'A' ? A : B;
     let defF = striker === 'A' ? B : A;
     const natural1 = rollA.natural === 'nat1' || rollB.natural === 'nat1';
     const pm = atkF.pendingManeuver;
     // Taking position on bad ground is harder (slippery -1 on the attempt, D-184).
-    if (pm && band(margin + (pm === 'position' ? (ctx.positionAttempt ?? 0) : 0)) >= MANEUVER_MIN[pm]) {
+    if (redirectStrike) {
+      // The redirect action while holding the strike (m9-fix-deflect): the strike bands send a bolt back into the shooter.
+      if (band(margin) >= STRIKE_MIN_MARGIN) {
+        const d = sendBack(defF, qualityOf(band(margin))!, band(margin), rng);
+        rng = d.rng;
+        defF = d.f;
+        hit = { by: 'A', ...d.hit, avoided: false, redirected: true };
+        redirectOutcome = 'sentBack';
+      } else redirectOutcome = 'recovered';
+      notes.push(redirectNote(redirectOutcome, A.name, B.name));
+    } else if (pm && band(margin + (pm === 'position' ? (ctx.positionAttempt ?? 0) : 0)) >= MANEUVER_MIN[pm]) {
       maneuver = { by: striker, kind: pm };
       notes.push(`${atkF.name}: ${pm}`);
     } else if (band(margin) >= STRIKE_MIN_MARGIN) {
@@ -964,8 +1012,8 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
       if (striker === 'A') aOut = { ...aOut, pendingManeuver: null };
       else bOut = { ...bOut, pendingManeuver: null };
     }
-    // The aim is spent on this strike (D-171).
-    if (striker === 'A' && aOut.aim) aOut = { ...aOut, aim: null };
+    // The aim is spent on this strike (D-171); a redirect is not that strike.
+    if (striker === 'A' && aOut.aim && !redirectStrike) aOut = { ...aOut, aim: null };
     else if (striker === 'B' && bOut.aim) bOut = { ...bOut, aim: null };
   }
 
@@ -1122,6 +1170,7 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
     surprise,
     ...(extras.step !== undefined ? { step: extras.step } : {}),
     ...(defendOnly ? { duringForce: true } : {}),
+    ...(redirectOutcome ? { redirect: redirectOutcome } : {}),
   };
   return barEnd({
     ...next,
@@ -1134,6 +1183,31 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
     log: [...s.log, rec],
     target: Math.max(0, next.opponents.findIndex((o) => o.id === (currentTarget(next)?.id ?? ''))),
   });
+}
+
+/** The build-up margin of a mid win (the +2 band): a redirect short of the strike band gains ground from here. */
+const REDIRECT_MID_WIN = BUILD_UP.steps.find(([, step]) => step === 2)![0];
+
+/**
+ * The redirect's result in plain words (m9-fix-deflect). Short of the intent, it says so: the attempt and how it fell short,
+ * so the narrator and the card keep the player's goal.
+ */
+export function redirectNote(o: RedirectOutcome, pc: string, shooter: string): string {
+  const tried = `${pc} tries to send ${shooter}'s bolts back`;
+  switch (o) {
+    case 'sentBack':
+      return `${pc} sends a bolt back into ${shooter}`;
+    case 'gainedGround':
+      return `${tried}: short of the intent, the bolts glance away instead, but ${pc} gains ground`;
+    case 'deflectedAway':
+      return `${tried}: short of the intent, the bolts are deflected away, not back at ${shooter}`;
+    case 'held':
+      return `${tried}: short of the intent, the bolts are turned aside and neither gains ground`;
+    case 'lostGround':
+      return `${tried}: short of the intent, the barrage is too thick to send back and ${shooter} gains ground`;
+    case 'recovered':
+      return `${tried}: short of the intent, the deflected bolt goes wide of ${shooter}`;
+  }
 }
 
 /** The note for a hit on a minion (D-194): cuts down only when it is out; wounds or grazes when it fights on. */

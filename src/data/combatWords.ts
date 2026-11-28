@@ -22,6 +22,26 @@ export const COMBAT_WORD_GROUPS: readonly CombatWordGroup[] = [
 ];
 
 /**
+ * Sending blaster bolts back (Jared, m9-fix-deflect): "deflect / reflect / redirect / send the bolts back at X" is the redirect
+ * action aimed at X, never a strike and never a stance. Read per clause (combatTurn.ts isRedirectClause):
+ * - `always`: redirect and reflect with a bolt word or a "back" phrase;
+ * - `deflect`: deflect with a "back" phrase, or a bolt word aimed at someone ("deflect the bolts at the thugs");
+ * - `withBolt`: other verbs (send, return, bat, turn, bounce, knock, swat, angle) need a bolt word and a "back" phrase.
+ * Lightning is never a bolt here (Tutaminis is not this action).
+ */
+export const REDIRECT_WORDS = {
+  always: /\b(?:redirect|redirects|redirecting|reflect|reflects|reflecting)\b/,
+  deflect: /\b(?:deflect|deflects|deflecting)\b/,
+  withBolt: /\b(?:send|sends|sending|return|returns|returning|bat|bats|batting|turn|turns|turning|bounce|bounces|bouncing|knock|knocks|knocking|swat|swats|swatting|angle|angles|angling)\b/,
+  bolt: /\b(?:bolts?|shots?|blasts?|blaster fire|fire|barrage|volley|volleys)\b/,
+  /** "the bolts back", "them back", or "back at / into / toward / on" someone. */
+  back: /\b(?:bolts?|shots?|blasts?|fire|barrage|volley|it|them|one|each)\s+back\b|\bback\s+(?:at|into|toward|towards|on|upon|to|in)\b/,
+  /** A bolt word aimed at someone without "back": "deflect the bolts at the thugs". */
+  aimedAt: /\b(?:bolts?|shots?|blasts?|fire|barrage|volley)\b.*\b(?:at|toward|towards)\b/,
+  never: /\blightning\b/,
+} as const;
+
+/**
  * Attack verbs (Jared, D-191): a strike step, never a position contest. Against minions a strike step is a strike roll.
  * Whole words or phrases, lower case; 'attack' and 'press' stay stance words (the attack group above).
  */

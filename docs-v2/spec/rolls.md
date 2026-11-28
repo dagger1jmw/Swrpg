@@ -52,7 +52,7 @@ Strike exchange (a side has advantage >= 3; that side is the striker):
   4-7 graze | 8-11 solid | 12-15 clean | 16+ critical  (hit quality for health spec sec 4)
   Instead of a hit, the striker may take a maneuver: gain position 2+ | knockdown 4+ | disarm 8+
   After a strike that lands (a hit or a maneuver), advantage resets to 0. A strike that misses or is blocked
-    (recovery, precognitive defense) keeps the pressure: the track moves 2 steps toward 0 (amended by D-156; 2 since D-206, was 1).
+    (recovery, precognitive defense) keeps the pressure: the track moves 3 steps toward 0 (amended by D-156; 2 since D-206, was 1; 3 since D-244, MISSED_STRIKE_STEP).
   Bands (build-up steps, hit quality, maneuver thresholds) read the margin rounded to the nearest whole point, so a
     fraction of a level never tips a band edge (D-156). Circumstances on a side's total (matchups, position, footing,
     numbers) count on both its attack and defense rolls; stance and state of mind split as listed (D-156).
@@ -125,7 +125,16 @@ Sparring sessions (Jared, D-168): a spar is a session of bouts up to 34 exchange
 ## 4. Ranged and Force
   Blaster vs saber deflection: shooter d20 + blaster skill/10 vs defender d20 + form
     level/10 + form vs-blaster modifier; a defender margin of 8+ can redirect the bolt
-    (rated by Soresu/Shien skill per the lore).
+    (rated by Soresu/Shien skill per the lore). This passive redirect happens only on the shooter's strike.
+  Redirect action (Jared, m9-fix-deflect, D-583; numbers invented, combat.config REDIRECT): the player sends the bolts back
+    on purpose ("deflect / reflect / redirect / send the bolts back at X"; a sequence step `redirect`, never a strike and never
+    a stance). The main form against the shooter's Blaster roll, as a build-up: 2-5 deflects the bolts away (+1), 6-9 gains
+    ground (+2), 10+ sends a bolt back into the shooter with the shooter's weapon damage (6+ against a minion, the cut-down
+    margin), the track reset like a landed strike (a minion keeps the build-up track). Holding the strike (+3): a strike margin
+    of 4+ sends a bolt back by the strike quality bands; under it the bolt goes wide (the missed-strike step). Form modifier on
+    top of the vs-blaster matchup: Shien +1 (net +2), Soresu -1 (net 0: it deflects well, redirects poorly), others 0. Target:
+    the shooter named, else the first engaged blaster shooter. Not possible with no saber in hand, no blaster fire (dropped
+    with the reason), or against slugs (D-200). A result short of the intent is told as the attempt and how it fell short.
   Force vs resistance (amended by D-192): almost nothing resists the Force. Mind abilities:
     d20 + effective ability level/10 vs d20 + Willpower/10 (+ half the Force resistance of a Force
     user); droids, Hutts and Toydarians cannot be affected. Avoidable manifestations (Push,

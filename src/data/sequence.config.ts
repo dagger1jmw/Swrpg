@@ -2,7 +2,7 @@
 // resolves the steps in order as exchanges with the opponent rolling every step, then one narration call
 // covers the whole sequence. Every number here is tunable.
 
-export const SEQUENCE_STEP_KINDS = ['stance', 'tactic', 'maneuver', 'forceAction', 'strike'] as const;
+export const SEQUENCE_STEP_KINDS = ['stance', 'tactic', 'maneuver', 'forceAction', 'strike', 'redirect'] as const;
 
 /** The intent schema accepts at most this many steps; the engine truncates to the character's cap. */
 export const SEQUENCE_SCHEMA_MAX = 5;

@@ -12,7 +12,7 @@ import { lastingState, type LastingInjury } from '../engine/lasting';
 import type { ActiveFight, FightSummary } from '../features/combat/selectors';
 import type { GameState } from '../state/gameState';
 import type { CombatActionInput } from './record';
-import { COMBAT_WORD_GROUPS, FORCE_CLAUSE_WORDS, FORCE_GESTURE, FORM_WORDS, OBJECT_WORDS, SPEECH_WORDS, STRIKE_WORDS } from '../data/combatWords';
+import { COMBAT_WORD_GROUPS, FORCE_CLAUSE_WORDS, FORCE_GESTURE, FORM_WORDS, OBJECT_WORDS, REDIRECT_WORDS, SPEECH_WORDS, STRIKE_WORDS } from '../data/combatWords';
 
 /**
  * Natural combat words (D-179): the typed text (or a choice's label) read against the configured word groups and form
@@ -20,6 +20,9 @@ import { COMBAT_WORD_GROUPS, FORCE_CLAUSE_WORDS, FORCE_GESTURE, FORM_WORDS, OBJE
  * nothing matches. Whole words and phrases; the earliest stance word wins.
  */
 export function combatWordsAction(text: string): Record<string, unknown> | null {
+  // A redirect clause ("deflect the bolts back at the thugs") is the redirect action, not a defend word (m9-fix-deflect).
+  const all = clausesOf(text);
+  if (all.some(isRedirectClause)) text = all.filter((c) => !isRedirectClause(c)).join(' , ');
   const t = ` ${text.toLowerCase().replace(/[^a-z0-9' -]+/g, ' ').replace(/\s+/g, ' ')} `;
   const at = (phrase: string): number => {
     const i = t.indexOf(` ${phrase} `);
@@ -69,6 +72,19 @@ export function isStrikeClause(clause: string): boolean {
   return STRIKE_WORDS.some((w) => has(c, w) && !NOUN_BEFORE.some((n) => has(c, `${n} ${w}`)));
 }
 
+/**
+ * A clause that sends blaster bolts back at someone (Jared, m9-fix-deflect; data/combatWords REDIRECT_WORDS): "deflect the
+ * blaster bolts back at the thugs", "reflect his shots back", "send the fire back at the droid", "redirect the bolts".
+ */
+export function isRedirectClause(clause: string): boolean {
+  const c = ` ${clause.toLowerCase().replace(/[^a-z0-9' -]+/g, ' ').replace(/\s+/g, ' ').trim()} `;
+  const w = REDIRECT_WORDS;
+  if (w.never.test(c)) return false;
+  if (w.always.test(c)) return w.bolt.test(c) || w.back.test(c);
+  if (w.deflect.test(c)) return w.back.test(c) || w.aimedAt.test(c);
+  return w.withBolt.test(c) && w.bolt.test(c) && w.back.test(c);
+}
+
 /** True when the typed text is the player talking (quoted speech or a speech verb), D-216. */
 export function saysSpeech(text: string): boolean {
   if (/["\u201c\u201d]/.test(text)) return true;
@@ -104,16 +120,21 @@ export function reconcileSteps(text: string, steps0: readonly StepLike[], max: n
   // crates" and "keep low" became defensive stance steps, which then stayed set). The word groups' stances stay.
   const askedStance = STANCE_NAMED.test(text) || combatWordsAction(text)?.['stance'] !== undefined;
   const steps = askedStance ? steps0 : steps0.filter((x) => x.kind !== 'stance');
-  const raw = clausesOf(text).map((c) => ({ force: forceActionIn(c), strike: isStrikeClause(c), object: objectIn(c) }));
+  const raw = clausesOf(text).map((c) => {
+    const redirect = isRedirectClause(c);
+    return { force: redirect ? null : forceActionIn(c), strike: !redirect && isStrikeClause(c), redirect, object: objectIn(c) };
+  });
   // "lift a heavy rock with the Force and hurl it": the object is named in the clause before the throw (D-216).
   const clauses = raw.map((c, k) => (c.force === 'throw' && !c.object && k > 0 && !raw[k - 1]!.force ? { ...c, object: raw[k - 1]!.object } : c));
   const wantStrikes = clauses.filter((c) => c.strike && !c.force).length;
   const haveStrikes = steps.filter((x) => x.kind === 'strike').length;
   const wantForce = clauses.filter((c) => c.force).length;
   const haveForce = steps.filter((x) => x.kind === 'forceAction').length;
+  // Sending the bolts back (m9-fix-deflect): a redirect clause is a redirect step, never a strike at a ranged foe out of reach.
+  const wantRedirect = clauses.filter((c) => c.redirect).length;
   // The objects named for throws reach steps the intent made without one (D-216).
   const objects = clauses.filter((c) => c.force === 'throw' && c.object).map((c) => c.object!);
-  if (wantStrikes <= haveStrikes && wantForce <= haveForce) {
+  if (wantStrikes <= haveStrikes && wantForce <= haveForce && wantRedirect === 0) {
     let k = 0;
     return steps.map((x) => (x.kind === 'forceAction' && x.action === 'throw' && !x['objectTag'] && objects[k] ? { ...x, objectTag: objects[k++] } : x));
   }
@@ -123,7 +144,7 @@ export function reconcileSteps(text: string, steps0: readonly StepLike[], max: n
     const i = queue.findIndex(pred);
     if (i < 0) {
       // Nothing to match: the intent's leading stances, tactics and maneuvers keep their place before the inserted step.
-      while (queue[0] && queue[0].kind !== 'forceAction' && queue[0].kind !== 'strike') out.push(queue.shift()!);
+      while (queue[0] && queue[0].kind !== 'forceAction' && queue[0].kind !== 'strike' && queue[0].kind !== 'redirect') out.push(queue.shift()!);
       return null;
     }
     out.push(...queue.splice(0, i)); // steps the intent put before it (stances, maneuvers) keep their place
@@ -135,12 +156,18 @@ export function reconcileSteps(text: string, steps0: readonly StepLike[], max: n
       const named = c.force === 'throw' ? c.object : null;
       // A throw keeps the object the player named (D-216), unless the intent named one.
       out.push(f ? (named && f.action === 'throw' && !f['objectTag'] ? { ...f, objectTag: named } : f) : { kind: 'forceAction', action: c.force, ...(named ? { objectTag: named } : {}) });
+    } else if (c.redirect) {
+      // The intent's step for this clause (a redirect, or the strike it misread it as: "stance defensive, strike aimed at
+      // the torso" for "deflect the bolts back at the thugs") becomes the redirect.
+      takeUntil((x) => x.kind === 'redirect' || x.kind === 'strike');
+      out.push({ kind: 'redirect' });
     } else if (c.strike) {
       const st = takeUntil((x) => x.kind === 'strike');
       out.push(st ?? { kind: 'strike' });
     }
   }
-  out.push(...queue);
+  // With redirect clauses the text is the authority: no extra redirect, and no strike the words never asked for.
+  out.push(...queue.filter((x) => !(wantRedirect > 0 && (x.kind === 'redirect' || (x.kind === 'strike' && wantStrikes === 0)))));
   return out.slice(0, max);
 }
 
@@ -156,7 +183,7 @@ export function targetFromText(text: string, opponents: readonly { id: string; n
     return o.minion ? [words[words.length - 1]!] : words.filter((w) => w.length >= 4);
   };
   const clauses = clausesOf(text);
-  const firstStrike = clauses.findIndex((c) => isStrikeClause(c) || forceActionIn(c) !== null);
+  const firstStrike = clauses.findIndex((c) => isStrikeClause(c) || forceActionIn(c) !== null || isRedirectClause(c));
   // A full name ("B1 battle droid 4") outranks a bare noun ("droid") in the same clause.
   const mentions: { id: string; clause: number; at: number; full: boolean }[] = [];
   clauses.forEach((c, k) => {
@@ -194,8 +221,9 @@ export function reconcileCombatPayload(text: string | undefined, payload: Record
   } else if (a === 'continue' || a === 'posture' || a === 'clarify' || a === 'aim') steps = [];
   else return payload;
   const next = reconcileSteps(text, steps, max);
-  if (next.length === steps.length && a !== 'posture' && a !== 'clarify' && a !== 'continue' && a !== 'aim') return payload;
-  if (!next.some((x) => x.kind === 'strike' || x.kind === 'forceAction')) return payload;
+  // Same steps (not only the same count: a misread strike turned into a redirect keeps the length, m9-fix-deflect).
+  if (JSON.stringify(next) === JSON.stringify(steps) && a !== 'posture' && a !== 'clarify' && a !== 'continue' && a !== 'aim') return payload;
+  if (!next.some((x) => x.kind === 'strike' || x.kind === 'forceAction' || x.kind === 'redirect')) return payload;
   // A posture's stance goes first; an aim goes on the first strike.
   const pre: StepLike[] = a === 'posture' && payload['stance'] ? [{ kind: 'stance', stance: payload['stance'] }] : [];
   const aim = a === 'aim' ? payload['part'] : undefined;

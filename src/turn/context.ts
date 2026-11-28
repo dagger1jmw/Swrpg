@@ -586,6 +586,8 @@ export function describeCombat(c: CombatDraft): string[] {
   }
   if (facts.steps.length) lines.push(`Steps the player asked for: ${facts.steps.map((s) => `step ${s.index + 1} ${s.label}: ${s.status} (${s.detail})`).join('; ')}.`);
   for (const n of c.notes.filter((x) => x.startsWith('intent step'))) lines.push(`Sequence: ${n}`);
+  // Short of the intent (m9-fix-deflect): the player's goal stays in the prose, with how it fell short.
+  if (facts.shortOfIntent.length) lines.push(`Short of the intent (tell each attempt as the player meant it, then how it fell short; never drop the goal and never tell it as done): ${facts.shortOfIntent.map((x) => `#${x.n} ${c.fighters[0]?.name ?? 'the player character'} tries to ${x.kind === 'redirect' ? x.goal : x.goal.replace(/^uses /, 'use ')}: ${x.result}`).join('; ')}.`);
   lines.push(`Hits in this passage: ${facts.hits.length ? facts.hits.map((h) => `#${h.n} on ${h.targetName} (${h.stun ? `${h.stun}: no wound, no place` : `${partText(h.part)}, ${h.severed ? 'severed' : h.severity ? `${h.severity} wound` : 'no wound'}`})`).join('; ') : 'NONE: nobody was hit, wounded or touched'}.`);
   if (facts.didNotHappen.length) lines.push(`Did not happen (never describe these as happening): ${facts.didNotHappen.join('; ')}.`);
   lines.push(`Now: ${c.fighters.map((f) => `${f.name} ${f.status}${f.lasting?.text.length ? ` (${f.lasting.text.join('; ')})` : f.lostParts.length ? ` (lost: ${f.lostParts.map(partText).join(', ')})` : ''}`).join('; ')}.`);

@@ -16,7 +16,7 @@ import type { CombatDraft } from './combatTurn';
 import { careApplied } from './context';
 import type { TurnDraft } from './resolve';
 
-export type NarrationIssueKind = 'sever' | 'hitNotInLog' | 'minionNotHit' | 'stepNotReached' | 'healingNotApplied' | 'woundOmitted' | 'woundMisplaced' | 'repeated' | 'slipNoHazard' | 'mechanicalTerms' | 'gearNotInBlock' | 'stepFailed' | 'groundReversed' | 'survivorCount' | 'lastingState' | 'captorsWrong' | 'missionOffered' | 'stageNarrated';
+export type NarrationIssueKind = 'sever' | 'hitNotInLog' | 'minionNotHit' | 'stepNotReached' | 'healingNotApplied' | 'woundOmitted' | 'woundMisplaced' | 'repeated' | 'slipNoHazard' | 'mechanicalTerms' | 'gearNotInBlock' | 'stepFailed' | 'groundReversed' | 'survivorCount' | 'lastingState' | 'captorsWrong' | 'missionOffered' | 'stageNarrated' | 'intentDropped';
 export interface NarrationIssue {
   kind: NarrationIssueKind;
   /** The correction for the retry, and the log line. */
@@ -431,6 +431,40 @@ function combatIssues(narrative: string, c: CombatDraft, facts: CombatFacts): Na
     const where = PART_PROSE[h.part.replace(/^(left|right)/, '').toLowerCase()] ?? null;
     if (where && !where.test(lower)) out.push({ kind: 'woundOmitted', text: `#${h.n} HIT ${h.targetName} (${h.part.replace(/([A-Z])/g, ' $1').toLowerCase()}, ${h.severed ? 'severed' : `${h.severity} wound`}): the narration left this wound out; narrate it where and as severe as listed`, sentence: '' });
   }
+  out.push(...intentIssues(narrative, c, facts));
+  return out;
+}
+
+/** The redirect attempt in prose (m9-fix-deflect): the bolts meant to go back at the shooter. */
+const REDIRECT_ATTEMPT = /\bback (?:at|toward|towards|into|on|the way)\b|\bredirect\w*|\breflect\w*|\b(?:send|sends|sending|sent|turn\w*|bat\w*|angl\w+|knock\w*|swat\w*) (?:\w+ ){0,4}?back\b|\breturn\w* (?:the |a |his |her |their |its )?(?:bolts?|shots?|fire)\b/i;
+/** A bolt told going back into someone (the redirect told as done). */
+const REDIRECT_DONE = /\b(?:bolts?|shots?|blasts?)\b[^.]{0,60}?\bback (?:into|through)\b/i;
+/** Attempt words: the clause tells an attempt or a wish, not a result. */
+const ATTEMPT_WORDS = /\b(?:tries|try|trying|tried|attempt\w*|aim\w*|meant|mean|means|want\w*|hop\w*|would|could|might|nearly|almost|seek\w*|intend\w*)\b/i;
+
+/**
+ * A step short of its intent (m9-fix-deflect): the narration must tell the attempt and how it fell short. A redirect that
+ * sent no bolt back must appear as an attempt (bolts meant to go back) and never as done; a FAILED Force action must
+ * appear at all (the Force reached for, or the action named). Other steps keep their own rules (NO HIT, NOT REACHED).
+ */
+export function intentIssues(narrative: string, c: CombatDraft, facts: CombatFacts): NarrationIssue[] {
+  const out: NarrationIssue[] = [];
+  const pc = c.fighters[0]?.name ?? 'the player character';
+  const short = facts.shortOfIntent;
+  if (!short.length) return out;
+  const redirects = short.filter((x) => x.kind === 'redirect');
+  const sentBack = c.narrate.some((r) => r.redirect === 'sentBack');
+  if (redirects.length && !sentBack) {
+    if (!REDIRECT_ATTEMPT.test(narrative)) out.push({ kind: 'intentDropped', text: `${pc} tried to send the bolts back (${redirects.map((x) => `#${x.n}: ${x.result}`).join('; ')}): tell the attempt as the player meant it, then how it fell short; the goal must not vanish`, sentence: '' });
+    for (const s of sentencesOf(narrative)) {
+      if (clausesOf(s).some((cl) => REDIRECT_DONE.test(cl) && !ATTEMPT_WORDS.test(cl) && !NOT_DONE.test(cl) && !NEGATED.test(cl))) out.push({ kind: 'stepFailed', text: `no bolt went back into anyone in this passage (${redirects.map((x) => x.result).join('; ')}): tell the attempt and how it fell short, never a bolt sent home`, sentence: s });
+    }
+  }
+  for (const x of short.filter((y) => y.kind !== 'redirect')) {
+    const named = FORCE_PROSE[x.kind]?.test(narrative) ?? false;
+    const saber = (x.kind === 'saberThrow' || x.kind === 'recall') && /\b(?:saber|lightsaber|hilt)\b/i.test(narrative);
+    if (!named && !saber && !/\bthe force\b/i.test(narrative)) out.push({ kind: 'intentDropped', text: `#${x.n} ${pc} tried to ${x.goal.replace(/^uses /, 'use ')} and ${x.result}: tell the attempt and how it failed; the goal must not vanish`, sentence: '' });
+  }
   return out;
 }
 
@@ -831,6 +865,8 @@ export function combatSummary(c: CombatDraft): string[] {
   if (done.length) lines.push(clipLine(`Steps: ${done.join('; ')}.`));
   const notReached = steps.filter((st) => st.status === 'NOT REACHED').map((st) => `${st.label} (${st.detail})`);
   if (notReached.length) lines.push(clipLine(`Not reached: ${notReached.join('; ')}.`));
+  // Short of the intent (m9-fix-deflect): the attempt and how it fell short, so the summary keeps the player's goal.
+  if (facts.shortOfIntent.length) lines.push(clipLine(`Short of the intent: ${facts.shortOfIntent.map((x) => `${pc} tries to ${x.kind === 'redirect' ? x.goal : x.goal.replace(/^uses /, 'use ')}, but ${x.result}`).join('; ')}.`));
   const standing = c.fighters.filter((f) => f.id !== 'pc' && !f.out && !f.engagedElsewhere).length;
   // Who broke, withdrew or was taken (pass 5 issue 7: Thug 4's surrender was left out), on the end line so the cap keeps it.
   const left = c.narrate.flatMap((r) => r.notes.map(leftTheFight).filter((x): x is string => x !== null));

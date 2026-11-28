@@ -8,7 +8,8 @@ import { SEQUENCE_ADAPTATION, SEQUENCE_CAP, SEQUENCE_CHAIN } from '../data/seque
 import type { BodyPart, ForceEffort } from '../data/health.config';
 import type { ObjectSize } from '../data/terrain';
 import { canThrowSaber, FORCE_ACTION_ABILITY, forceReason, resolveForceAction, type ForceActionKind, type ForceActionRecord } from './combatForce';
-import { beatAfter, exchangeOutcomeText, hitText, partText, resolveExchange, runUntilBeat, settleEnd, type DuelContext, type DuelState, type ExchangeRecord, type RunMode } from './duel';
+import { beatAfter, exchangeOutcomeText, hasSaber, hitText, partText, redirectNote, resolveExchange, runUntilBeat, settleEnd, type DuelContext, type DuelState, type ExchangeRecord, type RunMode } from './duel';
+import { BLASTER_WEAPONS, SLUGTHROWERS } from '../data/weapons';
 import type { BeatReason } from '../data/combat.config';
 import type { Modifier } from './rolls';
 import { SKILL_BY_ID } from '../data/skills';
@@ -19,7 +20,9 @@ export type SequenceStep =
   | { kind: 'tactic'; tactic: Extract<Tactic, 'feint' | 'taunt'> }
   | { kind: 'maneuver'; maneuver: Maneuver }
   | { kind: 'forceAction'; action: ForceActionKind; effort?: ForceEffort; objectTag?: string }
-  | { kind: 'strike'; aim?: BodyPart };
+  | { kind: 'strike'; aim?: BodyPart }
+  /** Send the shooter's blaster bolts back (m9-fix-deflect): the main form against the shooter's Blaster roll. */
+  | { kind: 'redirect' };
 
 export interface CapInputs {
   rank: string;
@@ -129,6 +132,9 @@ export function runSequence(
     let success: boolean;
     let held = false;
     let note: string;
+    // A redirect aims at a shooter (m9-fix-deflect): the target when it fires a blaster (the one named: the turn set it),
+    // else the first engaged blaster shooter (the nearest: the fight lists the engaged in order).
+    if (step.kind === 'redirect') st = { ...st, duel: aimAtShooter(st.duel) };
     const duel = st.duel;
     // A step that cannot be attempted is dropped with its reason and the chain goes on (D-191: no silent drops).
     const cannot = cannotAttempt(step, duel, force);
@@ -211,19 +217,23 @@ export function runSequence(
       // A strike step against a minion is a strike roll, not a build-up contest (D-191).
       const target = before.opponents[before.target];
       const forceStrike = step.kind === 'strike' && target?.minion === true;
-      const after = resolveExchange(before, ctx, day, { a: bonus, bDefense: defense, step: i, forceStrike });
+      const redirect = step.kind === 'redirect';
+      const after = resolveExchange(before, ctx, day, { a: bonus, bDefense: defense, step: i, forceStrike, ...(redirect ? { redirect } : {}) });
       const rec = after.log[after.log.length - 1]!;
       const natural1 = rec.rollA?.natural === 'nat1';
-      if (rec.kind === 'strike' && rec.striker === 'A') success = !!rec.maneuver || (!!rec.hit && !rec.hit.avoided);
+      if (redirect && rec.redirect === 'sentBack') success = true;
+      else if (rec.kind === 'strike' && rec.striker === 'A') success = !!rec.maneuver || (!!rec.hit && !rec.hit.avoided);
       else success = after.advantage > before.advantage;
       if (natural1) success = false;
       // A strike step's build-up that only holds (the tie band; the track where it was) is not a failure (Jared, D-219):
       // the chain goes on, without the building-pressure bonus. Lost ground, a miss or a natural 1 still stop it.
-      held = !success && !natural1 && step.kind === 'strike' && rec.kind === 'buildUp' && after.advantage === before.advantage && !(rec.hit && rec.hit.by === 'B' && !rec.hit.avoided);
+      held = !success && !natural1 && (step.kind === 'strike' || redirect) && rec.kind === 'buildUp' && after.advantage === before.advantage && !(rec.hit && rec.hit.by === 'B' && !rec.hit.avoided);
       st = { ...st, duel: after };
       // Plain outcome (D-197): a real hit says hits with its location and severity; a build-up gains ground, holds or loses it.
       const tgt = after.opponents.find((o) => o.id === rec.targetId);
       note = exchangeOutcomeText(rec, tgt?.name ?? 'the opponent', tgt?.out === true).text;
+      // A redirect says how it went against the intent (sent back, or short of it and how), then the plain outcome.
+      if (redirect && rec.redirect) note = rec.redirect === 'sentBack' ? `${redirectNote('sentBack', duel.a.name, tgt?.name ?? 'the shooter')}: ${note}` : `${redirectNote(rec.redirect, duel.a.name, tgt?.name ?? 'the shooter')} (${note})`;
       if (step.kind !== 'maneuver') splitDefense = false;
     }
     st = { ...st, duel: settleEnd(st.duel) };
@@ -287,6 +297,7 @@ export function stepLabel(step: SequenceStep): string {
   if (step.kind === 'maneuver') return `maneuver (${step.maneuver})`;
   if (step.kind === 'tactic') return step.tactic;
   if (step.kind === 'stance') return `stance (${step.stance})`;
+  if (step.kind === 'redirect') return 'redirect (send the bolts back)';
   return step.aim ? `strike (aimed at the ${partText(step.aim)})` : 'strike';
 }
 
@@ -295,6 +306,7 @@ export const UNKNOWN_PREFIX = "you don't know ";
 
 /** Why a step cannot be attempted at all, or null (D-191, D-193). */
 function cannotAttempt(step: SequenceStep, duel: DuelState, force: ForceProfile): string | null {
+  if (step.kind === 'redirect') return cannotRedirect(duel);
   if (step.kind !== 'forceAction') return null;
   const ability = FORCE_ACTION_ABILITY[step.action];
   if (force.levelOf(step.action) < 1) return `${UNKNOWN_PREFIX}${SKILL_BY_ID.get(ability)?.name ?? ability}`;
@@ -309,6 +321,25 @@ function cannotAttempt(step: SequenceStep, duel: DuelState, force: ForceProfile)
     if (traits.includes('mindImmune')) return `${t.name} can't be mind-tricked`;
   }
   return null;
+}
+
+/** The duel aimed at a blaster shooter for a redirect: the target when it fires a blaster, else the first engaged one. */
+function aimAtShooter(duel: DuelState): DuelState {
+  const t = duel.opponents[duel.target];
+  if (t && !t.out && !t.engagedElsewhere && BLASTER_WEAPONS.includes(t.weapon)) return duel;
+  const k = duel.opponents.findIndex((o) => !o.out && !o.engagedElsewhere && BLASTER_WEAPONS.includes(o.weapon));
+  return k >= 0 ? { ...duel, target: k } : duel;
+}
+
+/** Why a redirect cannot be tried (m9-fix-deflect), or null: it needs a saber in hand and blaster fire to send back. */
+function cannotRedirect(duel: DuelState): string | null {
+  if (!hasSaber(duel.a) || duel.a.saberLost) return 'needs a lightsaber in hand to send the bolts back';
+  const t = duel.opponents[duel.target];
+  if (t && !t.out && !t.engagedElsewhere && BLASTER_WEAPONS.includes(t.weapon)) return null;
+  const live = duel.opponents.filter((o) => !o.out && !o.engagedElsewhere);
+  // Slugs melt on the blade and are never sent back (D-200).
+  if (live.some((o) => SLUGTHROWERS.includes(o.weapon))) return 'slugs melt on the blade: they cannot be sent back';
+  return 'no blaster fire to send back: no opponent here is shooting a blaster';
 }
 
 /**

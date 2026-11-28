@@ -1,7 +1,7 @@
 // The explicit outcome list for a combat narration (D-197): what the narrator's block states and what the
 // post-narration check reads. Per exchange: HIT (target, location, severity) or NO HIT. Per step: DONE, FAILED or NOT
 // REACHED. Built only from the engine's records; pure.
-import { CARD_ONLY_NOTE, partText } from '../engine/duel';
+import { CARD_ONLY_NOTE, partText, redirectNote } from '../engine/duel';
 import { forceReason } from '../engine/combatForce';
 import { BUILD_UP, NARRATION_LENGTH, SUBDUE_TEXT } from '../data/combat.config';
 import { RANGED_WEAPONS } from '../data/weapons';
@@ -58,6 +58,21 @@ export interface CombatFacts {
   unhitOpponents: { id: string; name: string; out: boolean; minion: boolean }[];
   playerHit: boolean;
   anySevered: boolean;
+  /**
+   * Steps whose result fell short of what the player asked for (m9-fix-deflect): a redirect that sent no bolt back, a Force
+   * action that FAILED. The narrator tells the attempt and how it fell short; the check fails a narration that drops the goal.
+   */
+  shortOfIntent: ShortOfIntent[];
+}
+
+export interface ShortOfIntent {
+  n: number;
+  /** redirect, or the Force action (push, choke, lightning, throw, mindTrick, saberThrow, recall). */
+  kind: string;
+  /** What the player asked for, in plain words ("send Thug 1's bolts back"). */
+  goal: string;
+  /** How it fell short, in plain words. */
+  result: string;
 }
 
 /** A thrown object in words, by its terrain tag (issue 19). */
@@ -144,6 +159,7 @@ export function combatFacts(c: CombatDraft): CombatFacts {
   const hits: HitFact[] = [];
   const didNotHappen: string[] = [];
   const noShot = playerShotNotReached(c);
+  const shortOfIntent: ShortOfIntent[] = [];
   for (const r of c.narrate) {
     const t = names[r.targetId] ?? r.targetId;
     const step = r.step !== undefined ? ` (sequence step ${r.step + 1})` : '';
@@ -172,6 +188,7 @@ export function combatFacts(c: CombatDraft): CombatFacts {
         const reason = forceReason(f);
         lines.push(`${head} ${user} ${what}: FAILED (${reason}). NO HIT, no effect on ${on}. Explain the failure only with this reason; nothing else in the scene blocked it.`);
         didNotHappen.push(`${user}'s ${f.kind === 'saberThrow' ? 'saber throw' : f.kind === 'recall' ? 'saber recall' : (SKILL_BY_ID.get(f.abilityId)?.name ?? f.abilityId)} had no effect (#${r.n}: ${reason})`);
+        if (f.side === 'A') shortOfIntent.push({ n: r.n, kind: f.kind, goal: what, result: `it failed (${reason})` });
       }
       continue;
     }
@@ -200,6 +217,15 @@ export function combatFacts(c: CombatDraft): CombatFacts {
       lines.push(`${head} ${r.maneuver.by === 'A' ? pc : t} lands a ${r.maneuver.kind} maneuver. NO HIT, no injury.`);
       continue;
     }
+    // The redirect action short of its intent (m9-fix-deflect): the attempt, how it fell short, and the plain outcome.
+    if (r.redirect && r.redirect !== 'sentBack') {
+      const result = redirectNote(r.redirect, pc, t).replace(/^.*?: short of the intent, /, '');
+      const lead = r.kind === 'buildUp' ? ` ${buildUpLead(r, pc, t)} (margin ${fmt(Math.abs(r.margin))}).` : '';
+      lines.push(`${head} ${pc} tries to send ${t}'s blaster bolts back at ${t}: NO HIT, SHORT OF THE INTENT (${result}).${lead} Tell the attempt, then how it fell short.`);
+      didNotHappen.push(`no bolt went back into ${t} (#${r.n})`);
+      shortOfIntent.push({ n: r.n, kind: 'redirect', goal: `send ${t}'s blaster bolts back at ${t}`, result });
+      continue;
+    }
     if (r.kind === 'strike') {
       const striker = r.striker === 'A' ? pc : t;
       const defender = r.striker === 'A' ? t : pc;
@@ -223,7 +249,7 @@ export function combatFacts(c: CombatDraft): CombatFacts {
   for (const s of steps) if (s.status === 'NOT REACHED') didNotHappen.push(`step ${s.index + 1} (${s.label}) was NOT REACHED: ${s.detail}`);
   const hitByPlayer = new Set(hits.filter((h) => h.byPlayer).map((h) => h.targetId));
   const unhitOpponents = c.fighters.filter((f) => f.id !== 'pc' && !hitByPlayer.has(f.id)).map((f) => ({ id: f.id, name: f.name, out: f.out, minion: f.minion }));
-  return { lines, hits, steps, didNotHappen, unhitOpponents, playerHit: hits.some((h) => !h.byPlayer), anySevered: hits.some((h) => h.severed) };
+  return { lines, hits, steps, didNotHappen, unhitOpponents, playerHit: hits.some((h) => !h.byPlayer), anySevered: hits.some((h) => h.severed), shortOfIntent };
 }
 
 /** Notes that mark a fighter leaving the fight or the fight being decided: always a highlight (D-271). */

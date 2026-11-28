@@ -152,6 +152,26 @@ export const DISENGAGE = { advantagePenaltyPerStep: 1 } as const;
 /** A defender margin this high redirects a bolt (Soresu / Shien per the lore). */
 export const DEFLECT_REDIRECT_MARGIN = 8;
 
+/**
+ * Sending the bolts back (Jared, m9-fix-deflect; numbers invented): the player's redirect action against a blaster shooter,
+ * the main form (the lightsaber deflection) against the shooter's Blaster roll. Results by the build-up bands: a small win
+ * (2-5) deflects the bolts away (+1), a mid win (6-9) gains ground (+2), the strike band (10+, the +3 step) sends a bolt back
+ * into the shooter with the shooter's weapon damage; holding the strike (+3), a strike margin of STRIKE_MIN_MARGIN does.
+ * Against a minion the cut-down margin (6) is enough (minion groups are mass, D-158).
+ */
+export const REDIRECT = {
+  /** Build-up margin that sends a bolt back into a duelist (the strike band). */
+  sendBackMargin: 10,
+  /** Build-up margin that sends a bolt back into a minion (CUT_DOWN_MARGIN). */
+  sendBackMinionMargin: 6,
+  /**
+   * The redirect modifier by form, on top of the form's vs-blaster matchup (lore :188, :192): Shien was built to send bolts
+   * back at the shooter (+1, so +2 with its matchup); Soresu deflects reliably but redirects poorly (-1, so its +1 matchup
+   * nets 0). Every other form 0.
+   */
+  formMod: { shien: 1, soresu: -1 } as Readonly<Record<string, number>>,
+} as const;
+
 // ---- Sparring modes (Jared, D-143; D-144; D-172) ----
 // Routine sparring uses the rank default below (Sith master and apprentice: controlled live blades). Sith-academy stakes
 // (live blades, real wounds) apply to spars at an academy (SITH_ACADEMIES) and to trials; a master can call them for
