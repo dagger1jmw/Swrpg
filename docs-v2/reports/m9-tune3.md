@@ -278,3 +278,31 @@ All logged as D-579.
 | Luke's peak tolerance 0.05 (Jared's number; recorded here as the constant) | `LUKE_AGES.peakTolerance` (tests/lifetime/checks.ts) |
 | Every side's base name in E1 | `FRONTS[].sideBases` (missions.config) |
 | The tired-fight measurement's two new cases (strain 1.0 while pushing, live and spar) | tests/measure/tiredFight.measure.ts |
+
+## m9-tune3b: two rulings and the full check (Jared, 28 Nov 2026)
+
+Decisions D-580 to D-582. Section E2's flags are settled:
+
+1. **Revan's Sith stay `sith`** (D-580, ruled).
+   - A power of their own: Vitiate's Empire was hidden then.
+   - The SITH_POWERS row is now named "Revan's Sith Empire (Revan's and Malak's Sith)" for the narrator.
+   - Its faction id and the wars list are unchanged.
+2. **Imperial-born opens only for a birth in Vitiate's Sith Empire** (D-581; amends D-578).
+   - The trait has its own dated list again: traits.ts `IMPERIAL_BORN_YEARS`, 4,980 BBY (the founding at Kaas City) to 3,600 BBY (the end, invented). It is read by the birth year.
+   - A birth in the ancient Sith Empire, the Brotherhood, Palpatine's Empire or Krayt's Empire does not open it.
+   - `sithEmpireSpans`, which only the trait read, is removed.
+   - **Tested** (tests/m9/tune3.test.ts):
+     - Open at 4,980, 3,700, 3,681 and 3,600 BBY, for a Sith or a character marked Imperial-born.
+     - Closed for a non-Imperial career.
+     - Closed for births in 5,100 and 4,990 BBY (before Kaas City), 3,599 BBY, 1,020 BBY (the Brotherhood), 10 BBY and 135 ABY.
+   - **One difference from before m9-tune3:** the gate now reads the birth year ("born in"). It used to read the birth-to-start window overlapping the same years, which opened it for someone born just before 4,980 who started inside.
+3. **The full test:all, after the Luke gate fix:** green, 2,329 of 2,329.
+   - **Luke's Endurance passes with only 0.005 level to spare:** 43.281 at 68, and its highest after 68 is 43.326 at 76, against the 0.05 tolerance. A shift of a hundredth in his late Endurance will fail the gate again.
+4. **Recorded as accepted** (D-582): the soldier's drift of about 0.3 level before its war.
+
+| Run | Result | Time |
+| --- | --- | --- |
+| npm test | 2,267 of 2,267, 186 files | 44 s |
+| typecheck | clean | 13 s |
+| lint | clean | 11 s |
+| test:all (lifetime included; run alone) | 2,329 of 2,329, 204 files | 1,148 s (19.1 min) |

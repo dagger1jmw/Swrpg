@@ -4,10 +4,12 @@
 import { describe, expect, it } from 'vitest';
 import { FRONTS } from '../../src/data/missions.config';
 import { FRONT_PACE, GOOD_FORM } from '../../src/data/progression.config';
-import { SITH_POWERS, sithEmpireSpans, sithSideAt } from '../../src/data/wars';
+import { IMPERIAL_BORN_YEARS } from '../../src/data/traits';
+import { SITH_POWERS, sithSideAt } from '../../src/data/wars';
 import { goodFormMult, goodFormThreshold } from '../../src/engine/combatXp';
 import { frontBaseFor } from '../../src/features/duty/missions';
 import { frontPaced, selectFrontPace, speedPartsFor } from '../../src/features/progression/training';
+import { traitRefusal, type TraitContext } from '../../src/features/traits/rules';
 import type { GameState } from '../../src/state/gameState';
 import { sithFactionAt } from '../../src/turn/devCommands';
 import { base } from '../support/schemaSituations';
@@ -71,15 +73,25 @@ describe('item 5: the data fixes', () => {
     expect(frontBaseFor(core, 'sithEmpire')).not.toMatch(/Republic/);
   });
 
-  it('one dated list of Sith powers: the dev duelists and the Imperial-born trait read SITH_POWERS', () => {
+  it(`one dated list of Sith powers: the dev duelists read SITH_POWERS; Revan's Sith a power of their own (D-580)`, () => {
     for (let y = -6000; y <= 200; y += 7) expect(sithFactionAt(y)).toBe(sithSideAt(y));
-    const spans = sithEmpireSpans();
-    expect(spans).toHaveLength(SITH_POWERS.filter((p) => p.faction === 'sithEmpire').length);
-    // Vitiate's Empire to 3,600, Palpatine's (19 BBY-4 ABY) and Krayt's (130-138 ABY, SW_Characters_18_LegacyEra).
-    expect(spans.some((e) => e.from <= -4980 && e.to === -3600)).toBe(true);
-    expect(spans).toContainEqual({ from: -19, to: 4 });
-    expect(spans).toContainEqual({ from: 130, to: 138 });
+    const revan = SITH_POWERS.find((p) => p.fromBby === 3959)!;
+    expect(revan.faction).toBe('sith');
+    expect(revan.name).toMatch(/Revan's Sith Empire/);
+    expect(sithSideAt(-3957)).toBe('sith');
+    // Krayt's Empire (130-138 ABY, SW_Characters_18_LegacyEra).
     expect(sithSideAt(135)).toBe('sithEmpire');
     expect(sithSideAt(139)).toBe('sith');
+  });
+
+  it(`Imperial-born opens only for a birth in Vitiate's Sith Empire, its own dated list (D-581)`, () => {
+    const ctx = (birthYear: number, path: TraitContext['path'] = 'sith', imperialBorn?: boolean): TraitContext => ({ path, speciesId: 'human', archetype: 'sithWarrior', birthYear, startYear: birthYear + 20, trainingStartAge: 8, ...(imperialBorn !== undefined ? { imperialBorn } : {}) });
+    expect(IMPERIAL_BORN_YEARS).toEqual({ from: -4980, to: -3600 });
+    // Open: Vitiate's Empire, from Kaas City's founding to its end.
+    for (const y of [-4980, -3700, -3681, -3600]) expect(traitRefusal('imperialBorn', ctx(y)), String(y)).toBeNull();
+    expect(traitRefusal('imperialBorn', ctx(-3690, 'career', true))).toBeNull();
+    // Closed: not Imperial; the ancient Empire, the Brotherhood, Palpatine's Empire, Krayt's Empire.
+    expect(traitRefusal('imperialBorn', ctx(-3690, 'career'))).not.toBeNull();
+    for (const y of [-5100, -4990, -3599, -1020, -10, 135]) expect(traitRefusal('imperialBorn', ctx(y)), String(y)).not.toBeNull();
   });
 });

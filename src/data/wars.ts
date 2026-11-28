@@ -167,7 +167,9 @@ export interface SithPower {
 export const SITH_POWERS: readonly SithPower[] = [
   { faction: 'sithEmpire', name: 'the Sith Empire (the ancient Empire, then Vitiate\'s and Empress Acina\'s)', fromBby: 100000, toBby: 3600, source: 'SW_Sith_Training_AllEras cross-era table (the Ancient Sith Empire; Vitiate\'s Empire to 3,636); orderSeats SITH_SEATS (the Empire held to 3,600, a design default: the lore files stop at 3,630)' },
   { faction: 'sith', name: 'Exar Kun\'s Brotherhood of the Sith', fromBby: 4000, toBby: 3996, source: 'SW_Characters_04-05_GreatSithWar; the wars list (the Great Sith War fought by sith)' },
-  { faction: 'sith', name: 'Revan\'s and Malak\'s Sith', fromBby: 3959, toBby: 3956, source: 'SW_Characters_07_JediCivilWar; the wars list (sith, not sithEmpire: a reading of the faction ids)' },
+  // A power of its own, not the Emperor's Empire (Jared, 28 Nov 2026, m9-tune3b, D-580: Vitiate's Empire was hidden then; the id and
+  // the wars list stay sith). The name is the lore's, for the narrator.
+  { faction: 'sith', name: 'Revan\'s Sith Empire (Revan\'s and Malak\'s Sith)', fromBby: 3959, toBby: 3956, source: 'SW_Characters_07_JediCivilWar ("the Sith Empire of Darth Revan and Darth Malak"); the wars list (sith); ruled, D-580' },
   { faction: 'sith', name: 'the scattered Sith after the Empire', fromBby: 3599, toBby: 2001, source: 'a reading (no Sith Empire on record after 3,600; the New Sith Wars begin c. 2,000)' },
   { faction: 'sith', name: 'the New Sith and their warlords', fromBby: 2000, toBby: 1033, source: 'SW_Timeline_2000_1000BBY_Part1 (the New Sith Wars)' },
   { faction: 'sith', name: 'the Brotherhood of Darkness', fromBby: 1032, toBby: 995, source: 'Jared, 27 Nov 2026 (m9-tune2 item 4: 1,032-995 BBY); SW_Timeline_2000_1000BBY_Part2 (Kaan founds it in 1,010 from the New Sith, also sith)' },
@@ -178,13 +180,6 @@ export const SITH_POWERS: readonly SithPower[] = [
   // m9-tune3 item 5: from devCommands' old dev-duelist list (130-140 ABY there); the years from the lore file.
   { faction: 'sithEmpire', name: 'Darth Krayt\'s Sith Empire (the One Sith on the Imperial throne)', fromBby: -130, toBby: -138, source: 'SW_Characters_18_LegacyEra (Krayt seizes the throne from Roan Fel in 130 ABY; Wyyrlok rules as regent; Cade Skywalker kills Krayt for good in 138 ABY)' },
 ];
-
-/**
- * The spans of the Sith Empires on record (signed years, inclusive; m9-tune3 item 5): every sithEmpire row of SITH_POWERS, whether
- * or not a later-risen Sith order is the one a Sith joins then (Vitiate's Empire stood, hidden, through Kun's and Revan's wars). The
- * Imperial-born trait reads it; it replaced traits' own SITH_EMPIRE_YEARS.
- */
-export const sithEmpireSpans = (): { from: number; to: number }[] => SITH_POWERS.filter((p) => p.faction === 'sithEmpire').map((p) => ({ from: -p.fromBby, to: -p.toBby }));
 
 /** The faction a Sith character serves in a year (signed: negative = BBY): the latest-risen power on record then (SITH_POWERS). */
 export function sithSideAt(year: number): 'sith' | 'sithEmpire' {

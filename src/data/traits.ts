@@ -450,6 +450,14 @@ export const MASSACRES: readonly { id: string; name: string; year: number; who: 
 /** The Jedi Order's attachment rules (the Forbidden bond): the Order of the Republic eras and the New Jedi Order before Luke allowed marriage (invented ends: c. 19 ABY lifted). */
 export const JEDI_ATTACHMENT_RULE_YEARS: readonly { from: number; to: number }[] = [{ from: -25000, to: 19 }];
 
+/**
+ * Imperial-born (Jared, 28 Nov 2026, m9-tune3b, D-581): the trait was built for Vitiate's Sith Empire, so it opens only for a birth in
+ * that Empire's years: from its founding at Kaas City on Dromund Kaas (4,980 BBY, world-event tag E.4980.dromund_kaas) to its end
+ * (3,600, SITH_POWERS' design default: the lore files stop at 3,630). Its own list, not SITH_POWERS: a birth in the ancient Sith Empire,
+ * the Brotherhood, Palpatine's Empire or Krayt's does not open it (those eras get their own backgrounds when they are built).
+ */
+export const IMPERIAL_BORN_YEARS = { from: -4980, to: -3600 } as const;
+
 /** Names for generated ties and childhood friends (invented, generic). */
 export const TIE_NAMES: readonly string[] = [
   'Arlen Voss', 'Tamsin Rook', 'Doran Vey', 'Kessa Marr', 'Jori Tal', 'Brann Okel', 'Sela Dray', 'Veric Hode', 'Mira Coll', 'Talen Drey',
